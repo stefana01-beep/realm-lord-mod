@@ -148,7 +148,7 @@ public final class RealmCommand {
         }
         Component occ = Component.translatable(prof.getCombatClass() != null ? prof.getCombatClass().key() : prof.getWork().key());
         s.sendSuccess(() -> Component.translatable("realmlord.cmd.info.head", p.getDisplayName(),
-                Component.translatable(prof.getMode().key()), occ, prof.getLevel(), Component.translatable(prof.getTitle().key()), prof.getMerit()), false);
+                Component.translatable(prof.getMode().key), occ, prof.getLevel(), Component.translatable(prof.getTitle().key()), prof.getMerit()), false);
         s.sendSuccess(() -> Component.translatable("realmlord.cmd.info.stats", prof.stat(Stat.COMMAND), prof.stat(Stat.FORCE),
                 prof.stat(Stat.INTELLIGENCE), prof.stat(Stat.POLITICS), prof.getPoints()), false);
         Territory t = prof.getTerritoryId() >= 0 ? TerritoryData.get(p.server).byId(prof.getTerritoryId()) : null;
