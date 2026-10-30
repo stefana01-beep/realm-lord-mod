@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "side": "realmlord:block/lords_manor_side",
+    "top": "realmlord:block/lords_manor_top",
+    "bottom": "realmlord:block/lords_manor_bottom"
+  }
+}
