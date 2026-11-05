@@ -1,0 +1,9 @@
+{
+ "type": "minecraft:flat_cache",
+ "argument": {
+  "type": "realmlord:china_map",
+  "channel": "erosion",
+  "detail": "minecraft:overworld/erosion",
+  "detail_amount": 0.2
+ }
+}

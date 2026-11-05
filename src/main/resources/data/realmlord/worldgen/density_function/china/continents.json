@@ -1,0 +1,9 @@
+{
+ "type": "minecraft:flat_cache",
+ "argument": {
+  "type": "realmlord:china_map",
+  "channel": "continents",
+  "detail": "minecraft:overworld/continents",
+  "detail_amount": 0.12
+ }
+}

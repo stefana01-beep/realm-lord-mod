@@ -158,6 +158,11 @@ TEXT = {
     "realmlord.manor.people_hint": "The best-suited idle residents take a job first. Open a talent's card to set their job or workplace yourself.",
     "realmlord.manor.talents": "Talents (%s)",
 
+    # China world
+    "generator.realmlord.china": "Earth Online: China",
+    "realmlord.cmd.capital": "%s: X %s, Z %s",
+    "realmlord.cmd.capitals_note": "The novel's nine Imperial Capitals, where they stand in an Earth Online: China world. Luoyang is the centre of the world.",
+
     # Map
     "realmlord.manor.tab.map": "Map",
     "realmlord.panel.territory.map": "Territory map",

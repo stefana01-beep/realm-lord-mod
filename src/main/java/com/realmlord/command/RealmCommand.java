@@ -43,6 +43,15 @@ public final class RealmCommand {
                         .then(Commands.argument("player", EntityArgument.player()).requires(s -> s.hasPermission(2))
                                 .executes(c -> info(c, EntityArgument.getPlayer(c, "player")))))
                 .then(Commands.literal("territories").executes(RealmCommand::territories))
+                .then(Commands.literal("capitals").executes(c -> {
+                    for (int i = 0; i < com.realmlord.worldgen.ChinaMap.CAPITALS.length; i++) {
+                        final int k = i;
+                        int[] pos = com.realmlord.worldgen.ChinaMap.CAPITAL_POS[k];
+                        c.getSource().sendSuccess(() -> Component.translatable("realmlord.cmd.capital", com.realmlord.worldgen.ChinaMap.CAPITALS[k], pos[0], pos[1]), false);
+                    }
+                    c.getSource().sendSuccess(() -> Component.translatable("realmlord.cmd.capitals_note"), false);
+                    return 1;
+                }))
                 .then(Commands.literal("role").executes(c -> {
                     ServerPlayer p = c.getSource().getPlayerOrException();
                     ModNetwork.send(p, new OpenScreenPacket(Profiles.get(p).hasChosen() ? OpenScreenPacket.CHARACTER : OpenScreenPacket.ROLE));
