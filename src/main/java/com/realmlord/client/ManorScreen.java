@@ -228,11 +228,8 @@ public class ManorScreen extends Screen {
             String err = o.getString("err");
             Component label = Component.translatable(free ? "realmlord.manor.place_free" : bt.placed() ? "realmlord.manor.place" : "realmlord.manor.build");
             Button b = Button.builder(label, btn -> {
-                if (bt.placed()) {
-                    minecraft.setScreen(new TerritoryMapScreen(bt));
-                } else {
-                    send(ManorActionPacket.Action.BUILD_FENCE, 0, 0);
-                }
+                // The fence is laid out on the map too, choosing its gates.
+                minecraft.setScreen(new TerritoryMapScreen(bt));
             }).bounds(x + W - 62, y + 44 + i * ROW, 52, 16).build();
             b.active = err.isEmpty();
             if (!err.isEmpty()) b.setTooltip(Tooltip.create(Component.translatable(err)));
@@ -245,6 +242,10 @@ public class ManorScreen extends Screen {
         for (int i = 0; i < bs.size() && shown < 3; i++) {
             CompoundTag b = bs.getCompound(i);
             if (b.getBoolean("complete")) continue;
+            if (b.getBoolean("demolish")) {
+                shown++;
+                continue;
+            }
             final int id = b.getInt("id");
             addRenderableWidget(Button.builder(Component.translatable("realmlord.manor.cancel"), btn -> send(ManorActionPacket.Action.CANCEL_SITE, id, 0))
                     .bounds(x + 190, y + 196 + shown * 12, 44, 11).tooltip(Tooltip.create(Component.translatable("realmlord.manor.cancel.tip"))).build());
@@ -298,8 +299,13 @@ public class ManorScreen extends Screen {
             if (shown < 3) {
                 BuildingType bt = BuildingType.byOrdinal(b.getInt("type"));
                 int sy = y + 197 + shown * 12;
-                g.drawString(font, Component.translatable(bt.key()), x + 10, sy, Ui.INK, false);
-                Ui.bar(g, x + 120, sy + 2, 60, 4, b.getDouble("fraction"), 0xFF6FCF97);
+                boolean down = b.getBoolean("demolish");
+                Component label = down ? Component.translatable("realmlord.manor.demolishing", Component.translatable(bt.key()))
+                        : b.getInt("stage") == 0 ? Component.translatable("realmlord.manor.clearing", Component.translatable(bt.key()))
+                        : b.getInt("stage") == 1 ? Component.translatable("realmlord.manor.levelling", Component.translatable(bt.key()))
+                        : Component.translatable(bt.key());
+                g.drawString(font, font.plainSubstrByWidth(label.getString(), 108), x + 10, sy, down ? Ui.RED : Ui.INK, false);
+                Ui.bar(g, x + 120, sy + 2, 60, 4, b.getDouble("fraction"), down ? 0xFFC8423B : 0xFF6FCF97);
             }
             shown++;
         }

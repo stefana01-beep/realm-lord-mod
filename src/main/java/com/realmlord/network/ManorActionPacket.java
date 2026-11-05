@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 
 /** Client to server: buttons on the Manor screen. */
 public class ManorActionPacket {
-    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT }
+    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT, DEMOLISH }
 
     private final Action action;
     private final int a;
@@ -87,7 +87,14 @@ public class ManorActionPacket {
             }
             case CANCEL_SITE -> {
                 Building site = t.building(a);
-                if (site != null && !site.complete) Village.demolish(t, site);
+                if (site != null && !site.complete && !site.demolishing) Village.demolish(p.serverLevel(), t, site);
+            }
+            case DEMOLISH -> {
+                Building b = t.building(a);
+                if (b != null && b.complete) {
+                    Village.demolish(p.serverLevel(), t, b);
+                    Notify.player(p, Component.translatable("realmlord.build.demolishing", Component.translatable(b.type.key())));
+                }
             }
             case MAP -> {
                 TerritoryMapPacket.send(p, t, b == 1);

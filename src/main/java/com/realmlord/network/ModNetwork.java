@@ -65,6 +65,21 @@ public class ModNetwork {
                 .decoder(ResidentActionPacket::new)
                 .consumerMainThread(ResidentActionPacket::handle)
                 .add();
+        CHANNEL.messageBuilder(FenceGatesPacket.class, 10, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(FenceGatesPacket::encode)
+                .decoder(FenceGatesPacket::new)
+                .consumerMainThread(FenceGatesPacket::handle)
+                .add();
+        CHANNEL.messageBuilder(SpawnOptionsPacket.class, 11, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(SpawnOptionsPacket::encode)
+                .decoder(SpawnOptionsPacket::new)
+                .consumerMainThread(SpawnOptionsPacket::handle)
+                .add();
+        CHANNEL.messageBuilder(SpawnChoicePacket.class, 12, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(SpawnChoicePacket::encode)
+                .decoder(SpawnChoicePacket::new)
+                .consumerMainThread(SpawnChoicePacket::handle)
+                .add();
     }
 
     public static void toServer(Object packet) {

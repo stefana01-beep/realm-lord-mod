@@ -50,7 +50,9 @@ public final class Residents {
             if (spawned >= 3) continue;
             SettlerEntity s = ModEntities.SETTLER.get().create(level);
             if (s == null) continue;
-            BlockPos at = near(level, t.center, level.getRandom().nextInt(4), 9);
+            // They appear at home by night and at work by day, not all bunched at the manor.
+            BlockPos base = level.isDay() && workplace(t, r) != null ? workplace(t, r) : home(t, r);
+            BlockPos at = SettlerEntity.groundNear(level, base, level.getRandom(), 3);
             s.moveTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, level.getRandom().nextFloat() * 360F, 0F);
             s.finalizeSpawn(level, level.getCurrentDifficultyAt(at), MobSpawnType.EVENT, null, null);
             s.link(t, r);
@@ -67,7 +69,7 @@ public final class Residents {
         return new BlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z), z);
     }
 
-    /** Where a resident spends the working day. */
+    /** Where a resident spends the working day, or null if they have no fixed place. */
     public static BlockPos workplace(Territory t, Resident r) {
         switch (r.job) {
             case STAFF -> {
@@ -75,16 +77,52 @@ public final class Residents {
                 if (b != null) return b.center();
             }
             case CONSTRUCTION -> {
-                for (Building b : t.buildings) if (!b.complete) return b.type.placed() ? b.center() : t.center;
+                Building b = Sites.active(t);
+                if (b != null) return b.type.placed() ? b.center() : t.center;
             }
             case LOGGING, QUARRYING, FARMING, MINING -> {
-                List<Building> fields = new ArrayList<>();
-                for (Building b : t.buildings) if (b.complete && b.type.fieldJob() == r.job) fields.add(b);
-                if (!fields.isEmpty()) return fields.get(Math.floorMod(r.id, fields.size())).center();
+                Building f = field(t, r);
+                if (f != null) return f.center();
+            }
+            case ADMINISTRATION -> {
+                return manorSpot(t, r);
             }
             default -> { }
         }
         return null;
+    }
+
+    /** The finished field a resident with a field job works at (spread across the fields). */
+    public static Building field(Territory t, Resident r) {
+        List<Building> fields = new ArrayList<>();
+        for (Building b : t.buildings) if (b.complete && b.type.fieldJob() == r.job && r.job != Job.IDLE) fields.add(b);
+        return fields.isEmpty() ? null : fields.get(Math.floorMod(r.id, fields.size()));
+    }
+
+    /** A spot in the manor yard, each resident their own. */
+    public static BlockPos manorSpot(Territory t, Resident r) {
+        double a = (r.id * 137.508) % 360 * Math.PI / 180;
+        int x = t.center.getX() + (int) Math.round(Math.cos(a) * 6.5), z = t.center.getZ() + (int) Math.round(Math.sin(a) * 6.5);
+        return new BlockPos(x, t.center.getY(), z);
+    }
+
+    /**
+     * Where a resident sleeps: the first ten in the Lord's Manor, then twenty to each finished
+     * residential courtyard. Anyone without a bed stays by the manor.
+     */
+    public static BlockPos home(Territory t, Resident r) {
+        int idx = t.residents.indexOf(r);
+        if (idx < Village.MANOR_HOUSING) return manorSpot(t, r);
+        idx -= Village.MANOR_HOUSING;
+        for (Building b : t.buildings) {
+            if (!b.complete || b.type.housing() <= 0) continue;
+            if (idx < b.type.housing()) {
+                BlockPos c = b.center();
+                return c.offset(Math.floorMod(r.id, 5) - 2, 0, Math.floorMod(r.id / 5, 5) - 2);
+            }
+            idx -= b.type.housing();
+        }
+        return manorSpot(t, r);
     }
 
     public static Component title(Resident r) {

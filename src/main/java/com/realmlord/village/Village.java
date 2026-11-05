@@ -274,18 +274,26 @@ public final class Village {
 
     /** Wood, stone and iron ore made per day by the current workers. */
     public static long[] dailyOutput(Territory t) {
-        double bonus = productionBonus(t);
-        double wood = 0, stone = 0, ore = 0;
+        double[] sum = new double[3];
         for (Resident r : t.residents) {
-            if (r.militia) continue;
-            switch (r.job) {
-                case LOGGING -> wood += 10 * r.skillAt(Job.LOGGING);
-                case QUARRYING -> stone += 5 * r.skillAt(Job.QUARRYING);
-                case MINING -> ore += 2 * r.skillAt(Job.MINING);
-                default -> { }
-            }
+            double[] q = quota(t, r);
+            for (int k = 0; k < 3; k++) sum[k] += q[k];
         }
-        return new long[]{Math.round(wood * bonus), Math.round(stone * bonus), Math.round(ore * bonus)};
+        return new long[]{Math.round(sum[0]), Math.round(sum[1]), Math.round(sum[2])};
+    }
+
+    /** A resident's day of work: {wood, stone, iron ore}. */
+    public static double[] quota(Territory t, Resident r) {
+        double[] q = new double[3];
+        if (r.militia) return q;
+        double bonus = productionBonus(t);
+        switch (r.job) {
+            case LOGGING -> q[0] = 10 * r.skillAt(Job.LOGGING) * bonus;
+            case QUARRYING -> q[1] = 5 * r.skillAt(Job.QUARRYING) * bonus;
+            case MINING -> q[2] = 2 * r.skillAt(Job.MINING) * bonus;
+            default -> { }
+        }
+        return q;
     }
 
     public static long dailyTax(Territory t) {
@@ -315,11 +323,17 @@ public final class Village {
     public static void day(ServerLevel level, Territory t, long day) {
         RandomSource rnd = level.getRandom();
         trimJobs(t);
-        // Work
-        long[] out = dailyOutput(t);
-        t.wood += out[0];
-        t.stone += out[1];
-        t.ironOre += out[2];
+        // Work: what residents carried in by hand counts towards their day; the rest comes in now.
+        double[] owed = {0, 0, 0};
+        for (Resident r : t.residents) {
+            if (r.entity == null) Haul.deposit(t, r);
+            double[] q = quota(t, r);
+            for (int k = 0; k < 3; k++) owed[k] += Math.max(0, q[k] - r.gathered[k]);
+            java.util.Arrays.fill(r.gathered, 0);
+        }
+        t.wood += Math.round(owed[0]);
+        t.stone += Math.round(owed[1]);
+        t.ironOre += Math.round(owed[2]);
         farm(t, day);
         updateCrops(level, t, day);
         // Food
@@ -477,12 +491,17 @@ public final class Village {
      * the position and rings the territory border instead.
      */
     public static String start(ServerPlayer p, Territory t, BuildingType type, BlockPos origin, int rotation) {
+        return start(p, t, type, origin, rotation, null);
+    }
+
+    /** As {@link #start(ServerPlayer, Territory, BuildingType, BlockPos, int)}; gates (degrees) for the fence. */
+    public static String start(ServerPlayer p, Territory t, BuildingType type, BlockPos origin, int rotation, int[] gates) {
         ServerLevel level = p.serverLevel();
         boolean free = t.freeBuilds.contains(type);
         String err = checkCost(p, t, type, free);
         if (err != null) return err;
         if (type == BuildingType.SIMPLE_FENCE) {
-            for (Building b : t.buildings) if (b.type == BuildingType.SIMPLE_FENCE) return "realmlord.build.err.fence_exists";
+            for (Building b : t.buildings) if (b.type == BuildingType.SIMPLE_FENCE && !b.demolishing) return "realmlord.build.err.fence_exists";
             origin = t.center;
         } else {
             err = checkPlacement(level, t, type, origin, rotation);
@@ -501,12 +520,17 @@ public final class Village {
         b.rotation = rotation & 3;
         b.free = free;
         b.workNeeded = Math.max(1, workNeeded(type));
+        b.lastWork = level.getGameTime();
         if (type.placed()) {
+            // The builders clear and level the ground themselves; nothing is put down yet.
             int y = groundLevel(level, origin, b.sizeX(), b.sizeZ());
             b.origin = new BlockPos(origin.getX(), y, origin.getZ());
-            prepareSite(level, b);
+            b.stage = Building.CLEAR;
         } else {
             b.origin = t.center;
+            b.stage = Building.BUILD;
+            b.fenceRadius = t.radius() - 2;
+            b.gates = gates == null ? new int[]{0, 90, 180, 270} : cleanGates(gates);
         }
         t.buildings.add(b);
         level.playSound(null, b.center(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, 1.0F, 0.8F);
@@ -524,62 +548,45 @@ public final class Village {
         return freq.entrySet().stream().max(java.util.Map.Entry.comparingByValue()).map(java.util.Map.Entry::getKey).orElse(origin.getY());
     }
 
-    /** Levels the footprint and marks its corners with posts. */
-    private static void prepareSite(ServerLevel level, Building b) {
-        int y0 = b.origin.getY();
-        for (int x = 0; x < b.sizeX(); x++) {
-            for (int z = 0; z < b.sizeZ(); z++) {
-                int wx = b.origin.getX() + x, wz = b.origin.getZ() + z;
-                for (int y = y0; y < y0 + 14; y++) {
-                    BlockPos p = new BlockPos(wx, y, wz);
-                    if (!level.getBlockState(p).isAir()) level.setBlock(p, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
-                }
-                level.setBlock(new BlockPos(wx, y0 - 1, wz), Blocks.DIRT_PATH.defaultBlockState(), Block.UPDATE_CLIENTS);
-                for (int y = y0 - 2; y > y0 - 8; y--) {
-                    BlockPos p = new BlockPos(wx, y, wz);
-                    BlockState s = level.getBlockState(p);
-                    if (s.isAir() || s.canBeReplaced() || !s.getFluidState().isEmpty()) level.setBlock(p, Blocks.DIRT.defaultBlockState(), Block.UPDATE_CLIENTS);
-                    else break;
-                }
-            }
-        }
-        int[][] corners = {{0, 0}, {b.sizeX() - 1, 0}, {0, b.sizeZ() - 1}, {b.sizeX() - 1, b.sizeZ() - 1}};
-        for (int[] c : corners) level.setBlock(b.origin.offset(c[0], 0, c[1]), Blocks.OAK_FENCE.defaultBlockState(), Block.UPDATE_ALL);
-    }
-
     /**
      * Construction for one second: all builders work on the oldest unfinished building, the
      * design rising block by block as the work is done.
      */
     public static void construct(ServerLevel level, Territory t, int ticks) {
-        Building site = null;
-        for (Building b : t.buildings) if (!b.complete) {
-            site = b;
-            break;
-        }
+        Building site = Sites.active(t);
         if (site == null) return;
+        List<Resident> builders = withJob(t, Job.CONSTRUCTION);
+        if (builders.isEmpty()) return;
         double work = 0;
-        for (Resident r : withJob(t, Job.CONSTRUCTION)) work += r.skillAt(Job.CONSTRUCTION);
-        site.progress = Math.min(site.workNeeded, site.progress + Math.round(work * ticks));
-        raise(level, t, site);
-        int size = BuildingDesigns.size(level, t, site);
-        if (site.progress >= site.workNeeded && size >= 0 && site.placed >= size) finish(level, t, site);
+        for (Resident r : builders) work += r.skillAt(Job.CONSTRUCTION);
+        if (!site.demolishing) site.progress = Math.min(site.workNeeded, site.progress + Math.round(work * ticks));
+        // Builders on the site do the work by hand; otherwise the village gets on with it.
+        boolean byHand = buildersNear(level, t, site) && level.getGameTime() - site.lastWork < Sites.STALL_TICKS;
+        if (!byHand) {
+            int budget = site.demolishing ? (int) Math.max(1, Math.round(work * ticks / 10.0)) : 400;
+            Sites.work(level, t, site, budget);
+        }
+        if (!site.demolishing && site.stage == Building.BUILD && t.buildings.contains(site)) {
+            int size = BuildingDesigns.size(level, t, site);
+            if (site.progress >= site.workNeeded && size >= 0 && site.placed >= size) finish(level, t, site);
+        }
     }
 
-    /** Places the blocks of a site up to its current progress. Only while its area is loaded. */
-    public static void raise(ServerLevel level, Territory t, Building b) {
-        BlockPos c = b.center();
-        if (!level.isLoaded(c) || !level.isLoaded(b.origin) || !level.isLoaded(b.origin.offset(b.sizeX() - 1, 0, b.sizeZ() - 1))) return;
-        List<BuildingDesigns.Placement> design = BuildingDesigns.design(level, t, b);
-        if (design == null) return;
-        int target = (int) Math.floor(design.size() * b.fraction());
-        if (b.progress >= b.workNeeded) target = design.size();
-        int budget = 400;
-        while (b.placed < target && budget-- > 0) {
-            BuildingDesigns.Placement p = design.get(b.placed);
-            if (level.isLoaded(p.pos())) level.setBlock(p.pos(), p.state(), Block.UPDATE_ALL);
-            b.placed++;
+    /** True if a builder is walking about near a site. */
+    public static boolean buildersNear(ServerLevel level, Territory t, Building site) {
+        BlockPos c = site.type.placed() ? site.center() : t.center;
+        double reach = site.type.placed() ? 48 : t.radius() + 16;
+        for (Resident r : t.residents) {
+            if (r.job != Job.CONSTRUCTION || r.militia || r.entity == null) continue;
+            net.minecraft.world.entity.Entity e = level.getEntity(r.entity);
+            if (e != null && e.isAlive() && e.distanceToSqr(c.getX() + 0.5, e.getY(), c.getZ() + 0.5) < reach * reach) return true;
         }
+        return false;
+    }
+
+    /** Works a site with the village's own hands, up to its current progress. */
+    public static void raise(ServerLevel level, Territory t, Building b) {
+        Sites.work(level, t, b, 400);
     }
 
     private static void finish(ServerLevel level, Territory t, Building b) {
@@ -603,17 +610,72 @@ public final class Village {
         }
     }
 
-    /** Pulls a building down (unfinished ones refund half their cost). */
-    public static void demolish(Territory t, Building b) {
-        if (!b.complete && !b.free) {
-            t.wood += b.type.wood / 2;
-            t.stone += b.type.stone / 2;
-        }
-        t.buildings.remove(b);
+    /**
+     * Takes a building down. Builders dismantle it from the top, carrying back three quarters of
+     * the wood and stone that went into what stood; for a site, three quarters of what was never
+     * used comes back at once. A site with nothing built yet is simply cleared away.
+     */
+    public static void demolish(ServerLevel level, Territory t, Building b) {
+        if (b.demolishing) return;
+        int size = BuildingDesigns.size(level, t, b);
+        double built = b.complete ? 1.0 : size > 0 ? Math.min(1.0, b.placed / (double) size) : 0.0;
+        double share = b.free ? 0 : Sites.SALVAGE;
+        t.wood += Math.round(b.type.wood * share * (1 - built));
+        t.stone += Math.round(b.type.stone * share * (1 - built));
         for (Resident r : t.residents) if (r.workplace == b.id) {
             r.job = Job.IDLE;
             r.workplace = -1;
         }
+        if (b.placed <= 0 || size < 0 && !b.complete) {
+            t.buildings.remove(b);
+            BuildingDesigns.forget(b);
+            return;
+        }
+        if (b.complete && size >= 0) b.placed = size;
+        b.salvageWood = (int) Math.round(b.type.wood * share * built);
+        b.salvageStone = (int) Math.round(b.type.stone * share * built);
+        b.demolishFrom = b.placed;
+        b.demolishing = true;
+        b.complete = false;
+        b.lastWork = level.getGameTime();
+        // Taken down before anything newer is built.
+        t.buildings.remove(b);
+        int at = 0;
+        while (at < t.buildings.size() && t.buildings.get(at).complete) at++;
+        t.buildings.add(at, b);
+    }
+
+    /** Gate bearings, each 0-359, without near-duplicates, at most 16. */
+    public static int[] cleanGates(int[] gates) {
+        List<Integer> out = new ArrayList<>();
+        for (int g : gates) {
+            int d = Math.floorMod(g, 360);
+            boolean close = false;
+            for (int o : out) if (Math.abs(((d - o) % 360 + 540) % 360 - 180) < 6) close = true;
+            if (!close && out.size() < 16) out.add(d);
+        }
+        return out.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    /** Moves the fence's gates. Posts already up are changed over at once. */
+    public static boolean setGates(ServerLevel level, Territory t, int[] gates) {
+        Building fence = null;
+        for (Building b : t.buildings) if (b.type == BuildingType.SIMPLE_FENCE && !b.demolishing) fence = b;
+        if (fence == null) return false;
+        fence.gates = cleanGates(gates);
+        BuildingDesigns.forget(fence);
+        List<BuildingDesigns.Placement> design = BuildingDesigns.design(level, t, fence);
+        if (design == null) return true;
+        int upTo = fence.complete ? design.size() : Math.min(fence.placed, design.size());
+        for (int i = 0; i < upTo; i++) {
+            BuildingDesigns.Placement p = design.get(i);
+            if (!level.isLoaded(p.pos())) continue;
+            BlockState now = level.getBlockState(p.pos());
+            boolean fenceBit = now.isAir() || now.getBlock() instanceof net.minecraft.world.level.block.FenceBlock
+                    || now.getBlock() instanceof net.minecraft.world.level.block.FenceGateBlock;
+            if (fenceBit && now != p.state()) level.setBlock(p.pos(), p.state(), Block.UPDATE_ALL);
+        }
+        return true;
     }
 
     // ================================================================== upgrading

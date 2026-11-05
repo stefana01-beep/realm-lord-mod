@@ -673,35 +673,87 @@ public final class BuildingDesigns {
 
     // ------------------------------------------------------------------ the fence
 
-    /**
-     * The Simple Fence: a ring just inside the territory border, with gates at the four
-     * cardinal points. Follows the ground as it is.
-     */
-    private static List<Placement> fence(ServerLevel level, Territory t, Building b) {
-        List<Placement> out = new ArrayList<>();
-        int r = t.radius() - 2;
-        java.util.LinkedHashSet<Long> seen = new java.util.LinkedHashSet<>();
+    /** The posts of a fence ring, in order around it: {x, z}. */
+    public static List<int[]> fenceColumns(BlockPos center, int r) {
+        List<int[]> out = new ArrayList<>();
+        java.util.HashSet<Long> seen = new java.util.HashSet<>();
         int steps = (int) Math.ceil(2 * Math.PI * r * 1.5);
         for (int i = 0; i < steps; i++) {
             double a = 2 * Math.PI * i / steps;
-            int x = t.center.getX() + (int) Math.round(Math.cos(a) * r);
-            int z = t.center.getZ() + (int) Math.round(Math.sin(a) * r);
-            if (!seen.add(((long) x << 32) ^ (z & 0xffffffffL))) continue;
-            if (!level.isLoaded(new BlockPos(x, 64, z))) return null;
-            int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
-            BlockState below = level.getBlockState(new BlockPos(x, y - 1, z));
-            if (below.getBlock() instanceof net.minecraft.world.level.block.FenceBlock || below.getBlock() instanceof FenceGateBlock) y--;
-            boolean gate = Math.abs(x - t.center.getX()) <= 1 || Math.abs(z - t.center.getZ()) <= 1;
-            BlockState s;
-            if (gate) {
-                Direction facing = Math.abs(x - t.center.getX()) <= 1 ? Direction.NORTH : Direction.EAST;
-                s = Blocks.OAK_FENCE_GATE.defaultBlockState().setValue(FenceGateBlock.FACING, facing);
-            } else {
-                s = Blocks.OAK_FENCE.defaultBlockState();
-            }
-            out.add(new Placement(new BlockPos(x, y, z), s));
+            int x = center.getX() + (int) Math.round(Math.cos(a) * r);
+            int z = center.getZ() + (int) Math.round(Math.sin(a) * r);
+            if (seen.add(((long) x << 32) ^ (z & 0xffffffffL))) out.add(new int[]{x, z});
         }
         return out;
+    }
+
+    /** Bearing of a point from a centre in degrees, 0 = east, 90 = south. */
+    public static double bearing(BlockPos center, double x, double z) {
+        double d = Math.toDegrees(Math.atan2(z - center.getZ(), x - center.getX()));
+        return d < 0 ? d + 360 : d;
+    }
+
+    /**
+     * The Simple Fence: a ring just inside the territory border. Each post is an oak plank set
+     * into the ground, two fence blocks, and an oak plank on top, the planks joining into rails.
+     * Gateways (three posts wide) have a gate below and the top rail as a lintel. The ground
+     * height of every post is fixed when the fence is first laid out, so the design never shifts.
+     */
+    private static List<Placement> fence(ServerLevel level, Territory t, Building b) {
+        int r = b.fenceRadius > 0 ? b.fenceRadius : t.radius() - 2;
+        b.fenceRadius = r;
+        List<int[]> cols = fenceColumns(t.center, r);
+        if (b.fenceYs == null || b.fenceYs.length != cols.size()) {
+            int[] ys = new int[cols.size()];
+            for (int i = 0; i < cols.size(); i++) {
+                int x = cols.get(i)[0], z = cols.get(i)[1];
+                if (!level.isLoaded(new BlockPos(x, 64, z))) return null;
+                ys[i] = groundAt(level, x, z);
+            }
+            b.fenceYs = ys;
+        }
+        BlockState plank = Blocks.OAK_PLANKS.defaultBlockState();
+        BlockState fence = Blocks.OAK_FENCE.defaultBlockState();
+        List<Placement> ground = new ArrayList<>(), lower = new ArrayList<>(), upper = new ArrayList<>(), rail = new ArrayList<>();
+        for (int i = 0; i < cols.size(); i++) {
+            int x = cols.get(i)[0], z = cols.get(i)[1], y = b.fenceYs[i];
+            double deg = bearing(t.center, x, z);
+            boolean gate = b.isGate(deg);
+            ground.add(new Placement(new BlockPos(x, y - 1, z), plank));
+            if (gate) {
+                double rad = Math.toRadians(deg);
+                Direction facing = Direction.getNearest(Math.cos(rad), 0, Math.sin(rad));
+                lower.add(new Placement(new BlockPos(x, y, z), Blocks.OAK_FENCE_GATE.defaultBlockState().setValue(FenceGateBlock.FACING, facing)));
+                upper.add(new Placement(new BlockPos(x, y + 1, z), AIR));
+            } else {
+                lower.add(new Placement(new BlockPos(x, y, z), fence));
+                upper.add(new Placement(new BlockPos(x, y + 1, z), fence));
+            }
+            rail.add(new Placement(new BlockPos(x, y + 2, z), plank));
+        }
+        // Post by post around the ring, each post bottom to top.
+        List<Placement> out = new ArrayList<>();
+        for (int i = 0; i < cols.size(); i++) {
+            out.add(ground.get(i));
+            out.add(lower.get(i));
+            out.add(upper.get(i));
+            out.add(rail.get(i));
+        }
+        return out;
+    }
+
+    /** Height of the first free block above the ground, ignoring leaves, plants and old fence. */
+    private static int groundAt(ServerLevel level, int x, int z) {
+        int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+        for (int k = 0; k < 6; k++) {
+            BlockState below = level.getBlockState(new BlockPos(x, y - 1, z));
+            Block bl = below.getBlock();
+            boolean manMade = bl instanceof net.minecraft.world.level.block.FenceBlock || bl instanceof FenceGateBlock
+                    || below.is(Blocks.OAK_PLANKS) || below.is(net.minecraft.tags.BlockTags.LOGS);
+            if (!manMade) break;
+            y--;
+        }
+        return y;
     }
 
     public static void forget(Building b) {

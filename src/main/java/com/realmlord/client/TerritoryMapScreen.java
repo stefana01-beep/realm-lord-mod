@@ -24,10 +24,55 @@ public class TerritoryMapScreen extends Screen {
     private BuildingType placing;
     private int rotation;
     private int refreshIn = -1;
+    /** Laying out the Simple Fence or moving its gates: bearings in degrees. */
+    private boolean fenceMode;
+    private final java.util.List<Integer> gates = new java.util.ArrayList<>();
+    /** A building picked on the map, and whether its demolition awaits a second click. */
+    private int selectedId = -1;
+    private boolean confirmDemolish;
 
     public TerritoryMapScreen(BuildingType placing) {
         super(Component.translatable("realmlord.map.title"));
-        this.placing = placing;
+        if (placing == BuildingType.SIMPLE_FENCE) {
+            fenceMode = true;
+            loadGates();
+        } else {
+            this.placing = placing;
+        }
+    }
+
+    /** The standing fence, or null. */
+    private static CompoundTag fence() {
+        CompoundTag v = ClientVillageData.manor;
+        if (v == null) return null;
+        ListTag bs = v.getList("buildings", Tag.TAG_COMPOUND);
+        for (int i = 0; i < bs.size(); i++) {
+            CompoundTag b = bs.getCompound(i);
+            if (b.getInt("type") == BuildingType.SIMPLE_FENCE.ordinal() && !b.getBoolean("demolish")) return b;
+        }
+        return null;
+    }
+
+    private void loadGates() {
+        gates.clear();
+        CompoundTag f = fence();
+        int[] g = f != null ? f.getIntArray("gates") : new int[]{0, 90, 180, 270};
+        for (int d : g) gates.add(d);
+    }
+
+    private int fenceRadius() {
+        CompoundTag f = fence();
+        CompoundTag v = ClientVillageData.manor;
+        if (f != null && f.getInt("fr") > 0) return f.getInt("fr");
+        return v == null ? 0 : v.getInt("radius") - 2;
+    }
+
+    private CompoundTag selected() {
+        CompoundTag v = ClientVillageData.manor;
+        if (v == null || selectedId < 0) return null;
+        ListTag bs = v.getList("buildings", Tag.TAG_COMPOUND);
+        for (int i = 0; i < bs.size(); i++) if (bs.getCompound(i).getInt("id") == selectedId) return bs.getCompound(i);
+        return null;
     }
 
     private int left() {
@@ -78,7 +123,23 @@ public class TerritoryMapScreen extends Screen {
         clearWidgets();
         if (!ClientMap.ready || refreshIn < 0) ModNetwork.toServer(new ManorActionPacket(ManorActionPacket.Action.MAP, 0, 0));
         int bx = left() + MAP + 22, by = top() + H - 24, bw = W - MAP - 32;
-        if (placing != null) {
+        if (fenceMode) {
+            boolean exists = fence() != null;
+            addRenderableWidget(Button.builder(Component.translatable(exists ? "realmlord.map.fence.set" : "realmlord.map.fence.lay"), b -> {
+                ModNetwork.toServer(new com.realmlord.network.FenceGatesPacket(gates.stream().mapToInt(Integer::intValue).toArray()));
+                fenceMode = false;
+                refreshIn = 20;
+                init();
+            }).bounds(bx, by - 54, bw, 16).build());
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.map.fence.four"), b -> {
+                gates.clear();
+                gates.addAll(java.util.List.of(0, 90, 180, 270));
+            }).bounds(bx, by - 36, bw, 16).build());
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.map.cancel"), b -> {
+                fenceMode = false;
+                init();
+            }).bounds(bx, by - 18, bw, 16).build());
+        } else if (placing != null) {
             addRenderableWidget(Button.builder(Component.translatable("realmlord.map.rotate"), b -> rotation = (rotation + 1) & 3)
                     .bounds(bx, by - 54, bw, 16).build());
             addRenderableWidget(Button.builder(Component.translatable("realmlord.map.in_world"), b -> {
@@ -92,6 +153,31 @@ public class TerritoryMapScreen extends Screen {
         } else {
             addRenderableWidget(Button.builder(Component.translatable("realmlord.map.refresh"), b -> ModNetwork.toServer(new ManorActionPacket(ManorActionPacket.Action.MAP, 0, 0)))
                     .bounds(bx, by - 18, bw, 16).build());
+            CompoundTag f = fence();
+            if (f != null) {
+                addRenderableWidget(Button.builder(Component.translatable("realmlord.map.fence.edit"), b -> {
+                    fenceMode = true;
+                    selectedId = -1;
+                    loadGates();
+                    init();
+                }).bounds(bx, by - 36, bw, 16).build());
+            }
+            CompoundTag sel = selected();
+            if (sel != null && sel.getBoolean("complete")) {
+                Button d = Button.builder(Component.translatable(confirmDemolish ? "realmlord.map.demolish.confirm" : "realmlord.map.demolish"), b -> {
+                    if (!confirmDemolish) {
+                        confirmDemolish = true;
+                    } else {
+                        ModNetwork.toServer(new ManorActionPacket(ManorActionPacket.Action.DEMOLISH, selectedId, 0));
+                        selectedId = -1;
+                        confirmDemolish = false;
+                        refreshIn = 20;
+                    }
+                    init();
+                }).bounds(bx, by - 54, bw, 16).build();
+                d.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("realmlord.map.demolish.tip")));
+                addRenderableWidget(d);
+            }
         }
         if (ClientVillageData.manor != null) {
             addRenderableWidget(Button.builder(Component.translatable("realmlord.map.manor"), b -> minecraft.setScreen(new ManorScreen()))
@@ -110,6 +196,41 @@ public class TerritoryMapScreen extends Screen {
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
         BlockPos at = worldAt(mx, my);
+        if (fenceMode && at != null && button == 0) {
+            CompoundTag v = ClientVillageData.manor;
+            if (v != null) {
+                int cx = v.getInt("cx"), cz = v.getInt("cz");
+                double dist = Math.sqrt(Math.pow(at.getX() - cx, 2) + Math.pow(at.getZ() - cz, 2));
+                double slack = Math.max(4, ClientMap.step * 4 / scale());
+                if (Math.abs(dist - fenceRadius()) <= slack) {
+                    int deg = (int) Math.round(com.realmlord.village.BuildingDesigns.bearing(new BlockPos(cx, 0, cz), at.getX(), at.getZ())) % 360;
+                    Integer near = null;
+                    for (int g : gates) if (angleDiff(g, deg) <= Math.max(6, Math.toDegrees(5.0 / Math.max(4, fenceRadius())))) near = g;
+                    if (near != null) gates.remove(near);
+                    else if (gates.size() < 16) gates.add(deg);
+                    return true;
+                }
+            }
+        }
+        if (!fenceMode && placing == null && at != null && button == 0) {
+            CompoundTag v = ClientVillageData.manor;
+            int was = selectedId;
+            selectedId = -1;
+            if (v != null) {
+                ListTag bs = v.getList("buildings", Tag.TAG_COMPOUND);
+                for (int i = 0; i < bs.size(); i++) {
+                    CompoundTag b = bs.getCompound(i);
+                    BuildingType bt = BuildingType.byOrdinal(b.getInt("type"));
+                    if (bt == null || !bt.placed()) continue;
+                    int bx = b.getInt("x"), bz = b.getInt("z");
+                    if (at.getX() >= bx && at.getX() < bx + b.getInt("sx") && at.getZ() >= bz && at.getZ() < bz + b.getInt("sz")) selectedId = b.getInt("id");
+                }
+            }
+            if (selectedId != was) {
+                confirmDemolish = false;
+                init();
+            }
+        }
         if (placing != null && at != null) {
             if (button == 1) {
                 rotation = (rotation + 1) & 3;
@@ -152,6 +273,30 @@ public class TerritoryMapScreen extends Screen {
         super.render(g, mx, my, pt);
     }
 
+    private static double angleDiff(double a, double b) {
+        return Math.abs(((a - b) % 360 + 540) % 360 - 180);
+    }
+
+    /** The fence ring, posts and gates (gold) as they are or as they are being laid out. */
+    private void fenceRing(GuiGraphics g, CompoundTag v) {
+        CompoundTag f = fence();
+        if (f == null && !fenceMode) return;
+        int cx = v.getInt("cx"), cz = v.getInt("cz"), r = fenceRadius();
+        java.util.List<Integer> shown = fenceMode ? gates : java.util.Arrays.stream(f.getIntArray("gates")).boxed().toList();
+        double half = Math.toDegrees(1.6 / Math.max(4, r));
+        int steps = 720;
+        for (int i = 0; i < steps; i++) {
+            double deg = 360.0 * i / steps;
+            boolean gate = false;
+            for (int gd : shown) if (angleDiff(deg, gd) <= half + 0.5) gate = true;
+            double a = Math.toRadians(deg);
+            int px = screenX(cx + Math.cos(a) * r), py = screenY(cz + Math.sin(a) * r);
+            int col = gate ? 0xFFFFD84D : (f != null && f.getBoolean("complete") ? 0xFF9C6B30 : 0xFFC9A26A);
+            int sz = gate ? 2 : 1;
+            g.fill(px - sz / 2, py - sz / 2, px - sz / 2 + sz, py - sz / 2 + sz, col);
+        }
+    }
+
     private void overlay(GuiGraphics g, CompoundTag v) {
         int cx = v.getInt("cx"), cz = v.getInt("cz"), r = v.getInt("radius");
         // Border
@@ -170,9 +315,12 @@ public class TerritoryMapScreen extends Screen {
             CompoundTag b = bs.getCompound(i);
             BuildingType bt = BuildingType.byOrdinal(b.getInt("type"));
             if (bt == null || !bt.placed()) continue;
-            boolean done = b.getBoolean("complete");
-            rect(g, b.getInt("x"), b.getInt("z"), b.getInt("sx"), b.getInt("sz"), done ? 0x80E8C15A : 0x50E89B3A, done ? 0xFFE8C15A : 0xFFE89B3A);
+            boolean done = b.getBoolean("complete"), down = b.getBoolean("demolish");
+            int fillCol = down ? 0x60C8423B : done ? 0x80E8C15A : 0x50E89B3A, edge = down ? 0xFFC8423B : done ? 0xFFE8C15A : 0xFFE89B3A;
+            if (b.getInt("id") == selectedId) edge = 0xFFFFFFFF;
+            rect(g, b.getInt("x"), b.getInt("z"), b.getInt("sx"), b.getInt("sz"), fillCol, edge);
         }
+        fenceRing(g, v);
     }
 
     private void rect(GuiGraphics g, double wx, double wz, double sx, double sz, int fillCol, int edge) {
@@ -220,6 +368,7 @@ public class TerritoryMapScreen extends Screen {
             if (at.getX() >= bx && at.getX() < bx + b.getInt("sx") && at.getZ() >= bz && at.getZ() < bz + b.getInt("sz")) {
                 BuildingType bt = BuildingType.byOrdinal(b.getInt("type"));
                 Component name = Component.translatable(bt.key());
+                if (b.getBoolean("demolish")) return Component.translatable("realmlord.map.demolishing", name, Math.round((1 - b.getDouble("fraction")) * 100));
                 if (b.getBoolean("complete")) {
                     return b.contains("staff") ? Component.translatable("realmlord.map.staffed", name, b.getString("staff")) : name;
                 }
@@ -231,7 +380,11 @@ public class TerritoryMapScreen extends Screen {
 
     private void side(GuiGraphics g, CompoundTag v, int sx, int sy, int mx, int my) {
         int w = W - MAP - 32;
-        if (placing != null) {
+        if (fenceMode) {
+            g.drawString(font, Component.translatable("realmlord.building.simple_fence"), sx, sy, Ui.GOLD, false);
+            g.drawString(font, Component.translatable("realmlord.map.fence.gates", gates.size()), sx, sy + 11, Ui.INK, false);
+            Ui.wrap(g, font, Component.translatable("realmlord.map.fence.hint"), sx, sy + 25, w, Ui.MUTED);
+        } else if (placing != null) {
             g.drawString(font, Component.translatable("realmlord.map.placing"), sx, sy, Ui.GOLD, false);
             g.drawString(font, Component.translatable(placing.key()), sx, sy + 11, Ui.INK, false);
             g.drawString(font, placing.width + " x " + placing.depth, sx, sy + 22, Ui.MUTED, false);
@@ -243,7 +396,18 @@ public class TerritoryMapScreen extends Screen {
             legend(g, sx, sy + 35, 0xFFE8C15A, "realmlord.map.legend.built");
             legend(g, sx, sy + 46, 0xFFE89B3A, "realmlord.map.legend.site");
             legend(g, sx, sy + 57, 0xFFFFFFFF, "realmlord.map.legend.you");
-            Ui.wrap(g, font, Component.translatable("realmlord.map.view_hint"), sx, sy + 74, w, Ui.MUTED);
+            CompoundTag sel = selected();
+            if (sel != null) {
+                BuildingType bt = BuildingType.byOrdinal(sel.getInt("type"));
+                g.drawString(font, Component.translatable(bt.key()), sx, sy + 74, Ui.GOLD, false);
+                Component state = sel.getBoolean("demolish") ? Component.translatable("realmlord.map.state.demolishing")
+                        : sel.getBoolean("complete") ? Component.translatable("realmlord.map.state.built")
+                        : Component.translatable("realmlord.map.state.site", Math.round(sel.getDouble("fraction") * 100));
+                g.drawString(font, state, sx, sy + 85, Ui.INK, false);
+                if (sel.getBoolean("complete")) Ui.wrap(g, font, Component.translatable("realmlord.map.salvage", bt.wood * 3 / 4, bt.stone * 3 / 4), sx, sy + 97, w, Ui.MUTED);
+            } else {
+                Ui.wrap(g, font, Component.translatable("realmlord.map.view_hint"), sx, sy + 74, w, Ui.MUTED);
+            }
         }
         BlockPos at = worldAt(mx, my);
         if (at != null) g.drawString(font, Component.translatable("realmlord.map.coords", at.getX(), at.getZ()), sx, top() + H - 96, Ui.MUTED, false);

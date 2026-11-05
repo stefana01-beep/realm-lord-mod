@@ -52,6 +52,37 @@ public final class ChinaMap {
         }
     }
 
+    public static int width() {
+        load();
+        return w;
+    }
+
+    public static int height() {
+        load();
+        return h;
+    }
+
+    /** Block x of a map pixel's centre. */
+    public static double blockX(double ix) {
+        return x0 + (ix + 0.5) * px;
+    }
+
+    public static double blockZ(double iz) {
+        return z0 + (iz + 0.5) * px;
+    }
+
+    /** A channel's raw value at a pixel. */
+    public static double pixel(int channel, int ix, int iz) {
+        load();
+        return loaded ? at(channel, ix, iz) : 0;
+    }
+
+    /** True if a block position lies on the map. */
+    public static boolean onMap(double bx, double bz) {
+        load();
+        return loaded && bx >= x0 && bz >= z0 && bx < x0 + (double) w * px && bz < z0 + (double) h * px;
+    }
+
     public static boolean ready() {
         load();
         return loaded;

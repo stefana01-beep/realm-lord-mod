@@ -18,6 +18,7 @@ import com.realmlord.village.Job;
 import com.realmlord.village.Market;
 import com.realmlord.village.Occupation;
 import com.realmlord.village.Resident;
+import com.realmlord.village.Sites;
 import com.realmlord.village.Trades;
 import com.realmlord.village.Village;
 import net.minecraft.core.BlockPos;
@@ -40,7 +41,7 @@ import java.util.List;
 public class VillageTests {
 
     /** A Lord with a fresh, settled village far from the test grid, its chunks kept loaded. */
-    private static Territory village(GameTestHelper helper, ServerPlayer p, int dx) {
+    static Territory village(GameTestHelper helper, ServerPlayer p, int dx) {
         ServerLevel level = helper.getLevel();
         BlockPos base = helper.absolutePos(new BlockPos(0, 1, 0)).offset(dx, 0, 0);
         for (int cx = -5; cx <= 5; cx++)
@@ -59,7 +60,7 @@ public class VillageTests {
         return t;
     }
 
-    private static Building built(Territory t, BuildingType type) {
+    static Building built(Territory t, BuildingType type) {
         Building b = new Building();
         b.id = t.nextBuildingId++;
         b.type = type;
@@ -71,7 +72,7 @@ public class VillageTests {
         return b;
     }
 
-    private static void done(GameTestHelper helper, ServerPlayer p, Territory t) {
+    static void done(GameTestHelper helper, ServerPlayer p, Territory t) {
         TerritoryData.get(helper.getLevel().getServer()).remove(t.id);
         RealmTests.leave(p);
         helper.succeed();
@@ -188,12 +189,30 @@ public class VillageTests {
         helper.assertTrue(p.getInventory().countItem(ModItems.BLUEPRINT.get()) == 0, "blueprint not used up");
         Building b = t.buildings.get(t.buildings.size() - 1);
         helper.assertTrue(Village.checkPlacement(level, t, BuildingType.BATHROOM, b.origin, 0) != null, "allowed a building on top of another");
+        // Choosing the spot puts nothing down: builders clear and level it first.
+        helper.assertTrue(b.stage == Building.CLEAR, "a new site should start by clearing the ground");
+        for (int cx = 0; cx < b.sizeX(); cx += b.sizeX() - 1)
+            for (int cz = 0; cz < b.sizeZ(); cz += b.sizeZ() - 1)
+                helper.assertTrue(!level.getBlockState(b.origin.offset(cx, 0, cz)).is(Blocks.OAK_FENCE), "corner posts were put down when the site was chosen");
+        // Something to clear: a stone pillar standing on the site.
+        BlockPos pillar = b.origin.offset(b.sizeX() / 2, 0, b.sizeZ() / 2);
+        for (int y = 0; y < 3; y++) level.setBlock(pillar.above(y), Blocks.COBBLESTONE.defaultBlockState(), 3);
         // Nothing happens without builders.
         Village.construct(level, t, 20);
         helper.assertTrue(b.progress == 0, "built with no builders");
         Village.shift(t, Job.CONSTRUCTION, 5);
-        for (int i = 0; i < 400 && !b.complete; i++) Village.construct(level, t, (int) (b.workNeeded / 50) + 1);
-        helper.assertTrue(b.complete, "Dining Hall never finished: " + b.placed + " blocks placed, progress " + b.progress + "/" + b.workNeeded);
+        long stoneBefore = t.stone;
+        for (int i = 0; i < 400 && !b.complete; i++) {
+            b.lastWork = level.getGameTime() - Sites.STALL_TICKS - 1;
+            Village.construct(level, t, (int) (b.workNeeded / 50) + 1);
+        }
+        helper.assertTrue(b.complete, "Dining Hall never finished: " + b.placed + " blocks placed, progress " + b.progress + "/" + b.workNeeded + ", stage " + b.stage);
+        helper.assertTrue(t.stone >= stoneBefore + 3, "cleared cobblestone not kept: " + stoneBefore + " -> " + t.stone);
+        for (int x = 0; x < b.sizeX(); x++)
+            for (int z = 0; z < b.sizeZ(); z++) {
+                var under = level.getBlockState(b.origin.offset(x, -1, z));
+                helper.assertTrue(!under.isAir() && under.getFluidState().isEmpty(), "ground under the hall not levelled at " + x + "," + z);
+            }
         int solid = 0;
         for (int x = 0; x < b.sizeX(); x++)
             for (int z = 0; z < b.sizeZ(); z++)
@@ -206,13 +225,58 @@ public class VillageTests {
         p.getInventory().add(Blueprints.of("blacksmith_workshop"));
         t.residents.removeIf(r -> r.occupation == Occupation.BLACKSMITH);
         helper.assertTrue("realmlord.build.err.specialist".equals(Village.checkCost(p, t, BuildingType.BLACKSMITH_WORKSHOP, false)), "built a smithy with no blacksmith");
-        // The fence rings the border.
-        err = Village.start(p, t, BuildingType.SIMPLE_FENCE, t.center, 0);
+        // The fence rings the border: plank in the ground, two fences, a plank rail, with chosen gates.
+        err = Village.start(p, t, BuildingType.SIMPLE_FENCE, t.center, 0, new int[]{0, 180});
         helper.assertTrue(err == null, "could not start the fence: " + err);
         Building fence = t.buildings.get(t.buildings.size() - 1);
-        for (int i = 0; i < 400 && !fence.complete; i++) Village.construct(level, t, (int) (fence.workNeeded / 50) + 1);
+        for (int i = 0; i < 400 && !fence.complete; i++) {
+            fence.lastWork = level.getGameTime() - Sites.STALL_TICKS - 1;
+            Village.construct(level, t, (int) (fence.workNeeded / 50) + 1);
+        }
         helper.assertTrue(fence.complete, "fence never finished");
+        helper.assertTrue(fence.gates.length == 2, "expected the two chosen gates");
+        BlockPos east = fencePost(t, fence, 0), north = fencePost(t, fence, 270);
+        helper.assertTrue(level.getBlockState(east).getBlock() instanceof net.minecraft.world.level.block.FenceGateBlock, "no gate at the east: " + level.getBlockState(east));
+        helper.assertTrue(level.getBlockState(north).is(Blocks.OAK_FENCE) && level.getBlockState(north.above()).is(Blocks.OAK_FENCE), "north post not two fences high");
+        helper.assertTrue(level.getBlockState(north.below()).is(Blocks.OAK_PLANKS) && level.getBlockState(north.above(2)).is(Blocks.OAK_PLANKS),
+                "north post should have a plank in the ground and a plank rail: " + level.getBlockState(north.below()) + " / " + level.getBlockState(north.above(2)));
+        // Moving the gates changes the posts at once.
+        Village.setGates(level, t, new int[]{270});
+        helper.assertTrue(level.getBlockState(north).getBlock() instanceof net.minecraft.world.level.block.FenceGateBlock, "gate not moved to the north");
+        helper.assertTrue(level.getBlockState(east).is(Blocks.OAK_FENCE), "old east gate not closed up");
+        // Taking the hall down returns three quarters of its wood and stone.
+        long wood = t.wood, stone = t.stone;
+        Village.demolish(level, t, b);
+        helper.assertTrue(b.demolishing && !b.complete, "hall not being taken down");
+        for (int i = 0; i < 2000 && t.buildings.contains(b); i++) {
+            b.lastWork = level.getGameTime() - Sites.STALL_TICKS - 1;
+            Village.construct(level, t, 200);
+        }
+        helper.assertTrue(!t.buildings.contains(b), "hall never came down: " + b.placed + " left");
+        helper.assertTrue(t.wood - wood == Math.round(BuildingType.DINING_HALL.wood * 0.75) && t.stone - stone == Math.round(BuildingType.DINING_HALL.stone * 0.75),
+                "salvage should be 3/4 of the cost: got " + (t.wood - wood) + " wood, " + (t.stone - stone) + " stone");
+        int left = 0;
+        for (int x = 0; x < b.sizeX(); x++)
+            for (int z = 0; z < b.sizeZ(); z++)
+                for (int y = 0; y < 6; y++) if (!level.getBlockState(b.origin.offset(x, y, z)).isAir()) left++;
+        helper.assertTrue(left < 10, "blocks left standing after demolition: " + left);
         done(helper, p, t);
+    }
+
+    /** The post of a fence nearest a bearing, at its fence height. */
+    static BlockPos fencePost(Territory t, Building fence, int degrees) {
+        var cols = com.realmlord.village.BuildingDesigns.fenceColumns(t.center, fence.fenceRadius);
+        int best = 0;
+        double bestDiff = 999;
+        for (int i = 0; i < cols.size(); i++) {
+            double d = com.realmlord.village.BuildingDesigns.bearing(t.center, cols.get(i)[0], cols.get(i)[1]);
+            double diff = Math.abs(((d - degrees) % 360 + 540) % 360 - 180);
+            if (diff < bestDiff) {
+                bestDiff = diff;
+                best = i;
+            }
+        }
+        return new BlockPos(cols.get(best)[0], fence.fenceYs[best], cols.get(best)[1]);
     }
 
     @GameTest(template = "empty", timeoutTicks = 200, batch = "village_upgrade")

@@ -12,6 +12,7 @@ from PIL import Image
 
 import gen_skins
 import lang_village
+import lang_labor
 
 ROOT = os.path.join(os.path.dirname(__file__), "..", "src", "main", "resources")
 ASSETS = os.path.join(ROOT, "assets", "realmlord")
@@ -393,6 +394,7 @@ def lang():
     for kid, name in TERRITORY_KINDS.items():
         L[f"realmlord.territory.{kid}"] = name
     lang_village.add(L)
+    lang_labor.add(L)
     return dict(sorted(L.items()))
 
 

@@ -56,7 +56,13 @@ public final class Views {
             bt.putInt("sx", b.sizeX());
             bt.putInt("sz", b.sizeZ());
             bt.putBoolean("complete", b.complete);
-            bt.putDouble("fraction", b.fraction());
+            bt.putDouble("fraction", b.demolishing ? (b.demolishFrom > 0 ? b.placed / (double) b.demolishFrom : 0) : b.fraction());
+            bt.putBoolean("demolish", b.demolishing);
+            bt.putInt("stage", b.stage);
+            if (b.type == BuildingType.SIMPLE_FENCE) {
+                bt.putIntArray("gates", b.gates);
+                bt.putInt("fr", b.fenceRadius);
+            }
             Resident s = Village.staffOf(t, b);
             if (s != null) bt.putString("staff", s.name);
             if (b.type == BuildingType.FARMLAND) bt.putDouble("growth", Village.growth(b, day));
@@ -127,6 +133,7 @@ public final class Views {
         v.putString("village", t.name);
         v.putBoolean("owner", p.getUUID().equals(t.owner));
         v.put("resident", r.save());
+        v.putString("activity", r.activity);
         Building w = t.building(r.workplace);
         if (w != null) v.putInt("workType", w.type.ordinal());
         v.putLong("coins", Coins.count(p));

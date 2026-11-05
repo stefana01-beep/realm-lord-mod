@@ -52,6 +52,10 @@ public final class RealmCommand {
                     c.getSource().sendSuccess(() -> Component.translatable("realmlord.cmd.capitals_note"), false);
                     return 1;
                 }))
+                .then(Commands.literal("spawn").requires(s -> s.hasPermission(2)).executes(c -> {
+                    com.realmlord.territory.SpawnPicker.offer(c.getSource().getPlayerOrException());
+                    return 1;
+                }))
                 .then(Commands.literal("role").executes(c -> {
                     ServerPlayer p = c.getSource().getPlayerOrException();
                     ModNetwork.send(p, new OpenScreenPacket(Profiles.get(p).hasChosen() ? OpenScreenPacket.CHARACTER : OpenScreenPacket.ROLE));

@@ -19,7 +19,7 @@ import net.minecraft.world.item.ItemStack;
 /** A resident's character card, their work (for the Lord) and their trades. */
 public class ResidentScreen extends Screen {
     public static final int CARD = 0, WORK = 1, TRADE = 2;
-    private static final int W = 320, H = 220;
+    private static final int W = 320, H = 250;
     private static final Job[] JOBS = {Job.IDLE, Job.CONSTRUCTION, Job.LOGGING, Job.QUARRYING, Job.FARMING, Job.MINING, Job.ADMINISTRATION};
 
     private int tab = CARD;
@@ -70,6 +70,10 @@ public class ResidentScreen extends Screen {
             }).bounds(x + 8 + i * 102, y + 20, 98, 16).build();
             b.active = tab != i && (i != WORK || owner);
             addRenderableWidget(b);
+        }
+        if (tab == CARD && owner) {
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.resident.open_pack"), b -> send(ResidentActionPacket.Action.INVENTORY, 0))
+                    .bounds(x + W - 92, y + H - 28, 80, 16).build());
         }
         if (tab == WORK && owner) initWork(x, y);
         if (tab == TRADE) initTrade(x, y);
@@ -168,7 +172,23 @@ public class ResidentScreen extends Screen {
         Component work = v.contains("workType") ? Component.translatable(BuildingType.byOrdinal(v.getInt("workType")).key()) : Component.translatable(r.job.key());
         yy = line(g, lx, yy, Component.translatable("realmlord.resident.job", work), Ui.INK);
         if (r.militia) yy = line(g, lx, yy, Component.translatable("realmlord.resident.militia"), Ui.RED);
-        Ui.wrap(g, font, Component.translatable("realmlord.resident.evaluation", Component.translatable(r.occupation.key() + ".eval")), lx, yy + 4, W - 28, Ui.GREY);
+        String act = v.getString("activity");
+        if (!act.isEmpty()) yy = line(g, lx, yy, Component.translatable("realmlord.resident.doing", Component.translatable(act)), Ui.JADE);
+        yy = Ui.wrap(g, font, Component.translatable("realmlord.resident.evaluation", Component.translatable(r.occupation.key() + ".eval")), lx, yy + 4, W - 28, Ui.GREY);
+        // What they carry.
+        int py = y + H - 30;
+        g.drawString(font, Component.translatable("realmlord.resident.pack_label"), lx, py + 4, Ui.MUTED, false);
+        int ix = lx + 40;
+        boolean empty = true;
+        for (int i = 0; i < r.inv.getContainerSize(); i++) {
+            net.minecraft.world.item.ItemStack st = r.inv.getItem(i);
+            if (st.isEmpty()) continue;
+            empty = false;
+            g.renderItem(st, ix, py);
+            g.renderItemDecorations(font, st, ix, py);
+            ix += 18;
+        }
+        if (empty) g.drawString(font, Component.translatable("realmlord.resident.pack_empty"), lx + 40, py + 4, Ui.GREY, false);
     }
 
     private void renderWork(GuiGraphics g, CompoundTag v, Resident r, int x, int y) {

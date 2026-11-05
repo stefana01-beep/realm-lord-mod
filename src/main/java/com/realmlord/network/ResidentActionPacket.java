@@ -19,7 +19,7 @@ import java.util.function.Supplier;
 
 /** Client to server: give a resident a job, or trade with them. */
 public class ResidentActionPacket {
-    public enum Action { SET_JOB, STAFF, TRADE, REFRESH }
+    public enum Action { SET_JOB, STAFF, TRADE, REFRESH, INVENTORY }
 
     private final Action action;
     private final int territory, resident, a;
@@ -72,6 +72,14 @@ public class ResidentActionPacket {
                 if (err != null) Notify.player(p, err);
             }
             case REFRESH -> { }
+            case INVENTORY -> {
+                if (!owner) return;
+                p.openMenu(new net.minecraft.world.SimpleMenuProvider(
+                        (id, inv, pl) -> new net.minecraft.world.inventory.ChestMenu(net.minecraft.world.inventory.MenuType.GENERIC_9x1, id, inv, r.inv, 1),
+                        Component.translatable("realmlord.resident.pack", r.name)));
+                data.touch();
+                return;
+            }
         }
         data.touch();
         ResidentViewPacket.send(p, territory, resident, false);

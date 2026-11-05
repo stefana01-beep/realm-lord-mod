@@ -21,6 +21,22 @@ public class Building {
     /** Granted free by a village upgrade. */
     public boolean free;
 
+    /** Site stages: clearing the ground, shaping it level, then building. */
+    public static final int CLEAR = 0, SHAPE = 1, BUILD = 2;
+    public int stage = CLEAR;
+    /** Being taken down block by block, its materials carried back to the stores. */
+    public boolean demolishing;
+    /** Wood and stone the demolition will return in all, over {@link #demolishFrom} blocks. */
+    public int salvageWood, salvageStone, demolishFrom;
+    /** Game time a worker last did something here; a site left alone gets done by the village. */
+    public long lastWork;
+
+    // The Simple Fence: its ring, the ground height of each post and where the gates are.
+    public int fenceRadius;
+    public int[] fenceYs;
+    /** Gate bearings in degrees, 0 = east, 90 = south. */
+    public int[] gates = new int[0];
+
     // Farmland
     public boolean sown;
     public long sowDay;
@@ -43,6 +59,16 @@ public class Building {
                 && z0 - gap < origin.getZ() + sizeZ() && origin.getZ() < z0 + sz + gap;
     }
 
+    /** True if a bearing (degrees) falls in one of the fence's gateways, three posts wide. */
+    public boolean isGate(double degrees) {
+        double halfWidth = Math.toDegrees(1.6 / Math.max(4, fenceRadius));
+        for (int g : gates) {
+            double diff = Math.abs(((degrees - g) % 360 + 540) % 360 - 180);
+            if (diff <= halfWidth) return true;
+        }
+        return false;
+    }
+
     public double fraction() {
         return complete ? 1.0 : workNeeded <= 0 ? 0.0 : Math.min(1.0, progress / (double) workNeeded);
     }
@@ -61,6 +87,13 @@ public class Building {
         t.putBoolean("sown", sown);
         t.putLong("sowDay", sowDay);
         t.putFloat("sowYield", sowYield);
+        t.putInt("stage", stage);
+        t.putBoolean("demolish", demolishing);
+        t.putIntArray("salvage", new int[]{salvageWood, salvageStone, demolishFrom});
+        t.putLong("lastWork", lastWork);
+        t.putInt("fenceR", fenceRadius);
+        if (fenceYs != null) t.putIntArray("fenceYs", fenceYs);
+        t.putIntArray("gates", gates);
         return t;
     }
 
@@ -80,6 +113,19 @@ public class Building {
         b.sown = t.getBoolean("sown");
         b.sowDay = t.getLong("sowDay");
         b.sowYield = t.contains("sowYield") ? t.getFloat("sowYield") : 1.0F;
+        // Sites from before the clearing stages were already levelled.
+        b.stage = t.contains("stage") ? t.getInt("stage") : BUILD;
+        b.demolishing = t.getBoolean("demolish");
+        int[] sv = t.getIntArray("salvage");
+        if (sv.length == 3) {
+            b.salvageWood = sv[0];
+            b.salvageStone = sv[1];
+            b.demolishFrom = sv[2];
+        }
+        b.lastWork = t.getLong("lastWork");
+        b.fenceRadius = t.getInt("fenceR");
+        b.fenceYs = t.contains("fenceYs") ? t.getIntArray("fenceYs") : null;
+        b.gates = t.contains("gates") ? t.getIntArray("gates") : new int[]{0, 90, 180, 270};
         return b;
     }
 }

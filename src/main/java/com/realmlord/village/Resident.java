@@ -31,6 +31,12 @@ public class Resident {
     /** The spawned entity, if this resident is currently shown in the world. */
     public UUID entity;
     public boolean militia;
+    /** What they carry: tools, and their haul until they hand it in. */
+    public final net.minecraft.world.SimpleContainer inv = new net.minecraft.world.SimpleContainer(9);
+    /** Wood, stone and iron ore handed in today, which counts towards their day's work. */
+    public final long[] gathered = new long[3];
+    /** What they are doing right now (a text key), for their card. */
+    public String activity = "";
 
     public boolean isTalent() {
         return grade != COMMON || occupation.special;
@@ -130,6 +136,8 @@ public class Resident {
         t.putInt("skin", skin);
         if (entity != null) t.putUUID("entity", entity);
         t.putBoolean("militia", militia);
+        t.put("inv", inv.createTag());
+        t.putLongArray("gathered", gathered);
         return t;
     }
 
@@ -155,6 +163,9 @@ public class Resident {
         r.skin = t.getInt("skin");
         r.entity = t.hasUUID("entity") ? t.getUUID("entity") : null;
         r.militia = t.getBoolean("militia");
+        r.inv.fromTag(t.getList("inv", net.minecraft.nbt.Tag.TAG_COMPOUND));
+        long[] g = t.getLongArray("gathered");
+        System.arraycopy(g, 0, r.gathered, 0, Math.min(g.length, 3));
         return r;
     }
 

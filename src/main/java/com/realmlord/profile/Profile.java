@@ -101,6 +101,18 @@ public class Profile {
         return mode;
     }
 
+    /** Whether the player has chosen where in the world to begin. */
+    private boolean placed;
+
+    public boolean isPlaced() {
+        return placed;
+    }
+
+    public void setPlaced(boolean placed) {
+        this.placed = placed;
+        markDirty();
+    }
+
     public boolean hasChosen() {
         return mode != PlayMode.NONE;
     }
@@ -363,6 +375,7 @@ public class Profile {
         t.putLongArray("cooldowns", cooldowns);
         t.putInt("territory", territoryId);
         t.put("quest", quest.save());
+        t.putBoolean("placed", placed);
         return t;
     }
 
@@ -388,6 +401,8 @@ public class Profile {
         System.arraycopy(cd, 0, cooldowns, 0, Math.min(cd.length, cooldowns.length));
         territoryId = t.contains("territory") ? t.getInt("territory") : -1;
         quest.load(t.getCompound("quest"));
+        // Players from before the starting-place choice are already where they want to be.
+        placed = t.contains("placed") ? t.getBoolean("placed") : mode != PlayMode.NONE;
         if (t.getInt("ver") < DATA_VERSION && mode != PlayMode.NONE) migrate();
         markDirty();
     }

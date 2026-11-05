@@ -27,6 +27,10 @@ public final class ClientAccess {
         if (m.open && !(mc.screen instanceof TerritoryMapScreen)) mc.setScreen(new TerritoryMapScreen(null));
     }
 
+    public static void spawn(com.realmlord.network.SpawnOptionsPacket p) {
+        Minecraft.getInstance().setScreen(new SpawnScreen(p));
+    }
+
     public static void open(int screen) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
