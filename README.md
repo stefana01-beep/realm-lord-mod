@@ -110,6 +110,15 @@ The Territory tab shows what the next upgrade needs. These are the novel's requi
 | Prefecture 3 | 1,000,000 | First Class Marquis | |
 | Capital | 2,000,000 | Duke | 90 |
 
+## The China world: "Earth Online: China"
+When you create a world, set **World Type** to **Earth Online: China** (More World Options). The overworld becomes a map of China about 23,000 blocks across (1 block ≈ 280 m), with Luoyang at 0, 0. The rest of the terrain, caves and structures are vanilla, so it plays like an ordinary world shaped like the real land:
+- The Tibetan Plateau rises to around y 190 with snowy peaks, and the Himalaya, Kunlun, Tianshan, Qinling, Taihang and Hengduan ranges stand where they should.
+- The Taklamakan and Gobi are desert. The North China Plain, the Sichuan Basin and the Yangtze delta are flat farmland. The far south is jungle and mangrove.
+- The Yellow River, the Yangtze, the Pearl River and others are carved in, with the great lakes. The Bohai, Yellow, East and South China Seas lie to the east, with Taiwan and Hainan offshore.
+- The climate runs from cold in the north-east and on the plateau to warm in the south.
+
+`/realm capitals` lists the coordinates of the historic capitals (Jingdu, Chang'an, Luoyang, Jianye, Chengdu, Xiangyang, Dali, Quanzhou and Xianyang) if you want to found your village somewhere famous. Existing worlds are unchanged; only new worlds with this world type use the map.
+
 ## Running your village (Phase 2)
 **Right-click the Lord's Manor Seal** to open the Manor screen. It has four tabs:
 
@@ -164,11 +173,11 @@ Each upgrade pays merit by world order (1,100 for the first), widens your border
 - `daysToComplete` (10), `goldWithinDays` (3), `silverWithinDays` (5), `blackIronWithinDays` (7.5), and an experience multiplier.
 
 ## Admin commands (op)
-`/realm` · `/realm info [player]` · `/realm territories` · `/realm role` (anyone) · `/realm reset [player]` · `/realm level <n>` · `/realm worklevel <n>` · `/realm points <n>` · `/realm merit add|set <n>` · `/realm token <grade>` · `/realm quest start|supplies|clear`
+`/realm` · `/realm info [player]` · `/realm territories` · `/realm capitals` · `/realm role` (anyone) · `/realm reset [player]` · `/realm level <n>` · `/realm worklevel <n>` · `/realm points <n>` · `/realm merit add|set <n>` · `/realm token <grade>` · `/realm quest start|supplies|clear`
 
 ## Roadmap
 1. **Lord and Adventurer cores** (done)
-2. **Village grades 1–3** (2a done: every building from the novel with its costs, blueprints and specialists, placement and construction, residents with jobs, talents and trade, resource jobs, the farming calendar, the market and upgrades). 2b next: militia, beast waves and the first dungeons
+2. **Village grades 1–3** (2a done, with a territory map and the China world type: every building from the novel with its costs, blueprints and specialists, placement and construction, residents with jobs, talents and trade, resource jobs, the farming calendar, the market and upgrades). 2b next: militia, beast waves and the first dungeons
 3. Historical generals and ministers, departments and the four indexes
 4. Town grades 1–3, troops, formations, raids, more dungeons
 5. Battlefield maps, rival lords and war
