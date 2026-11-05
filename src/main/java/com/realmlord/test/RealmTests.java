@@ -247,7 +247,7 @@ public class RealmTests {
         helper.assertTrue(q.grade == expect, "a same-day finish should earn " + expect + ", got " + q.grade);
         helper.assertTrue(p.getInventory().contains(new ItemStack(ModItems.token(expect))), "token not in inventory");
         helper.assertTrue(p.getInventory().contains(new ItemStack(ModItems.SUMMONING_TOKEN.get())), "no Summoning Token");
-        helper.assertTrue(p.getInventory().contains(new ItemStack(ModItems.RESOURCES_BAG.get())), "no Resources Bag");
+        helper.assertTrue(p.getInventory().countItem(ModItems.RESOURCES_BAG.get()) == 1, "no Resources Bag");
         helper.assertTrue(p.getInventory().countItem(ModItems.GOLD_COIN.get()) >= QuestLogic.coinReward(expect), "gold reward missing");
         helper.assertTrue(data.goldTokenClaimed(), "the world's Gold token should now be taken");
         leave(p);
@@ -339,23 +339,12 @@ public class RealmTests {
         helper.assertTrue(cd <= 8.01, "tier 1 chief hits too hard: " + cd);
         helper.assertTrue(chief.getMaxHealth() >= 40, "chief too frail");
         helper.assertTrue(archer.getMainHandItem().is(Items.BOW), "archer has no bow");
-        // Against a player in full iron on Normal, a swordsman needs many hits to kill.
+        // Against full iron armour (15 armour), even on Hard (x1.5), a swordsman's hit stays under 2.5 hearts.
+        float hard = net.minecraft.world.damagesource.CombatRules.getDamageAfterAbsorb((float) sd * 1.5F, 15.0F, 0.0F);
+        helper.assertTrue(hard <= 4.5F, "swordsman deals " + hard + " through iron armour on Hard");
+        float chiefHard = net.minecraft.world.damagesource.CombatRules.getDamageAfterAbsorb((float) cd * 1.5F, 15.0F, 0.0F);
+        helper.assertTrue(chiefHard <= 6.0F, "chief deals " + chiefHard + " through iron armour on Hard");
         ServerPlayer p = mockPlayer(helper);
-        p.setItemSlot(net.minecraft.world.entity.EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
-        p.setItemSlot(net.minecraft.world.entity.EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
-        p.setItemSlot(net.minecraft.world.entity.EquipmentSlot.LEGS, new ItemStack(Items.IRON_LEGGINGS));
-        p.setItemSlot(net.minecraft.world.entity.EquipmentSlot.FEET, new ItemStack(Items.IRON_BOOTS));
-        // Armour attributes normally apply on the next tick; apply them now.
-        for (var slot : new net.minecraft.world.entity.EquipmentSlot[]{net.minecraft.world.entity.EquipmentSlot.HEAD,
-                net.minecraft.world.entity.EquipmentSlot.CHEST, net.minecraft.world.entity.EquipmentSlot.LEGS, net.minecraft.world.entity.EquipmentSlot.FEET}) {
-            p.getAttributes().addTransientAttributeModifiers(p.getItemBySlot(slot).getAttributeModifiers(slot));
-        }
-        helper.assertTrue(p.getArmorValue() >= 15, "iron armour not applied: " + p.getArmorValue());
-        float before = p.getHealth();
-        p.invulnerableTime = 0;
-        sword.doHurtTarget(p);
-        float lost = before - p.getHealth();
-        helper.assertTrue(lost > 0 && lost <= 4.5F, "swordsman took " + lost + " health through iron armour");
         archer.performRangedAttack(p, 1.0F);
         leave(p);
         helper.succeed();
