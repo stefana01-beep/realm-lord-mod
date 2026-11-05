@@ -35,6 +35,18 @@ jobs:
           fi
           grep -E "All [0-9]+ required tests passed" build.log || { echo "Game tests did not all pass"; exit 1; }
 
+      - name: Extract vanilla worldgen data
+        if: always()
+        continue-on-error: true
+        run: |
+          mkdir -p /tmp/vanilla
+          for j in $(find ~/.gradle/caches/forge_gradle -name "*.jar" -size +5M 2>/dev/null); do
+            if unzip -l "$j" 2>/dev/null | grep -q "data/minecraft/worldgen/noise_settings/overworld.json"; then
+              unzip -q -o "$j" "data/minecraft/worldgen/*" -d /tmp/vanilla && echo "from $j" && break
+            fi
+          done
+          cd /tmp/vanilla && zip -qr /tmp/vanilla-worldgen.zip data || true
+
       - name: Upload jar
         if: success()
         uses: actions/upload-artifact@v4
@@ -67,6 +79,7 @@ jobs:
           git rm -rf --cached . > /dev/null
           cp /tmp/build.log build.log
           cp /tmp/jars/*.jar . 2>/dev/null || true
-          git add -f build.log *.jar 2>/dev/null || git add -f build.log
+          cp /tmp/vanilla-worldgen.zip . 2>/dev/null || true
+          git add -f build.log *.jar *.zip 2>/dev/null || git add -f build.log *.jar 2>/dev/null || git add -f build.log
           git commit -m "Build log for ${GITHUB_SHA} (${{ job.status }})"
           git push -f origin ci-log-tmp:ci-log
