@@ -15,7 +15,7 @@ import java.util.zip.GZIPInputStream;
 public final class ChinaMap {
     private ChinaMap() {}
 
-    public static final int CONT = 0, ERO = 1, TEMP = 2, VEG = 3, MOUNTAIN = 4, RIVER = 5;
+    public static final int CONT = 0, ERO = 1, TEMP = 2, VEG = 3, MOUNTAIN = 4, RIVER = 5, LIFT = 6;
     /** Pixels over which the map fades into ordinary terrain at its edges. */
     private static final double EDGE = 40;
 
@@ -87,6 +87,10 @@ public final class ChinaMap {
         if (!ready()) return detail;
         double in = inside(bx, bz);
         if (in <= 0) return detail;
+        if (channel.equals("lift")) {
+            // Raises the land by up to 200 blocks: terrain offset is 1/128 per block.
+            return channels > LIFT ? in * sample(LIFT, bx, bz) * 200.0 / 128.0 : 0.0;
+        }
         double river = sample(RIVER, bx, bz);
         double v;
         switch (channel) {

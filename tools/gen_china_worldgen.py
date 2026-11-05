@@ -49,8 +49,12 @@ def main():
     write(os.path.join(DF, "ridges.json"), china("ridges", "minecraft:overworld/ridges", 1.0))
     # Vanilla's shaping functions, re-pointed at the map-driven inputs.
     for n in ["ridges_folded", "offset", "factor", "jaggedness", "depth", "sloped_cheese"]:
-        src = json.load(open(os.path.join(V, "density_function", "overworld", n + ".json")))
-        write(os.path.join(DF, n + ".json"), rewire(src))
+        src = rewire(json.load(open(os.path.join(V, "density_function", "overworld", n + ".json"))))
+        if n == "offset":
+            # Plateaus: Minecraft has no high flat land, so the map lifts it (1/128 per block).
+            src = {"type": "minecraft:add", "argument1": src,
+                   "argument2": {"type": "realmlord:china_map", "channel": "lift", "detail": 0.0, "detail_amount": 0.0}}
+        write(os.path.join(DF, n + ".json"), src)
     ns = json.load(open(os.path.join(V, "noise_settings", "overworld.json")))
     ns = rewire(ns)
     r = ns["noise_router"]

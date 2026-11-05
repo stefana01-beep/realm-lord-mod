@@ -43,6 +43,18 @@ public class WorldTests {
         NoiseBasedChunkGenerator gen = new NoiseBasedChunkGenerator(level.getChunkSource().getGenerator().getBiomeSource(), settings);
         var router = rs.router();
 
+        // A coarse survey of the whole map for the build log (heights and biomes).
+        StringBuilder row = new StringBuilder();
+        for (int z = -8448; z <= 8192; z += 224) {
+            row.setLength(0);
+            for (int x = -14464; x <= 8960; x += 224) {
+                int h = gen.getBaseHeight(x, z, Heightmap.Types.OCEAN_FLOOR_WG, level, rs);
+                Holder<Biome> b = gen.getBiomeSource().getNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(Math.max(h, 63)), QuartPos.fromBlock(z), rs.sampler());
+                String id = b.unwrapKey().map(k -> k.location().getPath()).orElse("?");
+                row.append(h).append(':').append(id).append(' ');
+            }
+            RealmLord.LOGGER.info("CHINAMAP {}", row.toString().trim());
+        }
         // Tibetan Plateau (Lhasa area): high and cold.
         int tx = bx(91.1), tz = bz(31.5);
         double tTemp = router.temperature().compute(new DensityFunction.SinglePointContext(tx, 64, tz));
@@ -62,18 +74,6 @@ public class WorldTests {
         helper.assertTrue(plain >= 60 && plain < 110, "the North China Plain should be low land, is " + plain);
         helper.assertTrue(kTemp > 0.3 && kVeg < -0.5, "the Taklamakan should be hot and dry: " + kTemp + " / " + kVeg);
 
-        // A coarse survey of the whole map for the build log (heights and biomes).
-        StringBuilder row = new StringBuilder();
-        for (int z = -8448; z <= 8192; z += 224) {
-            row.setLength(0);
-            for (int x = -14464; x <= 8960; x += 224) {
-                int h = gen.getBaseHeight(x, z, Heightmap.Types.OCEAN_FLOOR_WG, level, rs);
-                Holder<Biome> b = gen.getBiomeSource().getNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(Math.max(h, 63)), QuartPos.fromBlock(z), rs.sampler());
-                String id = b.unwrapKey().map(k -> k.location().getPath()).orElse("?");
-                row.append(h).append(':').append(id).append(' ');
-            }
-            RealmLord.LOGGER.info("CHINAMAP {}", row.toString().trim());
-        }
         helper.succeed();
     }
 }

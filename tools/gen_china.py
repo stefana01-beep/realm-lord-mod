@@ -172,21 +172,21 @@ LAKES = [(100.2, 36.9, 45), (116.3, 29.0, 40), (112.9, 29.3, 30), (120.2, 31.2, 
 REGIONS = {  # name: (polygon, {channel: target}, blur)
     "tibet": ([(78, 35.5), (80, 36.4), (84, 36.0), (90, 36.2), (94, 35.8), (98, 36.0), (101, 35.3), (102.5, 33.5), (102, 30.5),
                (100.5, 28), (97.5, 28), (95, 28.7), (92, 28.1), (88, 28.1), (85, 28.8), (82, 30.3), (79.2, 31.5), (78, 33.5)],
-              {"cont": 0.95, "ero": -0.42, "temp": -0.75, "veg": -0.25}, 3.0),
+              {"cont": 0.95, "ero": -0.42, "temp": -0.75, "veg": -0.25, "lift": 95}, 3.0),
     "yungui": ([(100, 23), (104, 22.8), (108, 24.5), (109.3, 27), (107, 28.6), (103.5, 28.6), (100.6, 27)],
-               {"cont": 0.55, "ero": -0.05, "veg": 0.45}, 2.5),
+               {"cont": 0.55, "ero": -0.05, "veg": 0.45, "lift": 35}, 2.5),
     "loess": ([(101.5, 36), (104, 37.6), (108, 38.6), (111, 39.4), (112.8, 38), (111.6, 35.6), (108, 34.6), (104, 35)],
-              {"cont": 0.55, "ero": -0.1, "veg": -0.35}, 2.5),
+              {"cont": 0.55, "ero": -0.1, "veg": -0.35, "lift": 25}, 2.5),
     "inner_mongolia": ([(97, 42), (105, 42.6), (111, 43.2), (116, 44.3), (120, 45.5), (117.5, 42.3), (111, 40.9), (105, 41.2)],
-                       {"cont": 0.6, "ero": 0.6, "veg": -0.5}, 3.0),
+                       {"cont": 0.6, "ero": 0.6, "veg": -0.5, "lift": 20}, 3.0),
     "gobi": ([(93, 43.8), (100, 44.5), (106, 45), (112, 45.5), (112, 42.5), (104, 41.5), (97, 40.8), (93, 41.5)],
-             {"cont": 0.55, "ero": 0.5, "temp": 0.6, "veg": -0.95}, 3.0),
+             {"cont": 0.55, "ero": 0.5, "temp": 0.6, "veg": -0.95, "lift": 18}, 3.0),
     "tarim": ([(76, 39.5), (78, 41), (82, 41.6), (86, 41.6), (89, 40.6), (89.5, 38.3), (84, 37.2), (79, 37.6)],
               {"cont": 0.35, "ero": 0.7, "temp": 0.65, "veg": -1.0}, 2.0),
     "junggar": ([(82.5, 45), (85, 46.6), (89, 46.2), (90.5, 44.6), (87, 44.2), (84, 44.5)],
                 {"cont": 0.3, "ero": 0.6, "temp": 0.45, "veg": -0.7}, 2.0),
     "qaidam": ([(90, 37.5), (93, 38.4), (97, 37.6), (96.2, 36.4), (92, 36.6)],
-               {"cont": 0.85, "ero": 0.55, "temp": 0.3, "veg": -0.9}, 1.5),
+               {"cont": 0.85, "ero": 0.55, "temp": 0.3, "veg": -0.9, "lift": 70}, 1.5),
     "sichuan": ([(103.5, 30.5), (104.5, 32.1), (106.5, 32.2), (108.5, 30.6), (107, 28.8), (104.5, 28.8)],
                 {"cont": 0.2, "ero": 0.45, "temp": 0.4, "veg": 0.5}, 2.0),
     "north_china_plain": ([(113.6, 39.6), (117, 40.2), (118.6, 39.3), (118.2, 38), (117.6, 36.6), (116.6, 34), (117.6, 32.6),
@@ -223,6 +223,7 @@ def build(land_path):
                     -0.2 - 0.45 * np.minimum(1, dist_land / 250))
     cont = ndimage.gaussian_filter(cont, 1.0)
     ero = np.full((H, W), 0.3, dtype=np.float64)
+    lift = np.zeros((H, W))
     temp = 0.78 - (LAT - 18) * 0.043
     # Humidity: wet south-east, dry north-west.
     veg = 0.65 - 0.0011 * np.where(is_land, dist_sea, 0) + np.where(LAT < 27, 0.15, 0) - np.maximum(0, LAT - 40) * 0.02
@@ -239,6 +240,8 @@ def build(land_path):
                 temp = blend(temp, val, w)
             elif ch == "veg":
                 veg = blend(veg, val, w)
+            elif ch == "lift":
+                lift = np.maximum(lift, val * w)
 
     mountain = np.zeros((H, W))
     for name, line, strength, width in MOUNTAINS:
@@ -247,6 +250,7 @@ def build(land_path):
     ero = ero - 1.25 * mountain
     cont = cont + 0.3 * mountain * (cont > -0.1)
     temp = temp - 0.45 * mountain
+    lift = np.minimum(110, lift + 30 * mountain)
 
     river = np.zeros((H, W))
     for name, line, strength in RIVERS:
@@ -266,12 +270,14 @@ def build(land_path):
     ero = np.clip(ero, -1.0, 1.0)
     temp = np.clip(temp, -1.0, 1.0)
     veg = np.clip(veg, -1.0, 1.0)
-    return {"cont": cont, "ero": ero, "temp": temp, "veg": veg, "mountain": np.clip(mountain, 0, 1), "river": np.clip(river, 0, 1), "land": land}
+    lift = lift * (1 - river * 0.6)
+    return {"cont": cont, "ero": ero, "temp": temp, "veg": veg, "mountain": np.clip(mountain, 0, 1), "river": np.clip(river, 0, 1),
+            "lift": np.clip(lift / 200.0, 0, 1), "land": land}
 
 
 def save(ch):
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    order = ["cont", "ero", "temp", "veg", "mountain", "river"]
+    order = ["cont", "ero", "temp", "veg", "mountain", "river", "lift"]
     buf = bytearray(b"RLCN")
     buf += struct.pack(">iiiii", 1, W, H, X0, Z0)
     buf += struct.pack(">ii", PX, len(order))
