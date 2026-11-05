@@ -10,6 +10,8 @@ import random
 
 from PIL import Image
 
+import gen_skins
+
 ROOT = os.path.join(os.path.dirname(__file__), "..", "src", "main", "resources")
 ASSETS = os.path.join(ROOT, "assets", "realmlord")
 DATA = os.path.join(ROOT, "data", "realmlord")
@@ -107,6 +109,13 @@ STATS = {
 DIRS = {"east": "east", "southeast": "southeast", "south": "south", "southwest": "southwest",
         "west": "west", "northwest": "northwest", "north": "north", "northeast": "northeast"}
 
+BUILDINGS = {
+    "dining_hall": "Dining Hall", "bathroom": "Bathroom", "small_residential_courtyard": "Small Residential Courtyard",
+    "blacksmith_workshop": "Blacksmith Workshop", "grocery_shop": "Grocery Shop", "military_camp": "Military Camp",
+    "ancestral_hall": "Ancestral Hall", "clinic": "Clinic", "private_school": "Private School",
+    "martial_arts_dojo": "Martial Arts Dojo", "granary": "Granary", "tailor_workshop": "Tailor Workshop",
+}
+
 TERRITORY_KINDS = {"village": "Village", "town": "Town", "county": "County", "prefecture": "Prefecture", "capital": "Capital City"}
 
 
@@ -134,9 +143,29 @@ def lang():
         "realmlord.work.tier.2": "Advanced",
         "realmlord.work.tier.3": "Master",
 
-        "realmlord.entity.bandit": "Bandit",
-        "realmlord.entity.bandit_chief": "Bandit Chief",
-        "realmlord.entity.captive": "Captive Settler",
+        "entity.realmlord.bandit": "Bandit",
+        "entity.realmlord.bandit_archer": "Bandit Archer",
+        "entity.realmlord.bandit_chief": "Bandit Chief",
+        "entity.realmlord.settler": "Settler",
+        "entity.realmlord.captive_settler": "Captive Settler",
+        "item.realmlord.bandit_spawn_egg": "Bandit Spawn Egg",
+        "item.realmlord.settler_spawn_egg": "Settler Spawn Egg",
+
+        "item.realmlord.gold_coin": "Gold Coin",
+        "item.realmlord.blueprint": "Blueprint",
+        "item.realmlord.blueprint.named": "Blueprint: %s",
+        "item.realmlord.resources_bag": "Resources Bag",
+        "item.realmlord.resources_bag.named": "%s Resources Bag",
+        "item.realmlord.summoning_token": "Summoning Token",
+        "realmlord.blueprint.tooltip.grade": "A Grade %s Village building",
+        "realmlord.blueprint.tooltip.keep": "Needed to construct it. Construction arrives in Phase 2; keep it safe.",
+        "realmlord.bag.opened": "You open the %s Resources Bag: timber, stone, grain and gold to start your village.",
+        "realmlord.bag.tooltip": "Holds %s logs, %s stone, %s wheat, %s bread and %s gold coins. Use to open.",
+        "realmlord.summoning.tooltip": "Calls a talent, perhaps a figure from history, to serve you.",
+        "realmlord.summoning.tooltip2": "Talents arrive in Phase 3. Keep this token until then.",
+        "realmlord.summoning.not_yet": "No talent answers the call yet. Keep the Summoning Token: it will work once historical figures arrive (Phase 3).",
+        "realmlord.gear.named": "%s-grade %s",
+        "realmlord.gear.grade": "Grade: %s",
 
         # Messages
         "realmlord.msg.welcome": "Welcome to the world. Choose your path: rule as a Lord or roam as an Adventurer. (Press J if the window closed.)",
@@ -153,25 +182,26 @@ def lang():
         "realmlord.reason.founding": "founding a village",
         "realmlord.reason.quest": "Village Creation quest",
         "realmlord.reason.admin": "granted by an administrator",
+        "realmlord.reason.treasure": "finding the chief's treasure",
 
         # Quest
-        "realmlord.quest.start": "Village Creation quest: settlers are waiting for a lord to lead them. First gather supplies for them: %s logs, %s stone and %s food, then hand them over in the Quest tab of your panel (J). You have %s days. Finishing quickly, without dying, and finding whatever the bandits hide will earn a finer token.",
+        "realmlord.quest.start": "Village Creation quest: settlers are waiting for a lord to lead them. First gather supplies for them: %s logs, %s stone and %s food, then hand them over in the Quest tab of your panel (J). You have %s days. Finish within %s days for a Gold token; the slower you are, the lower the grade. The bandits are strong: get yourself iron armour first.",
         "realmlord.quest.nothing": "You carry nothing the settlers need. Supplies so far: logs %s/%s, stone %s/%s, food %s/%s.",
         "realmlord.quest.supplied": "Supplies delivered. Logs %s/%s, stone %s/%s, food %s/%s.",
         "realmlord.quest.bandits": "The supplies are ready, but bandits have seized the settlers! Their camp lies near X %s, Z %s, to the %s, about %s blocks away. Drive them out.",
         "realmlord.quest.camp_found": "You have found the bandit camp. Defeat every bandit and their chief.",
         "realmlord.quest.chief_down": "The Bandit Chief has fallen. He dropped a ledger.",
-        "realmlord.quest.cleared": "The camp is cleared and %s captive families go free: %s people will follow you. Open the Quest tab (J) to claim your Village Creation Token.",
-        "realmlord.quest.cache": "Hidden objective complete: you found the bandits' buried cache.",
-        "realmlord.quest.claimed": "Village Creation quest complete! You received a %s Village Creation Token. Use it on the ground where you want your village.",
+        "realmlord.quest.cleared": "The camp is cleared and %s captive families go free: %s people will follow you. They wait by the camp until you found your village. Open the Quest tab (J) to claim your reward.",
+        "realmlord.quest.cache": "You found the Bandit Chief's buried treasure.",
+        "realmlord.quest.claimed": "Village Creation quest complete! You received a %s Village Creation Token, a Summoning Token, a Resources Bag and %s gold coins. Use the token on the ground where your village should stand.",
         "realmlord.quest.gold_world": "%s has earned the only Gold Village Creation Token in the world!",
         "realmlord.quest.warning": "Less than a day remains to finish the Village Creation quest.",
         "realmlord.quest.failed_time": "You ran out of time. The settlers have scattered.",
         "realmlord.quest.failed_abandon": "You abandoned the Village Creation quest.",
         "realmlord.quest.failed_now_adventurer": "Without settlers you cannot found a village. You continue as an Adventurer.",
 
-        "realmlord.ledger.read": "The ledger's last page, in a crude hand: \"Takings buried under the fire.\" (near X %s, Z %s)",
-        "realmlord.ledger.done": "You have already dug up the bandits' cache.",
+        "realmlord.ledger.read": "The ledger's last page, in a crude hand: \"The chief's share lies buried under the fire.\" (near X %s, Z %s)",
+        "realmlord.ledger.done": "You have already dug up the chief's treasure.",
         "realmlord.ledger.cipher": "The pages are in a bandit cipher that means nothing to you.",
         "realmlord.ledger.tooltip": "Taken from a Bandit Chief. Use to read.",
 
@@ -189,9 +219,9 @@ def lang():
         "realmlord.token.tooltip.use": "Use on the ground to found your village there.",
         "realmlord.token.tooltip.name": "Rename it in an anvil to name your village.",
         "realmlord.token.tooltip.bronze": "The most common token. Most villages begin this way.",
-        "realmlord.token.tooltip.black_iron": "A token for a quest done swiftly.",
-        "realmlord.token.tooltip.silver": "A rare token for a flawless quest.",
-        "realmlord.token.tooltip.gold": "There is only one in all the world.",
+        "realmlord.token.tooltip.black_iron": "Earned by finishing the quest within 7.5 days.",
+        "realmlord.token.tooltip.silver": "Earned by finishing the quest within 5 days.",
+        "realmlord.token.tooltip.gold": "Earned by finishing within 3 days. There is only one in all the world.",
 
         "realmlord.restriction.warning": "A Lord may not leave their territory outside of war. Return within %s seconds or be sent home.",
         "realmlord.restriction.sent_home": "You have been returned to your territory.",
@@ -212,6 +242,7 @@ def lang():
         "realmlord.hud.quest_fight": "Bandits remaining: %s",
         "realmlord.hud.quest_claim": "Claim your token (%s, Quest tab)",
         "realmlord.hud.quest_found": "Use your token to found your village",
+        "realmlord.hud.time_left": "%s days %s hours left",
 
         # Role screen
         "realmlord.role.title": "Choose Your Path",
@@ -257,12 +288,14 @@ def lang():
         "realmlord.panel.quest.obj_supplies": "Gather supplies: logs %s/%s, stone %s/%s, food %s/%s",
         "realmlord.panel.quest.obj_bandits": "Free the settlers from the bandit camp near X %s, Z %s (%s bandits left)",
         "realmlord.panel.quest.obj_bandits_hidden": "Free the settlers from the bandits",
-        "realmlord.panel.quest.obj_hidden": "Hidden: find what the bandits buried",
-        "realmlord.panel.quest.ready": "The settlers are free. Claim your token.",
-        "realmlord.panel.quest.time": "Time: %s days %s hours of %s",
-        "realmlord.panel.quest.deaths": "Deaths: %s",
+        "realmlord.panel.quest.obj_treasure": "Optional: find the Bandit Chief's buried treasure",
+        "realmlord.panel.quest.ready": "The settlers are free. Claim your reward.",
+        "realmlord.panel.quest.time_left": "Time left: %s days %s hours",
+        "realmlord.panel.quest.time_done": "Finished in %s days %s hours",
+        "realmlord.panel.quest.prospect": "Finish now for a %s token",
+        "realmlord.panel.quest.earned": "Earns a %s token",
         "realmlord.panel.quest.submit": "Hand over supplies",
-        "realmlord.panel.quest.claim": "Claim token",
+        "realmlord.panel.quest.claim": "Claim reward",
         "realmlord.panel.quest.abandon": "Abandon quest",
         "realmlord.panel.quest.abandon_confirm": "Click again to abandon",
 
@@ -296,6 +329,8 @@ def lang():
         "realmlord.cmd.territories.none": "No villages have been founded yet.",
         "realmlord.cmd.territories.line": "#%s %s, ruled by %s (%s %s grade %s), population %s",
     }
+    for bid, name in BUILDINGS.items():
+        L[f"realmlord.building.{bid}"] = name
     for gid, name in GRADES.items():
         L[f"realmlord.grade.{gid}"] = name
         L[f"item.realmlord.{gid}_village_token"] = f"{name} Village Creation Token"
@@ -437,6 +472,78 @@ def manor_textures():
     return side, top, bottom
 
 
+def coin_texture():
+    gold = hexc("e8b931")
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    px = img.load()
+    # Three stacked coins.
+    for (cx, cy) in [(5.5, 10.5), (10.5, 10.5), (8, 6)]:
+        for y in range(16):
+            for x in range(16):
+                d = math.hypot(x - cx, y - cy)
+                if d <= 3.6:
+                    light = 1.0 + 0.2 * ((cx - x) + (cy - y)) / 3.6
+                    c = shade(gold, (0.72 if d > 2.9 else 1.0) * light)
+                    if abs(x - cx) <= 0.6 and abs(y - cy) <= 0.6:
+                        c = shade(gold, 0.45)
+                    px[x, y] = c
+    return img
+
+
+def blueprint_texture():
+    paper = hexc("3d6fb0")
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    px = img.load()
+    for y in range(3, 13):
+        for x in range(2, 14):
+            c = shade(paper, 0.95 + 0.1 * ((x + y) % 2))
+            if (x in (4, 11) and 5 <= y <= 10) or (y in (5, 10) and 4 <= x <= 11) or (x == 7 and 5 <= y <= 10):
+                c = hexc("d9e6f5")
+            px[x, y] = c
+    for y in range(2, 14):
+        for x in (1, 14):
+            px[x, y] = hexc("8a5a2e")
+        px[0, y] = hexc("6b4426") if 3 <= y <= 12 else (0, 0, 0, 0)
+        px[15, y] = hexc("6b4426") if 3 <= y <= 12 else (0, 0, 0, 0)
+    return img
+
+
+def bag_texture():
+    hemp = hexc("b49a6a")
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    px = img.load()
+    for y in range(4, 15):
+        half = 3 + min(y - 4, 4) if y < 12 else 7 - (y - 12)
+        for x in range(8 - half, 8 + half):
+            light = 1.0 + 0.15 * ((8 - x) / 7.0) - 0.1 * ((y - 4) / 10.0)
+            px[x, y] = shade(hemp, light)
+    for x in range(6, 10):
+        px[x, 4] = hexc("8c1f1c")
+    for (x, y) in [(6, 2), (7, 3), (9, 2), (8, 3), (7, 1), (9, 1)]:
+        px[x, y] = shade(hemp, 0.85)
+    for (x, y) in [(7, 8), (8, 8), (7, 9), (8, 9)]:
+        px[x, y] = hexc("e8b931")
+    return img
+
+
+def summoning_texture():
+    jade = hexc("3fa37a")
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    px = img.load()
+    for y in range(1, 15):
+        for x in range(4, 12):
+            if (y in (1, 14)) and x in (4, 11):
+                continue
+            light = 1.0 + 0.2 * ((8 - x) + (8 - y)) / 8.0
+            c = shade(jade, light)
+            if x in (4, 11) or y in (1, 14):
+                c = hexc("c9a13e")
+            px[x, y] = c
+    for (x, y) in [(7, 4), (8, 4), (6, 5), (9, 5), (7, 6), (8, 6), (7, 8), (8, 8), (7, 9), (8, 9), (6, 10), (9, 10), (7, 11), (8, 11)]:
+        px[x, y] = hexc("e8d27a")
+    return img
+
+
 def textures():
     item_dir = os.path.join(ASSETS, "textures", "item")
     block_dir = os.path.join(ASSETS, "textures", "block")
@@ -446,6 +553,14 @@ def textures():
     for gid, (col, glow) in colors.items():
         token_texture(hexc(col), glow).save(os.path.join(item_dir, f"{gid}_village_token.png"))
     ledger_texture().save(os.path.join(item_dir, "bandit_ledger.png"))
+    coin_texture().save(os.path.join(item_dir, "gold_coin.png"))
+    blueprint_texture().save(os.path.join(item_dir, "blueprint.png"))
+    bag_texture().save(os.path.join(item_dir, "resources_bag.png"))
+    summoning_texture().save(os.path.join(item_dir, "summoning_token.png"))
+    entity_dir = os.path.join(ASSETS, "textures", "entity")
+    os.makedirs(entity_dir, exist_ok=True)
+    for name, img in gen_skins.all_skins().items():
+        img.save(os.path.join(entity_dir, name + ".png"))
     side, top, bottom = manor_textures()
     side.save(os.path.join(block_dir, "lords_manor_side.png"))
     top.save(os.path.join(block_dir, "lords_manor_top.png"))
@@ -458,6 +573,11 @@ def models():
     for gid in GRADES:
         w(os.path.join(ASSETS, "models", "item", f"{gid}_village_token.json"),
           {"parent": "minecraft:item/generated", "textures": {"layer0": f"realmlord:item/{gid}_village_token"}})
+    for name in ("gold_coin", "blueprint", "resources_bag", "summoning_token"):
+        w(os.path.join(ASSETS, "models", "item", f"{name}.json"),
+          {"parent": "minecraft:item/generated", "textures": {"layer0": f"realmlord:item/{name}"}})
+    for name in ("bandit_spawn_egg", "settler_spawn_egg"):
+        w(os.path.join(ASSETS, "models", "item", f"{name}.json"), {"parent": "minecraft:item/template_spawn_egg"})
     w(os.path.join(ASSETS, "models", "item", "bandit_ledger.json"),
       {"parent": "minecraft:item/generated", "textures": {"layer0": "realmlord:item/bandit_ledger"}})
     w(os.path.join(ASSETS, "models", "block", "lords_manor.json"),

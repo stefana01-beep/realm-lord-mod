@@ -12,7 +12,6 @@ import com.realmlord.profile.Profiles;
 import com.realmlord.profile.Title;
 import com.realmlord.quest.BanditCamp;
 import com.realmlord.quest.QuestLogic;
-import com.realmlord.registry.ModItems;
 import com.realmlord.territory.Territory;
 import com.realmlord.territory.TerritoryData;
 import net.minecraft.ChatFormatting;
@@ -21,10 +20,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
@@ -172,8 +169,6 @@ public class ForgeEvents {
         // The bandit chief carries a ledger.
         if (dead.getTags().contains(BanditCamp.CHIEF_TAG)) {
             UUID owner = BanditCamp.owner(dead);
-            ItemEntity ledger = new ItemEntity(dead.level(), dead.getX(), dead.getY() + 0.5, dead.getZ(), new ItemStack(ModItems.BANDIT_LEDGER.get()));
-            dead.level().addFreshEntity(ledger);
             if (owner != null && dead.level().getServer() != null) {
                 ServerPlayer op = dead.level().getServer().getPlayerList().getPlayer(owner);
                 if (op != null) {
@@ -198,6 +193,13 @@ public class ForgeEvents {
         if (event.getLevel().getBlockState(event.getPos()).getBlock() instanceof ChestBlock) {
             QuestLogic.openedChest(sp, event.getPos());
         }
+    }
+
+    /** Graded equipment shows its grade. */
+    @SubscribeEvent
+    public static void tooltip(net.minecraftforge.event.entity.player.ItemTooltipEvent event) {
+        var grade = com.realmlord.loot.Gear.gradeOf(event.getItemStack());
+        if (grade != null) event.getToolTip().add(1, com.realmlord.loot.Gear.tooltip(grade));
     }
 
     // ------------------------------------------------------------------ commands

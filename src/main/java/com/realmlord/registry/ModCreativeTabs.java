@@ -17,7 +17,14 @@ public class ModCreativeTabs {
             .icon(() -> new ItemStack(ModItems.token(TokenGrade.GOLD)))
             .displayItems((params, out) -> {
                 for (TokenGrade g : TokenGrade.values()) out.accept(ModItems.token(g));
+                out.accept(ModItems.GOLD_COIN.get());
+                out.accept(ModItems.SUMMONING_TOKEN.get());
+                for (TokenGrade g : TokenGrade.values()) out.accept(com.realmlord.item.ResourcesBagItem.of(g));
+                for (String b : com.realmlord.loot.Blueprints.VILLAGE_1) out.accept(com.realmlord.loot.Blueprints.of(b));
+                for (String b : com.realmlord.loot.Blueprints.VILLAGE_2) out.accept(com.realmlord.loot.Blueprints.of(b));
                 out.accept(ModItems.BANDIT_LEDGER.get());
+                out.accept(ModItems.BANDIT_SPAWN_EGG.get());
+                out.accept(ModItems.SETTLER_SPAWN_EGG.get());
                 out.accept(ModItems.LORDS_MANOR.get());
             })
             .build());

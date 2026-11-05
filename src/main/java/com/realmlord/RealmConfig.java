@@ -12,8 +12,9 @@ public final class RealmConfig {
     public static final ForgeConfigSpec.IntValue LORD_ROAM_MARGIN;
     public static final ForgeConfigSpec.IntValue TICKS_PER_NOVEL_HOUR;
     public static final ForgeConfigSpec.DoubleValue QUEST_FAIL_DAYS;
-    public static final ForgeConfigSpec.DoubleValue QUEST_BLACK_IRON_DAYS;
+    public static final ForgeConfigSpec.DoubleValue QUEST_GOLD_DAYS;
     public static final ForgeConfigSpec.DoubleValue QUEST_SILVER_DAYS;
+    public static final ForgeConfigSpec.DoubleValue QUEST_BLACK_IRON_DAYS;
     public static final ForgeConfigSpec.DoubleValue XP_MULTIPLIER;
 
     static {
@@ -32,11 +33,13 @@ public final class RealmConfig {
 
         b.push("village_creation_quest");
         QUEST_FAIL_DAYS = b.comment("Minecraft days a Lord has to finish the Village Creation quest before losing the right to found a village.")
-                .defineInRange("failDays", 7.0, 0.5, 100.0);
-        QUEST_BLACK_IRON_DAYS = b.comment("Finish within this many days to earn at least a Black Iron token.")
-                .defineInRange("blackIronDays", 3.0, 0.1, 100.0);
-        QUEST_SILVER_DAYS = b.comment("Finish within this many days, without dying, and find the hidden cache to earn a Silver token (Gold for the first in the world).")
-                .defineInRange("silverDays", 1.5, 0.1, 100.0);
+                .defineInRange("daysToComplete", 10.0, 0.5, 100.0);
+        QUEST_GOLD_DAYS = b.comment("Finish within this many days for a Gold token. Only one Gold token exists per world; later fast finishes get Silver.")
+                .defineInRange("goldWithinDays", 3.0, 0.1, 100.0);
+        QUEST_SILVER_DAYS = b.comment("Finish within this many days for a Silver token.")
+                .defineInRange("silverWithinDays", 5.0, 0.1, 100.0);
+        QUEST_BLACK_IRON_DAYS = b.comment("Finish within this many days for a Black Iron token. Anything slower (before the deadline) earns Bronze.")
+                .defineInRange("blackIronWithinDays", 7.5, 0.1, 100.0);
         b.pop();
 
         b.push("progression");
@@ -60,15 +63,19 @@ public final class RealmConfig {
     }
 
     public static double questFailDays() {
-        return SPEC.isLoaded() ? QUEST_FAIL_DAYS.get() : 7.0;
+        return SPEC.isLoaded() ? QUEST_FAIL_DAYS.get() : 10.0;
     }
 
-    public static double questBlackIronDays() {
-        return SPEC.isLoaded() ? QUEST_BLACK_IRON_DAYS.get() : 3.0;
+    public static double questGoldDays() {
+        return SPEC.isLoaded() ? QUEST_GOLD_DAYS.get() : 3.0;
     }
 
     public static double questSilverDays() {
-        return SPEC.isLoaded() ? QUEST_SILVER_DAYS.get() : 1.5;
+        return SPEC.isLoaded() ? QUEST_SILVER_DAYS.get() : 5.0;
+    }
+
+    public static double questBlackIronDays() {
+        return SPEC.isLoaded() ? QUEST_BLACK_IRON_DAYS.get() : 7.5;
     }
 
     public static double xpMultiplier() {

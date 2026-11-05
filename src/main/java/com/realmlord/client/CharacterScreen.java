@@ -244,18 +244,23 @@ public class CharacterScreen extends Screen {
                         : Component.translatable("realmlord.panel.quest.obj_bandits_hidden");
                 yy = objective(g, lx, yy, w, stage == VillageQuest.Stage.CLEARED, campObj);
                 if (ClientProfileData.chiefKilled || ClientProfileData.cacheFound) {
-                    yy = objective(g, lx, yy, w, ClientProfileData.cacheFound, Component.translatable("realmlord.panel.quest.obj_hidden"));
+                    yy = objective(g, lx, yy, w, ClientProfileData.cacheFound, Component.translatable("realmlord.panel.quest.obj_treasure"));
                 }
                 if (stage == VillageQuest.Stage.CLEARED) {
                     yy = Ui.wrap(g, font, Component.translatable("realmlord.panel.quest.ready"), lx, yy + 4, w, Ui.JADE);
                 }
-                long days = ClientProfileData.questElapsed / 24000L;
-                long hours = (ClientProfileData.questElapsed % 24000L) / 1000L;
-                double limit = ClientProfileData.questLimit / 24000.0;
-                g.drawString(font, Component.translatable("realmlord.panel.quest.time", days, hours, String.format("%.1f", limit)),
-                        lx, y + H - 46, Ui.MUTED, false);
-                g.drawString(font, Component.translatable("realmlord.panel.quest.deaths", ClientProfileData.deaths), lx + 200, y + H - 46,
-                        ClientProfileData.deaths == 0 ? Ui.MUTED : Ui.RED, false);
+                long left = Math.max(0, ClientProfileData.questLimit - ClientProfileData.questElapsed);
+                long days = left / 24000L;
+                long hours = (left % 24000L) / 1000L;
+                Component timeLine = stage == VillageQuest.Stage.CLEARED
+                        ? Component.translatable("realmlord.panel.quest.time_done", ClientProfileData.questElapsed / 24000L, (ClientProfileData.questElapsed % 24000L) / 1000L)
+                        : Component.translatable("realmlord.panel.quest.time_left", days, hours);
+                g.drawString(font, timeLine, lx, y + H - 58, Ui.INK, false);
+                if (ClientProfileData.prospectGrade >= 0) {
+                    TokenGrade pg = TokenGrade.byId(ClientProfileData.prospectGrade);
+                    g.drawString(font, Component.translatable(stage == VillageQuest.Stage.CLEARED ? "realmlord.panel.quest.earned" : "realmlord.panel.quest.prospect",
+                            Component.translatable(pg.key())), lx, y + H - 46, pg.color, false);
+                }
             }
         }
     }

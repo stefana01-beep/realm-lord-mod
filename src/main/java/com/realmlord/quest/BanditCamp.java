@@ -1,24 +1,25 @@
 package com.realmlord.quest;
 
+import com.realmlord.entity.BanditEntity;
+import com.realmlord.entity.SettlerEntity;
+import com.realmlord.loot.Blueprints;
+import com.realmlord.loot.Gear;
+import com.realmlord.registry.ModEntities;
+import com.realmlord.registry.ModItems;
+import com.realmlord.territory.TokenGrade;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.npc.Villager;
-import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CampfireBlock;
 import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.entity.BarrelBlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.SlabType;
@@ -28,7 +29,8 @@ import java.util.UUID;
 
 /**
  * The bandit camp of the Village Creation quest: tents around a campfire, a barred pen of
- * captive settlers, a band of bandits with their chief, and a cache buried under the fire.
+ * captive settlers, barrels of stolen supplies, a band of bandits with their chief, and the
+ * chief's treasure buried under the fire.
  */
 public final class BanditCamp {
     private BanditCamp() {}
@@ -37,6 +39,9 @@ public final class BanditCamp {
     public static final String CHIEF_TAG = "realmlord_bandit_chief";
     public static final String CAPTIVE_TAG = "realmlord_captive";
     public static final String OWNER_KEY = "realmlord_owner";
+
+    /** Offset of the captives' pen from the camp centre. */
+    public static final int PEN_X = 7;
 
     public static boolean ownedBy(Entity e, String tag, UUID owner) {
         return e.getTags().contains(tag) && e.getPersistentData().hasUUID(OWNER_KEY)
@@ -54,16 +59,10 @@ public final class BanditCamp {
         q.camp = c;
         flatten(level, c);
 
-        // Campfire with the cache buried beneath it.
+        // The chief's treasure, buried beneath the campfire.
         BlockPos cache = c.below();
         level.setBlock(cache, Blocks.CHEST.defaultBlockState(), Block.UPDATE_ALL);
-        if (level.getBlockEntity(cache) instanceof ChestBlockEntity chest) {
-            chest.setItem(4, new ItemStack(Items.GOLD_INGOT, 8));
-            chest.setItem(10, new ItemStack(Items.EMERALD, 12));
-            chest.setItem(13, new ItemStack(Items.IRON_SWORD));
-            chest.setItem(16, new ItemStack(Items.BREAD, 16));
-            chest.setItem(22, new ItemStack(Items.MAP));
-        }
+        if (level.getBlockEntity(cache) instanceof ChestBlockEntity chest) fillTreasure(chest, r);
         level.setBlock(c, Blocks.CAMPFIRE.defaultBlockState().setValue(CampfireBlock.LIT, true), Block.UPDATE_ALL);
         q.cache = cache;
 
@@ -71,13 +70,15 @@ public final class BanditCamp {
         tent(level, c.offset(-6, 0, -5));
         tent(level, c.offset(-6, 0, 5));
         tent(level, c.offset(0, 0, -7));
-        // Barrels and crates.
-        level.setBlock(c.offset(3, 0, 3), Blocks.BARREL.defaultBlockState(), Block.UPDATE_ALL);
-        level.setBlock(c.offset(4, 0, 3), Blocks.BARREL.defaultBlockState(), Block.UPDATE_ALL);
+        // Stolen supplies.
+        barrel(level, c.offset(3, 0, 3), new ItemStack(Items.BREAD, 6 + r.nextInt(6)), new ItemStack(Items.WHEAT, 12 + r.nextInt(12)),
+                new ItemStack(Items.POTATO, 4 + r.nextInt(6)));
+        barrel(level, c.offset(4, 0, 3), new ItemStack(Items.ARROW, 8 + r.nextInt(12)), new ItemStack(Items.LEATHER, 2 + r.nextInt(4)),
+                new ItemStack(Items.IRON_INGOT, 1 + r.nextInt(3)));
         level.setBlock(c.offset(-3, 0, 3), Blocks.HAY_BLOCK.defaultBlockState(), Block.UPDATE_ALL);
 
         // The captives' pen.
-        BlockPos pen = c.offset(7, 0, 0);
+        BlockPos pen = c.offset(PEN_X, 0, 0);
         BlockState bars = Blocks.IRON_BARS.defaultBlockState();
         BlockState roof = Blocks.SPRUCE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM);
         for (int dx = -2; dx <= 2; dx++)
@@ -92,53 +93,73 @@ public final class BanditCamp {
             }
         int captives = 3 + r.nextInt(5);
         for (int i = 0; i < captives; i++) {
-            Villager v = EntityType.VILLAGER.create(level);
-            if (v == null) continue;
-            v.moveTo(pen.getX() + 0.5 + r.nextInt(3) - 1, pen.getY(), pen.getZ() + 0.5 + r.nextInt(3) - 1, r.nextFloat() * 360F, 0F);
-            v.setNoAi(true);
-            v.setInvulnerable(true);
-            v.setPersistenceRequired();
-            v.setCustomName(Component.translatable("realmlord.entity.captive"));
-            mark(v, CAPTIVE_TAG, player.getUUID());
-            level.addFreshEntity(v);
+            SettlerEntity s = ModEntities.SETTLER.get().create(level);
+            if (s == null) continue;
+            s.moveTo(pen.getX() + 0.5 + r.nextInt(3) - 1, pen.getY(), pen.getZ() + 0.5 + r.nextInt(3) - 1, r.nextFloat() * 360F, 0F);
+            s.finalizeSpawn(level, level.getCurrentDifficultyAt(pen), MobSpawnType.EVENT, null, null);
+            s.makeCaptive(player.getUUID());
+            mark(s, CAPTIVE_TAG, player.getUUID());
+            level.addFreshEntity(s);
         }
         q.captives = captives;
 
-        // The bandits and their chief.
-        int bandits = 6;
-        for (int i = 0; i < bandits; i++) {
-            EntityType<? extends Mob> type = i % 2 == 0 ? EntityType.VINDICATOR : EntityType.PILLAGER;
-            double a = Math.PI * 2 * i / bandits;
-            spawnBandit(level, type, c.getX() + Math.cos(a) * 4, c.getZ() + Math.sin(a) * 4, player.getUUID(), false);
+        // The band: four swordsmen, two archers and their chief.
+        BanditEntity.Role[] band = {BanditEntity.Role.SWORDSMAN, BanditEntity.Role.ARCHER, BanditEntity.Role.SWORDSMAN,
+                BanditEntity.Role.SWORDSMAN, BanditEntity.Role.ARCHER, BanditEntity.Role.SWORDSMAN};
+        for (int i = 0; i < band.length; i++) {
+            double a = Math.PI * 2 * i / band.length;
+            double radius = band[i] == BanditEntity.Role.ARCHER ? 7 : 4;
+            spawnBandit(level, band[i], c.getX() + 0.5 + Math.cos(a) * radius, c.getZ() + 0.5 + Math.sin(a) * radius, player.getUUID());
         }
-        spawnBandit(level, EntityType.VINDICATOR, c.getX() - 2.5, c.getZ() + 0.5, player.getUUID(), true);
-        q.banditsLeft = bandits + 1;
+        spawnBandit(level, BanditEntity.Role.CHIEF, c.getX() - 2.5, c.getZ() + 0.5, player.getUUID());
+        q.banditsLeft = band.length + 1;
         q.campBuilt = true;
     }
 
-    private static void spawnBandit(ServerLevel level, EntityType<? extends Mob> type, double x, double z, UUID owner, boolean chief) {
-        Mob m = type.create(level);
+    /**
+     * The chief's hoard: gold coins, building blueprints, a piece of graded equipment and
+     * grain, the kind of spoils a Lord in the novel takes from a bandit lair.
+     */
+    public static void fillTreasure(ChestBlockEntity chest, RandomSource r) {
+        chest.setItem(4, new ItemStack(ModItems.GOLD_COIN.get(), 40 + r.nextInt(21)));
+        chest.setItem(10, Blueprints.random(r, false));
+        chest.setItem(11, Blueprints.random(r, true));
+        net.minecraft.world.item.Item[] weapons = {Items.IRON_SWORD, Items.IRON_AXE};
+        chest.setItem(13, Gear.make(weapons[r.nextInt(weapons.length)], TokenGrade.SILVER, r));
+        net.minecraft.world.item.Item[] armour = {Items.CHAINMAIL_CHESTPLATE, Items.IRON_HELMET, Items.IRON_BOOTS};
+        chest.setItem(15, Gear.make(armour[r.nextInt(armour.length)], TokenGrade.BLACK_IRON, r));
+        chest.setItem(16, new ItemStack(Items.WHEAT, 32));
+        chest.setItem(22, new ItemStack(ModItems.GOLD_COIN.get(), 10 + r.nextInt(11)));
+    }
+
+    private static void barrel(ServerLevel level, BlockPos pos, ItemStack... items) {
+        level.setBlock(pos, Blocks.BARREL.defaultBlockState(), Block.UPDATE_ALL);
+        if (level.getBlockEntity(pos) instanceof BarrelBlockEntity b) {
+            for (int i = 0; i < items.length; i++) b.setItem(i * 4 + 2, items[i]);
+        }
+    }
+
+    private static void spawnBandit(ServerLevel level, BanditEntity.Role role, double x, double z, UUID owner) {
+        BanditEntity m = ModEntities.BANDIT.get().create(level);
         if (m == null) return;
         int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, (int) Math.floor(x), (int) Math.floor(z));
         m.moveTo(x, y, z, level.getRandom().nextFloat() * 360F, 0F);
         m.finalizeSpawn(level, level.getCurrentDifficultyAt(m.blockPosition()), MobSpawnType.EVENT, null, null);
+        m.configure(role, 1);
         m.setPersistenceRequired();
-        if (m instanceof Raider raider) raider.setCanJoinRaid(false);
-        if (chief) {
-            var hp = m.getAttribute(Attributes.MAX_HEALTH);
-            if (hp != null) hp.setBaseValue(60.0);
-            m.setHealth(60.0F);
-            m.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.DIAMOND_AXE));
-            m.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
-            m.setDropChance(EquipmentSlot.MAINHAND, 0.0F);
-            m.setDropChance(EquipmentSlot.HEAD, 0.0F);
-            m.setCustomName(Component.translatable("realmlord.entity.bandit_chief"));
-            m.addTag(CHIEF_TAG);
-        } else {
-            m.setCustomName(Component.translatable("realmlord.entity.bandit"));
-        }
+        if (role == BanditEntity.Role.CHIEF) m.addTag(CHIEF_TAG);
         mark(m, BANDIT_TAG, owner);
         level.addFreshEntity(m);
+    }
+
+    /** Opens the side of the pen facing the camp. */
+    public static void openPen(ServerLevel level, BlockPos camp) {
+        BlockPos pen = camp.offset(PEN_X, 0, 0);
+        for (int dz = -1; dz <= 1; dz++)
+            for (int dy = 0; dy < 3; dy++) {
+                BlockPos p = pen.offset(-2, dy, dz);
+                if (level.getBlockState(p).is(Blocks.IRON_BARS)) level.setBlock(p, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+            }
     }
 
     private static void mark(Entity e, String tag, UUID owner) {

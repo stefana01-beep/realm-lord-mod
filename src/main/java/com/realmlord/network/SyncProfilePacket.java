@@ -65,6 +65,9 @@ public class SyncProfilePacket {
         data.writeVarLong(QuestLogic.failTicks());
         data.writeVarInt(q.deaths);
         data.writeVarInt(q.grade == null ? -1 : q.grade.ordinal());
+        boolean goldTaken = TerritoryData.get(player.server).goldTokenClaimed();
+        data.writeVarInt(q.stage == VillageQuest.Stage.NOT_STARTED || q.stage == VillageQuest.Stage.FAILED ? -1
+                : QuestLogic.prospect(q, player.server.overworld().getGameTime(), goldTaken).ordinal());
 
         TerritoryData td = TerritoryData.get(player.server);
         Territory t = p.getTerritoryId() >= 0 ? td.byId(p.getTerritoryId()) : null;
@@ -141,6 +144,7 @@ public class SyncProfilePacket {
         ClientProfileData.questLimit = b.readVarLong();
         ClientProfileData.deaths = b.readVarInt();
         ClientProfileData.questGrade = b.readVarInt();
+        ClientProfileData.prospectGrade = b.readVarInt();
 
         ClientProfileData.hasTerritory = b.readBoolean();
         if (ClientProfileData.hasTerritory) {

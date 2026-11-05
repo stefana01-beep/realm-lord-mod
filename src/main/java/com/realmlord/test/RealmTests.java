@@ -2,7 +2,13 @@ package com.realmlord.test;
 
 import com.realmlord.RealmConfig;
 import com.realmlord.RealmLord;
+import com.realmlord.entity.BanditEntity;
+import com.realmlord.entity.SettlerEntity;
+import com.realmlord.item.ResourcesBagItem;
+import com.realmlord.loot.Blueprints;
+import com.realmlord.loot.Gear;
 import com.realmlord.network.ClientProfileData;
+import com.realmlord.registry.ModEntities;
 import com.realmlord.network.SyncProfilePacket;
 import com.realmlord.profile.CombatClass;
 import com.realmlord.profile.PlayMode;
@@ -227,27 +233,23 @@ public class RealmTests {
         QuestLogic.tick(p);
         helper.assertTrue(q.stage == VillageQuest.Stage.CLEARED, "camp not cleared after every bandit died: " + q.stage);
 
+        long freed = level.getEntitiesOfClass(SettlerEntity.class, new net.minecraft.world.phys.AABB(q.camp).inflate(30),
+                s -> p.getUUID().equals(s.getOwner()) && !s.isCaptive()).size();
+        helper.assertTrue(freed == q.captives, "expected " + q.captives + " freed settlers, found " + freed);
+
         QuestLogic.openedChest(p, q.cache);
-        helper.assertTrue(q.cacheFound, "hidden cache not recorded");
+        helper.assertTrue(q.cacheFound, "chief's treasure not recorded");
         TerritoryData data = TerritoryData.get(level.getServer());
         boolean goldBefore = data.goldTokenClaimed();
         QuestLogic.claim(p);
         helper.assertTrue(q.stage == VillageQuest.Stage.CLAIMED, "token not claimed");
         TokenGrade expect = goldBefore ? TokenGrade.SILVER : TokenGrade.GOLD;
-        helper.assertTrue(q.grade == expect, "expected " + expect + " token, got " + q.grade);
+        helper.assertTrue(q.grade == expect, "a same-day finish should earn " + expect + ", got " + q.grade);
         helper.assertTrue(p.getInventory().contains(new ItemStack(ModItems.token(expect))), "token not in inventory");
+        helper.assertTrue(p.getInventory().contains(new ItemStack(ModItems.SUMMONING_TOKEN.get())), "no Summoning Token");
+        helper.assertTrue(p.getInventory().contains(new ItemStack(ModItems.RESOURCES_BAG.get())), "no Resources Bag");
+        helper.assertTrue(p.getInventory().countItem(ModItems.GOLD_COIN.get()) >= QuestLogic.coinReward(expect), "gold reward missing");
         helper.assertTrue(data.goldTokenClaimed(), "the world's Gold token should now be taken");
-
-        // A second perfect run can only reach Silver; a slow one gets Bronze.
-        VillageQuest other = new VillageQuest();
-        other.startTick = 0;
-        other.clearTick = 1000;
-        other.cacheFound = true;
-        helper.assertTrue(QuestLogic.grade(other, true) == TokenGrade.SILVER, "second perfect run should be Silver");
-        other.clearTick = (long) (QuestLogic.DAY * 5);
-        helper.assertTrue(QuestLogic.grade(other, true) == TokenGrade.BRONZE, "slow run should be Bronze");
-        other.clearTick = (long) (QuestLogic.DAY * 2);
-        helper.assertTrue(QuestLogic.grade(other, true) == TokenGrade.BLACK_IRON, "two-day run should be Black Iron");
         leave(p);
         helper.succeed();
     }
@@ -283,6 +285,9 @@ public class RealmTests {
         helper.assertTrue(prof.getTerritoryId() == t.id, "profile not linked to the territory");
         helper.assertTrue(prof.getMerit() >= Founding.foundingMerit(t.foundedOrder), "founding merit not granted");
         helper.assertTrue(level.getBlockState(t.center).is(ModBlocks.LORDS_MANOR.get()), "Lord's Manor not placed");
+        int settlers = level.getEntitiesOfClass(SettlerEntity.class, new net.minecraft.world.phys.AABB(t.center).inflate(16),
+                s -> t.center.equals(s.getHome())).size();
+        helper.assertTrue(settlers >= 2, "settlers did not move into the village: " + settlers);
         helper.assertTrue(data.at(Level.OVERWORLD, t.center) == t, "territory lookup failed");
         helper.assertTrue(Founding.found(p, spot.offset(500, 0, 0), TokenGrade.BRONZE, null) == null, "a Lord founded two villages");
 
@@ -296,6 +301,110 @@ public class RealmTests {
         leave(p);
         leave(adventurer);
         leave(neighbour);
+        helper.succeed();
+    }
+
+
+    // ------------------------------------------------------------------ grading, bandits, loot
+
+    @GameTest(template = "empty", timeoutTicks = 100)
+    public static void tokenGradeFollowsDaysTaken(GameTestHelper helper) {
+        long day = QuestLogic.DAY;
+        helper.assertTrue(QuestLogic.failTicks() == 10 * day, "the quest should allow 10 days");
+        helper.assertTrue(QuestLogic.grade(0, false) == TokenGrade.GOLD, "instant finish should be Gold");
+        helper.assertTrue(QuestLogic.grade(3 * day, false) == TokenGrade.GOLD, "3 days (7 left) should still be Gold");
+        helper.assertTrue(QuestLogic.grade(2 * day, true) == TokenGrade.SILVER, "once Gold is taken, fast finishes get Silver");
+        helper.assertTrue(QuestLogic.grade(3 * day + 1000, false) == TokenGrade.SILVER, "just over 3 days should be Silver");
+        // The user's run: 6 days 6 hours left = 3 days 18 hours taken.
+        helper.assertTrue(QuestLogic.grade(3 * day + 18000, false) == TokenGrade.SILVER, "3d18h should be Silver");
+        helper.assertTrue(QuestLogic.grade(5 * day, false) == TokenGrade.SILVER, "5 days should be Silver");
+        helper.assertTrue(QuestLogic.grade(6 * day, false) == TokenGrade.BLACK_IRON, "6 days should be Black Iron");
+        helper.assertTrue(QuestLogic.grade(7 * day + 12000, false) == TokenGrade.BLACK_IRON, "7.5 days should be Black Iron");
+        helper.assertTrue(QuestLogic.grade(9 * day, false) == TokenGrade.BRONZE, "9 days should be Bronze");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 100)
+    public static void questBanditsAreBeatableInIron(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BanditEntity sword = helper.spawn(ModEntities.BANDIT.get(), new BlockPos(1, 1, 1));
+        sword.configure(BanditEntity.Role.SWORDSMAN, 1);
+        BanditEntity archer = helper.spawn(ModEntities.BANDIT.get(), new BlockPos(2, 1, 1));
+        archer.configure(BanditEntity.Role.ARCHER, 1);
+        BanditEntity chief = helper.spawn(ModEntities.BANDIT.get(), new BlockPos(3, 1, 1));
+        chief.configure(BanditEntity.Role.CHIEF, 1);
+        double sd = sword.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE);
+        double cd = chief.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE);
+        helper.assertTrue(sd <= 5.01, "tier 1 swordsman hits too hard: " + sd);
+        helper.assertTrue(cd <= 8.01, "tier 1 chief hits too hard: " + cd);
+        helper.assertTrue(chief.getMaxHealth() >= 40, "chief too frail");
+        helper.assertTrue(archer.getMainHandItem().is(Items.BOW), "archer has no bow");
+        // Against a player in full iron on Normal, a swordsman needs many hits to kill.
+        ServerPlayer p = mockPlayer(helper);
+        p.setItemSlot(net.minecraft.world.entity.EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
+        p.setItemSlot(net.minecraft.world.entity.EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
+        p.setItemSlot(net.minecraft.world.entity.EquipmentSlot.LEGS, new ItemStack(Items.IRON_LEGGINGS));
+        p.setItemSlot(net.minecraft.world.entity.EquipmentSlot.FEET, new ItemStack(Items.IRON_BOOTS));
+        // Armour attributes normally apply on the next tick; apply them now.
+        for (var slot : new net.minecraft.world.entity.EquipmentSlot[]{net.minecraft.world.entity.EquipmentSlot.HEAD,
+                net.minecraft.world.entity.EquipmentSlot.CHEST, net.minecraft.world.entity.EquipmentSlot.LEGS, net.minecraft.world.entity.EquipmentSlot.FEET}) {
+            p.getAttributes().addTransientAttributeModifiers(p.getItemBySlot(slot).getAttributeModifiers(slot));
+        }
+        helper.assertTrue(p.getArmorValue() >= 15, "iron armour not applied: " + p.getArmorValue());
+        float before = p.getHealth();
+        p.invulnerableTime = 0;
+        sword.doHurtTarget(p);
+        float lost = before - p.getHealth();
+        helper.assertTrue(lost > 0 && lost <= 4.5F, "swordsman took " + lost + " health through iron armour");
+        archer.performRangedAttack(p, 1.0F);
+        leave(p);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 100)
+    public static void banditsDropGoldAndTheChiefHisLedger(GameTestHelper helper) {
+        ServerPlayer p = mockPlayer(helper);
+        BanditEntity chief = helper.spawn(ModEntities.BANDIT.get(), new BlockPos(2, 1, 2));
+        chief.configure(BanditEntity.Role.CHIEF, 1);
+        chief.hurt(p.damageSources().playerAttack(p), 1000F);
+        var drops = helper.getLevel().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, chief.getBoundingBox().inflate(4));
+        int coins = 0;
+        boolean ledger = false, graded = false;
+        for (var d : drops) {
+            ItemStack s = d.getItem();
+            if (s.is(ModItems.GOLD_COIN.get())) coins += s.getCount();
+            if (s.is(ModItems.BANDIT_LEDGER.get())) ledger = true;
+            if (Gear.gradeOf(s) != null) graded = true;
+        }
+        helper.assertTrue(coins >= 12, "chief dropped only " + coins + " gold coins");
+        helper.assertTrue(ledger, "chief dropped no ledger");
+        helper.assertTrue(graded, "chief dropped no graded weapon");
+        leave(p);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 100)
+    public static void novelLootWorks(GameTestHelper helper) {
+        var r = helper.getLevel().getRandom();
+        ItemStack sword = Gear.make(Items.IRON_SWORD, TokenGrade.SILVER, r);
+        double plain = 0, graded = 0;
+        for (var m : new ItemStack(Items.IRON_SWORD).getAttributeModifiers(net.minecraft.world.entity.EquipmentSlot.MAINHAND)
+                .get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE)) plain += m.getAmount();
+        for (var m : sword.getAttributeModifiers(net.minecraft.world.entity.EquipmentSlot.MAINHAND)
+                .get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE)) graded += m.getAmount();
+        helper.assertTrue(graded > plain, "graded sword is no stronger: " + graded + " vs " + plain);
+        helper.assertTrue(Gear.gradeOf(sword) == TokenGrade.SILVER, "grade not stored");
+        ItemStack bp = Blueprints.of("dining_hall");
+        helper.assertTrue(bp.getHoverName().getString().contains("Dining Hall") || bp.getHoverName().getString().contains("dining_hall"),
+                "blueprint name wrong: " + bp.getHoverName().getString());
+
+        ServerPlayer p = mockPlayer(helper);
+        ItemStack bag = ResourcesBagItem.of(TokenGrade.BLACK_IRON);
+        p.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, bag);
+        bag.use(helper.getLevel(), p, net.minecraft.world.InteractionHand.MAIN_HAND);
+        helper.assertTrue(p.getInventory().countItem(Items.OAK_LOG) == 64, "Black Iron bag should give 64 logs, gave " + p.getInventory().countItem(Items.OAK_LOG));
+        helper.assertTrue(p.getInventory().countItem(ModItems.GOLD_COIN.get()) == 40, "Black Iron bag should give 40 gold");
+        leave(p);
         helper.succeed();
     }
 

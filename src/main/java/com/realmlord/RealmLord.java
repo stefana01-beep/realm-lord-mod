@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import com.realmlord.network.ModNetwork;
 import com.realmlord.registry.ModBlocks;
 import com.realmlord.registry.ModCreativeTabs;
+import com.realmlord.registry.ModEntities;
 import com.realmlord.registry.ModItems;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -22,6 +23,7 @@ public class RealmLord {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         ModBlocks.BLOCKS.register(bus);
         ModItems.ITEMS.register(bus);
+        ModEntities.ENTITIES.register(bus);
         ModCreativeTabs.TABS.register(bus);
         ModNetwork.register();
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, RealmConfig.SPEC);

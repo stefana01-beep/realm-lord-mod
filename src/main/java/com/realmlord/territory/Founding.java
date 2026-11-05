@@ -3,7 +3,9 @@ package com.realmlord.territory;
 import com.realmlord.Notify;
 import com.realmlord.profile.Profile;
 import com.realmlord.profile.Profiles;
+import com.realmlord.entity.SettlerEntity;
 import com.realmlord.registry.ModBlocks;
+import com.realmlord.registry.ModEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -81,6 +83,7 @@ public final class Founding {
         t.foundedTick = level.getGameTime();
         data.add(t);
         prof.setTerritoryId(t.id);
+        bringSettlers(level, player, center, prof.quest().captives);
 
         int merit = foundingMerit(t.foundedOrder);
         Component ordinal = Component.translatable("realmlord.ordinal", t.foundedOrder);
@@ -94,6 +97,31 @@ public final class Founding {
         level.playSound(null, center, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 1.0F, 1.0F);
         Profiles.sync(player);
         return t;
+    }
+
+    /**
+     * The settlers freed from the bandits move into the new village: any still waiting at the
+     * camp leave it, and they appear around the Lord's Manor with their names.
+     */
+    public static void bringSettlers(ServerLevel level, ServerPlayer player, BlockPos center, int captives) {
+        java.util.UUID owner = player.getUUID();
+        for (SettlerEntity s : level.getEntities(ModEntities.SETTLER.get(), e -> owner.equals(e.getOwner()) && e.getHome() == null)) {
+            s.discard();
+        }
+        int count = Math.max(2, Math.min(8, captives));
+        net.minecraft.util.RandomSource r = level.getRandom();
+        for (int i = 0; i < count; i++) {
+            SettlerEntity s = ModEntities.SETTLER.get().create(level);
+            if (s == null) continue;
+            double a = Math.PI * 2 * i / count + r.nextDouble() * 0.4;
+            int x = center.getX() + (int) Math.round(Math.cos(a) * 9);
+            int z = center.getZ() + (int) Math.round(Math.sin(a) * 9);
+            int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+            s.moveTo(x + 0.5, y, z + 0.5, r.nextFloat() * 360F, 0F);
+            s.finalizeSpawn(level, level.getCurrentDifficultyAt(center), net.minecraft.world.entity.MobSpawnType.EVENT, null, null);
+            s.settle(owner, center);
+            level.addFreshEntity(s);
+        }
     }
 
     /**

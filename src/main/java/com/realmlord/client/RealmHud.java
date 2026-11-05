@@ -66,6 +66,11 @@ public final class RealmHud {
         if (lord) {
             Component obj = null;
             int st = ClientProfileData.questStage;
+            long left = Math.max(0, ClientProfileData.questLimit - ClientProfileData.questElapsed);
+            Component leftText = Component.translatable("realmlord.hud.time_left", left / 24000L, (left % 24000L) / 1000L);
+            if (st == VillageQuest.Stage.SUPPLIES.ordinal() || st == VillageQuest.Stage.BANDITS.ordinal()) {
+                g.drawString(font, leftText, x, y + 11, Ui.MUTED, true);
+            }
             if (st == VillageQuest.Stage.SUPPLIES.ordinal()) {
                 obj = Component.translatable("realmlord.hud.quest_supplies", ClientProfileData.logs, VillageQuest.LOGS_NEEDED,
                         ClientProfileData.stone, VillageQuest.STONE_NEEDED, ClientProfileData.food, VillageQuest.FOOD_NEEDED);

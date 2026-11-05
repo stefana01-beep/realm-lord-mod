@@ -41,6 +41,7 @@ public final class ClientProfileData {
     public static long questLimit;
     public static int deaths;
     public static int questGrade = -1;
+    public static int prospectGrade = -1;
 
     // Territory
     public static boolean hasTerritory;

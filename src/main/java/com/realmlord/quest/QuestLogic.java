@@ -8,6 +8,8 @@ import com.realmlord.profile.PlayMode;
 import com.realmlord.profile.Profile;
 import com.realmlord.profile.Profiles;
 import com.realmlord.profile.WorkOccupation;
+import com.realmlord.entity.SettlerEntity;
+import com.realmlord.item.ResourcesBagItem;
 import com.realmlord.registry.ModItems;
 import com.realmlord.territory.TerritoryData;
 import com.realmlord.territory.TokenGrade;
@@ -20,7 +22,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -65,7 +66,7 @@ public final class QuestLogic {
         q.startTick = player.server.overworld().getGameTime();
         Notify.player(player, Component.translatable("realmlord.quest.start",
                 VillageQuest.LOGS_NEEDED, VillageQuest.STONE_NEEDED, VillageQuest.FOOD_NEEDED,
-                String.format("%.1f", RealmConfig.questFailDays())));
+                fmt(RealmConfig.questFailDays()), fmt(RealmConfig.questGoldDays())));
         p.markDirty();
     }
 
@@ -186,10 +187,11 @@ public final class QuestLogic {
         q.banditsLeft = 0;
         if (q.camp != null) {
             ServerLevel level = player.server.overworld();
+            BanditCamp.openPen(level, q.camp);
             AABB box = new AABB(q.camp).inflate(48, 32, 48);
-            for (Entity e : level.getEntitiesOfClass(Mob.class, box, e -> BanditCamp.ownedBy(e, BanditCamp.CAPTIVE_TAG, player.getUUID()))) {
-                level.sendParticles(net.minecraft.core.particles.ParticleTypes.HAPPY_VILLAGER, e.getX(), e.getY() + 1, e.getZ(), 12, 0.4, 0.6, 0.4, 0.0);
-                e.discard();
+            for (SettlerEntity s : level.getEntitiesOfClass(SettlerEntity.class, box, e -> BanditCamp.ownedBy(e, BanditCamp.CAPTIVE_TAG, player.getUUID()))) {
+                level.sendParticles(net.minecraft.core.particles.ParticleTypes.HAPPY_VILLAGER, s.getX(), s.getY() + 1, s.getZ(), 12, 0.4, 0.6, 0.4, 0.0);
+                s.free(q.camp);
             }
         }
         p.markDirty();
@@ -207,17 +209,42 @@ public final class QuestLogic {
         q.cacheFound = true;
         p.markDirty();
         Notify.player(player, Component.translatable("realmlord.quest.cache").withStyle(ChatFormatting.LIGHT_PURPLE));
+        Profiles.grantMerit(player, 50, Component.translatable("realmlord.reason.treasure"));
     }
 
     // ------------------------------------------------------------------ grading and the token
 
-    public static TokenGrade grade(VillageQuest q, boolean goldClaimed) {
-        double days = (q.clearTick - q.startTick) / (double) DAY;
-        if (days <= RealmConfig.questSilverDays() && q.deaths == 0 && q.cacheFound) {
-            return goldClaimed ? TokenGrade.SILVER : TokenGrade.GOLD;
-        }
+    /**
+     * The token a quest earns, by how long it took: Gold within 3 days (the world's only one;
+     * later fast finishes get Silver), Silver within 5, Black Iron within 7.5, otherwise Bronze.
+     */
+    public static TokenGrade grade(long elapsedTicks, boolean goldClaimed) {
+        double days = elapsedTicks / (double) DAY;
+        if (days <= RealmConfig.questGoldDays()) return goldClaimed ? TokenGrade.SILVER : TokenGrade.GOLD;
+        if (days <= RealmConfig.questSilverDays()) return TokenGrade.SILVER;
         if (days <= RealmConfig.questBlackIronDays()) return TokenGrade.BLACK_IRON;
         return TokenGrade.BRONZE;
+    }
+
+    /** The grade the quest would earn if finished now (or the grade it did earn). */
+    public static TokenGrade prospect(VillageQuest q, long now, boolean goldClaimed) {
+        if (q.grade != null) return q.grade;
+        long end = q.stage == VillageQuest.Stage.CLEARED ? q.clearTick : now;
+        return grade(end - q.startTick, goldClaimed);
+    }
+
+    public static String fmt(double d) {
+        return d == Math.floor(d) ? String.valueOf((long) d) : String.format("%.1f", d);
+    }
+
+    /** Gold coins the quest pays on top of the token. */
+    public static int coinReward(TokenGrade g) {
+        return switch (g) {
+            case BRONZE -> 20;
+            case BLACK_IRON -> 40;
+            case SILVER -> 80;
+            case GOLD -> 150;
+        };
     }
 
     public static void claim(ServerPlayer player) {
@@ -225,7 +252,7 @@ public final class QuestLogic {
         VillageQuest q = p.quest();
         if (q.stage != VillageQuest.Stage.CLEARED) return;
         TerritoryData data = TerritoryData.get(player.server);
-        TokenGrade g = grade(q, data.goldTokenClaimed());
+        TokenGrade g = grade(q.clearTick - q.startTick, data.goldTokenClaimed());
         if (g == TokenGrade.GOLD) {
             data.claimGoldToken(player.getGameProfile().getName());
             Notify.world(player.server, Component.translatable("realmlord.quest.gold_world", player.getDisplayName()));
@@ -233,12 +260,19 @@ public final class QuestLogic {
         q.grade = g;
         q.stage = VillageQuest.Stage.CLAIMED;
         p.markDirty();
-        ItemStack token = new ItemStack(ModItems.token(g));
-        if (!player.getInventory().add(token)) player.drop(token, false);
-        Notify.player(player, Component.translatable("realmlord.quest.claimed", Component.translatable(g.key())));
+        // The novel's rewards: the Village Creation Token, a Summoning Token and a Resources Bag, plus gold.
+        give(player, new ItemStack(ModItems.token(g)));
+        give(player, new ItemStack(ModItems.SUMMONING_TOKEN.get()));
+        give(player, ResourcesBagItem.of(g));
+        ResourcesBagItem.give(player, new ItemStack(ModItems.GOLD_COIN.get()), coinReward(g));
+        Notify.player(player, Component.translatable("realmlord.quest.claimed", Component.translatable(g.key()), coinReward(g)));
         Profiles.grantMerit(player, g.questMerit, Component.translatable("realmlord.reason.quest"));
         Profiles.grantXp(player, 300);
         player.playNotifySound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 1.0F, 1.0F);
+    }
+
+    private static void give(ServerPlayer player, ItemStack stack) {
+        if (!player.getInventory().add(stack)) player.drop(stack, false);
     }
 
     // ------------------------------------------------------------------ failure
