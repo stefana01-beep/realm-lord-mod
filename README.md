@@ -6,7 +6,7 @@ Requires **Forge 47.x** for 1.20.1. No other mods needed. Runs on its own or alo
 
 **Download:** every push to `main` builds a jar and runs the in-game tests. Grab the newest from the [Releases page](../../releases).
 
-**Status:** Phase 1 of 7 (Lords, Adventurers, occupations, titles, the Village Creation quest and founding a village). See the roadmap below.
+**Status:** Phases 1 and 2a of 7: Lords and Adventurers, the Village Creation quest, and running a village from Grade 1 to Grade 3. See the roadmap below.
 
 ---
 
@@ -110,10 +110,55 @@ The Territory tab shows what the next upgrade needs. These are the novel's requi
 | Prefecture 3 | 1,000,000 | First Class Marquis | |
 | Capital | 2,000,000 | Duke | 90 |
 
+## Running your village (Phase 2)
+**Right-click the Lord's Manor Seal** to open the Manor screen. It has four tabs:
+
+- **Overview:** the novel's territory panel.
+  - Name and grade, People's Thoughts, Security, population against the cap and housing, and immigrants per day.
+  - The Gaia calendar, flagged in sowing season.
+  - The treasury (with Withdraw) and taxes.
+  - The four stores, each with its daily change.
+  - The political, economic, cultural and military indexes.
+  - What the next upgrade still needs, and the Upgrade button.
+- **Construction:** every building of your grade and the next, with its wood, stone, time, blueprint and specialist, and how many the upgrade needs. Click **Place**: an outline follows your crosshair, green where it fits and red where it doesn't. **Right-click** places it, **sneak + right-click** turns it, **left-click** cancels. The gold edge marks the door side. The Simple Fence has no placement; it rings your whole border.
+- **People:** assign residents to Construction, Logging, Quarrying, Farming, Mining and Administration with the +/- buttons; the best-suited idle residents go first. Open any talent's card from the list.
+- **Market:** the novel's Basic Market. Buy and sell food (10 copper a unit), wood (20), stone (30) and iron ore (100) for your stores, with a 20% tax on sales. Building blueprints cost 2 gold (Grade 1), 5 gold (Grade 2) and 10 gold (Grade 3).
+
+**Construction.** Starting a building takes its wood and stone from your stores, its blueprint from your inventory, and needs a resident of the right trade where the novel requires one (a blacksmith for the Blacksmith Workshop, an officer for the Military Camp, and so on). The ground is levelled and the building rises block by block as your builders work. Five builders take the novel's listed time (12 hours for a Dining Hall, one real minute per hour by default); fewer take longer, and carpenters, masons and Master Builders work faster. All builders work on the oldest site first. When a workshop is finished, a resident of its trade moves in to run it.
+
+**Buildings.** Every Village Grade 1–3 building from the novel:
+- **Grade 1:** Simple Fence, Dining Hall, Bathroom, Small Residential Courtyard (houses 20), Blacksmith Workshop, Grocery Shop, Logging Field, Quarry, Farmland and Military Camp.
+- **Grade 2:** Ancestral Hall, Clinic, Private School, Martial Arts Dojo, Granary, Tailor Workshop, Mining Field, Arrow Tower and Stone Outpost.
+- **Grade 3:** Temple, Weapons Workshop, Pottery Workshop, Mill, Mulberry Shed, Wine Workshop, Sentry Post and Stable.
+
+Each has its own look, in a style of stone plinths, red posts, white walls and dark tiled roofs.
+
+**Residents.** Your village begins as the novel's did, with ten refugees: a village chief (a Bronze civil servant), two fruit farmers, a carpenter, a mason and five farmers. Settlers you freed from the bandits join them.
+- **Immigrants:** about 10 a day (more with a better token and happier people), but only into free housing (the manor holds 10, each courtyard 20) and up to your grade's limit (200, 500, 1,000).
+- **Talents:** some immigrants are special talents (blacksmiths, grocers, tailors, doctors, scholars, martial artists, potters, winemakers, cooks, hunters, fishermen, miners, stablemen, civil servants and officers). They're graded Bronze, Black Iron or Silver, with better stats and a specialty.
+- **Their card:** right-click a resident to open it. **Card** shows their grade, occupation and rank, loyalty, Command, Force, Intelligence, Politics, specialty and an evaluation. **Work** (Lord only) sets their job or the workshop they run. **Trade** lets anyone buy and sell with them, priced in copper. Craftsmen sell their best goods only while they work in their workshop; a visitor's purchases go into the village treasury.
+- **Who you see:** up to 24 residents walk around the village at once (talents first), working at their workplace by day and gathering at the manor by night. The rest live on in the records.
+
+**The day.** Every novel day (24 real minutes by default):
+- Loggers cut 10 wood each, quarrymen 5 stone and miners 2 iron ore, more with the right trade and your token's production bonus.
+- Everyone eats 1 food.
+- Taxes come in.
+- People's Thoughts and Security drift towards what your buildings support. Hunger hurts, and a hungry or unhappy village loses people.
+
+**Farming.** Farmland is sown as soon as it has farmers. Sowing at Qingming (month 4) or early July (month 7) gives the full yield; a month or more off gives 10–50% less. The harvest comes three months later: 200 food per mu, more with a better token. Crops visibly grow in the field.
+
+**Upgrading.** As in the novel:
+- **Village Grade 2** needs 200 people, a Second Class Baron and every Grade 1 building, including ten courtyards.
+- **Village Grade 3** needs 500 people, a First Class Baron and every Grade 2 building.
+
+Each upgrade pays merit by world order (1,100 for the first), widens your border, and offers three random buildings of the new grade, one of which you get free.
+
 ## Server settings
 `config/realmlord-common.toml`:
 - `lordRestriction` (default **off**): the novel's rule that Lords cannot leave their territory except for war. Other dimensions are exempt.
-- `ticksPerNovelHour` (default 1200, one real minute): scales construction times from Phase 2 on.
+- `ticksPerNovelHour` (default 1200, one real minute): construction times and the length of a novel day.
+- `daysPerMonth` (default 2): the Gaia calendar's month length, which sets how often you can sow and harvest.
+- `visibleResidents` (default 24): how many residents walk around a village at once.
 - `daysToComplete` (10), `goldWithinDays` (3), `silverWithinDays` (5), `blackIronWithinDays` (7.5), and an experience multiplier.
 
 ## Admin commands (op)
@@ -121,7 +166,7 @@ The Territory tab shows what the next upgrade needs. These are the novel's requi
 
 ## Roadmap
 1. **Lord and Adventurer cores** (this release)
-2. Village grades 1–3: every building from the novel with its costs, blueprints and specialists, resource jobs, the farming calendar, the market, militia, first dungeons and beast waves
+2. **Village grades 1–3** (2a done: every building from the novel with its costs, blueprints and specialists, placement and construction, residents with jobs, talents and trade, resource jobs, the farming calendar, the market and upgrades). 2b next: militia, beast waves and the first dungeons
 3. Historical generals and ministers, departments and the four indexes
 4. Town grades 1–3, troops, formations, raids, more dungeons
 5. Battlefield maps, rival lords and war
