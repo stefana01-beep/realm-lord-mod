@@ -165,7 +165,19 @@ public class VillageTests {
                 BlockPos c = t.center.offset((int) (Math.cos(a) * ring), 0, (int) (Math.sin(a) * ring));
                 if (Village.checkPlacement(level, t, BuildingType.DINING_HALL, c, 1) == null) site = c;
             }
-        helper.assertTrue(site != null, "no buildable ground anywhere near the manor");
+        if (site == null) {
+            // The test world landed on water or cliffs: level a pad, as a Lord would.
+            BlockPos pad = t.center.offset(20, 0, -8);
+            int gy = t.center.getY() - 1;
+            for (int x = -2; x < 24; x++)
+                for (int z = -2; z < 24; z++) {
+                    level.setBlock(new BlockPos(pad.getX() + x, gy, pad.getZ() + z), net.minecraft.world.level.block.Blocks.STONE.defaultBlockState(), 2);
+                    for (int y = 1; y < 40; y++) level.setBlock(new BlockPos(pad.getX() + x, gy + y, pad.getZ() + z), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 2);
+                }
+            site = new BlockPos(pad.getX(), gy + 1, pad.getZ());
+            helper.assertTrue(Village.checkPlacement(level, t, BuildingType.DINING_HALL, site, 1) == null,
+                    "levelled pad still unbuildable: " + Village.checkPlacement(level, t, BuildingType.DINING_HALL, site, 1));
+        }
         helper.assertTrue(Village.start(p, t, BuildingType.DINING_HALL, site, 1) != null, "built without paying");
         t.wood = 100;
         t.stone = 100;
