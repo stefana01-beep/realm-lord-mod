@@ -126,10 +126,14 @@ public final class SpawnPicker {
         prof.setPlaced(true);
         ModNetwork.sync(p);
         Notify.player(p, Component.translatable("realmlord.spawn.arrived", at.getX(), at.getZ()));
-        if (!prof.hasChosen()) {
-            Notify.player(p, "realmlord.msg.welcome");
-            ModNetwork.send(p, new OpenScreenPacket(OpenScreenPacket.ROLE));
+        // A Lord's quest clock starts once they arrive, not while they were choosing.
+        if (prof.isLord() && prof.quest().stage == com.realmlord.quest.VillageQuest.Stage.SUPPLIES
+                && prof.quest().logs == 0 && prof.quest().stone == 0 && prof.quest().food == 0) {
+            prof.quest().startTick = p.server.overworld().getGameTime();
+            prof.markDirty();
+            ModNetwork.sync(p);
         }
+        if (!prof.hasChosen()) ModNetwork.send(p, new OpenScreenPacket(OpenScreenPacket.ROLE));
         return null;
     }
 

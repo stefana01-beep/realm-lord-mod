@@ -20,14 +20,14 @@ Requires **Forge 47.x** for 1.20.1. No other mods needed. Runs on its own or alo
 Keys can be rebound under Options → Controls → Realm Lord.
 
 ## Choosing where to begin
-The first time you join a world, you choose where to start before anything else.
+Right after choosing your path (below), you choose where in the world to start. A Lord's quest clock only starts once you arrive.
 - **Earth Online: China worlds:** the whole map of China is shown with eight recommended regions: the Central Plains (Luoyang), Guanzhong (Chang'an), the Sichuan Basin (Chengdu), Jiangnan (Jianye), Jingxiang (Xiangyang), Youyan (Jingdu), the Fujian coast (Quanzhou) and Yunnan (Dali). Each comes with a line on what the land is like. Pick one, or click anywhere on land.
 - **Other worlds:** the world spawn, plus the nearest open plains, forest, river valley, sea coast, savanna, taiga, hill country and jungle found within 3,000 blocks. Each shows how far away it is and in which direction.
 
 You arrive on the nearest dry ground, and that spot becomes where you wake. Operators can offer the choice again with `/realm spawn`.
 
 ## Choosing your path
-After choosing where to begin, choose a game mode. The choice is permanent.
+When you first join, choose a game mode. The choice is permanent. Choosing where to begin comes next.
 
 - **Lord:** rules a territory. Takes the Village Creation quest, earns merit and titles, and picks a **sub-profession** (any combat or work occupation).
 - **Adventurer:** roams freely and learns a quarter faster. Picks one occupation, either combat or work.

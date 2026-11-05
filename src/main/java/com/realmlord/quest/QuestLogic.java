@@ -57,6 +57,8 @@ public final class QuestLogic {
         Profiles.applyAttributes(player);
         Profiles.refreshName(player);
         ModNetwork.sync(player);
+        // Then where in the world to begin.
+        if (!p.isPlaced()) com.realmlord.territory.SpawnPicker.offer(player);
     }
 
     public static void start(ServerPlayer player) {

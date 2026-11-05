@@ -65,12 +65,12 @@ public class ForgeEvents {
         Profiles.applyAttributes(sp);
         Profiles.refreshName(sp);
         ModNetwork.sync(sp);
-        if (!Profiles.get(sp).isPlaced()) {
-            // First, where in the world to begin; the choice of path follows.
-            com.realmlord.territory.SpawnPicker.offer(sp);
-        } else if (!Profiles.get(sp).hasChosen()) {
+        if (!Profiles.get(sp).hasChosen()) {
+            // First the path; where in the world to begin follows it.
             Notify.player(sp, "realmlord.msg.welcome");
             ModNetwork.send(sp, new OpenScreenPacket(OpenScreenPacket.ROLE));
+        } else if (!Profiles.get(sp).isPlaced()) {
+            com.realmlord.territory.SpawnPicker.offer(sp);
         }
     }
 

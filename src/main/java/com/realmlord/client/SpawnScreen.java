@@ -29,7 +29,8 @@ public class SpawnScreen extends Screen {
     /** A place clicked on the map instead of a listed one. */
     private Integer customX, customZ;
 
-    private static final int W = 440, H = 300;
+    /** The panel shrinks to fit small windows and large GUI scales. */
+    private int W = 440, H = 300;
 
     public SpawnScreen(SpawnOptionsPacket data) {
         super(Component.translatable("realmlord.spawn.title"));
@@ -44,13 +45,31 @@ public class SpawnScreen extends Screen {
         return (height - H) / 2;
     }
 
-    // The map panel keeps the map's shape.
+    /** Width of the list of places on the right (China) or left (other worlds). */
+    private int listW() {
+        return data.china ? Math.max(100, Math.min(150, W * 3 / 10)) : Math.max(110, Math.min(180, W * 2 / 5));
+    }
+
+    /** Room below the map for the chosen place's description and the Begin button. */
+    private static final int BELOW = 58;
+
+    // The map keeps its shape and fits both the width and the height left for it.
     private int mapAreaW() {
-        return 270;
+        int byWidth = W - listW() - 30;
+        double aspect = mapW == 0 ? 736 / 524.0 : mapW / (double) mapH;
+        int byHeight = (int) ((H - 24 - BELOW) * aspect);
+        return Math.max(60, Math.min(byWidth, byHeight));
     }
 
     private int mapAreaH() {
-        return mapW == 0 ? 192 : (int) Math.round(mapAreaW() * mapH / (double) mapW);
+        double aspect = mapW == 0 ? 736 / 524.0 : mapW / (double) mapH;
+        return (int) Math.round(mapAreaW() / aspect);
+    }
+
+    /** Height of each place's button, so that the whole list fits. */
+    private int rowH() {
+        int room = H - 24 - 30;
+        return Math.max(12, Math.min(19, room / Math.max(1, data.options.size())));
     }
 
     private int mapX() {
@@ -64,19 +83,26 @@ public class SpawnScreen extends Screen {
     @Override
     protected void init() {
         clearWidgets();
+        W = Math.min(440, width - 8);
+        H = Math.min(300, height - 8);
         if (data.china) buildMap();
-        int lx = data.china ? left() + mapAreaW() + 20 : left() + 10;
-        int lw = data.china ? W - mapAreaW() - 30 : 180;
+        int lw = listW();
+        int lx = data.china ? left() + W - lw - 10 : left() + 10;
+        int rh = rowH();
         for (int i = 0; i < data.options.size(); i++) {
             final int k = i;
             SpawnPicker.Option o = data.options.get(i);
-            addRenderableWidget(Button.builder(Component.translatable(o.key()), b -> {
+            Component name = Component.translatable(o.key());
+            Button b = Button.builder(Component.literal(font.plainSubstrByWidth(name.getString(), lw - 8)), btn -> {
                 selected = k;
                 customX = customZ = null;
-            }).bounds(lx, top() + 24 + i * 19, lw, 17).build());
+            }).bounds(lx, top() + 22 + i * rh, lw, rh - 2).build();
+            b.setTooltip(net.minecraft.client.gui.components.Tooltip.create(name));
+            addRenderableWidget(b);
         }
+        int bw = Math.min(110, lw);
         addRenderableWidget(Button.builder(Component.translatable("realmlord.spawn.begin"), b -> begin())
-                .bounds(left() + W - 130, top() + H - 26, 120, 18).build());
+                .bounds(left() + W - bw - 10, top() + H - 24, bw, 18).build());
     }
 
     private void begin() {
@@ -213,7 +239,8 @@ public class SpawnScreen extends Screen {
             }
         }
         // What is chosen, and why one might.
-        int dx = data.china ? x + 10 : x + 200, dy = data.china ? mapY() + mapAreaH() + 8 : y + 26, dw = data.china ? W - 150 : W - 210;
+        int dx = data.china ? x + 10 : x + listW() + 20, dy = data.china ? mapY() + mapAreaH() + 6 : y + 24;
+        int dw = data.china ? W - listW() - 30 : W - listW() - 30;
         if (customX != null) {
             g.drawString(font, Component.translatable("realmlord.spawn.custom", customX, customZ), dx, dy, Ui.GOLD, false);
             Ui.wrap(g, font, Component.translatable("realmlord.spawn.custom.desc"), dx, dy + 12, dw, Ui.INK);
@@ -228,7 +255,11 @@ public class SpawnScreen extends Screen {
                         dx, ny + 6, Ui.MUTED, false);
             }
         }
-        if (data.china) Ui.wrap(g, font, Component.translatable("realmlord.spawn.hint"), x + 10, y + H - 22, W - 150, Ui.MUTED);
+        if (data.china) {
+            // The hint goes under the list when there is room.
+            int listEnd = top() + 22 + data.options.size() * rowH() + 4;
+            if (top() + H - 30 - listEnd >= 30) Ui.wrap(g, font, Component.translatable("realmlord.spawn.hint"), x + W - listW() - 10, listEnd, listW(), Ui.MUTED);
+        }
         super.render(g, mx, my, pt);
     }
 
