@@ -22,33 +22,42 @@ Keys can be rebound under Options → Controls → Realm Lord.
 ## Choosing your path
 When you first join, choose a game mode. The choice is permanent.
 
-- **Lord:** rules a territory. Takes the Village Creation quest, earns merit and titles, and picks a **sub-profession** (any combat or work occupation). Lords start with extra Command and Politics.
+- **Lord:** rules a territory. Takes the Village Creation quest, earns merit and titles, and picks a **sub-profession** (any combat or work occupation).
 - **Adventurer:** roams freely and learns a quarter faster. Picks one occupation, either combat or work.
 
 ### Combat occupations
-Each has a character level (up to 100) and three skills, learned at levels 1, 10 and 25.
+The six classes of the novel's Chinese region. Each has a character level (up to 100) and three skills, learned at levels 1, 10 and 25.
 
-| Occupation | Leans on | Skills |
-|---|---|---|
-| Strategist | Intelligence | Fire Stratagem, Confusion Array, Battle Insight |
-| General | Command, Force | War Cry, Cavalry Charge, Unyielding Will |
-| Chivalrous Expert | Force | Swift Sword, Lightness Skill, Hundred Strikes |
-| Alchemist | Intelligence | Toxic Flask, Vitality Elixir, Thunder Pill |
-| Healer | Intelligence, Politics | Rejuvenate, Acupuncture Needle, Purify |
-| Bailiff | Force, Command | Iron Shackles, Arrest, Patrol Sense |
+| Occupation | Skills |
+|---|---|
+| Strategist | Fire Stratagem, Confusion Array, Battle Insight |
+| General | War Cry, Cavalry Charge, Unyielding Will |
+| Chivalrous Expert | Swift Sword, Lightness Skill, Hundred Strikes |
+| Priest (Taoist) | Thunder Talisman, Golden Elixir, Exorcism Seal (double damage to undead) |
+| Healer | Rejuvenate, Acupuncture Needle, Purify |
+| Bailiff | Iron Shackles, Arrest, Patrol Sense |
 
-Combat experience comes from defeating monsters. Dying costs a fifth of a level's experience (never a whole level).
+Experience follows the novel's formula: **EXP = 30(N³ + 5N) − 80** for level N (100 for level 1, 460 for level 2, and 10,000 takes a new character to level 6). Monsters give 4 experience per point of their health. Dying costs a fifth of a level's experience, never a whole level.
 
 ### Work occupations
 Blacksmith, Tailor, Physician, Architect, Breeder, Fisherman, Farmer, Veterinarian, Winemaker, Cook, Carpenter, Mason and Shipbuilder. As in the novel, a work Adventurer has **no character level**, only a craft level from 1 to 10: **Junior** (1–3), **Intermediate** (4–6), **Advanced** (7–9) and **Master** (10). Work occupations never lose experience on death. Each trade learns by doing its work and gets a bonus that grows with rank: smiths forge Unbreaking gear, farmers reap extra, cooks are fed more, carpenters and masons cut faster, and so on.
 
-### Attributes
+### Attributes (as in the novel)
+**Innate attributes** are rolled between 5 and 20 when you create your character, and points can't raise them:
+- **Body Structure:** toughness and survival. Raises maximum health.
+- **Comprehension:** how fast you learn. +1% to all experience per point above 5.
+- **Luck:** windfalls and losses. Feeds the game's luck for fishing and loot.
+- **Charm:** first impressions with NPCs. Matters once talents and merchants arrive.
+
+**Acquired attributes** all start at **5**, with **2 free points** at creation, **2 points per level**, and **+1 to all four every fifth level**, up to **100**:
 - **Command:** troop strength, troop count, recruiting and response time (from Phase 4). Already makes your tamed animals hit harder.
-- **Force:** personal might. Raises health and melee damage, and strengthens physical skills.
-- **Intelligence:** longer buffs and controls, shorter cooldowns, and later troop vision and weapon development.
+- **Force:** special-attack power and critical hits (0.25% chance per point, for half again the damage). Also adds to melee damage.
+- **Intelligence:** longer buffs and controls and shorter cooldowns; later, troop vision and weapon development.
 - **Politics:** policies on markets and farms, and diplomacy (from Phase 2).
 
-Lords get 3 points per level, Adventurers 4, and every craft level gives 3.
+Each craft level gives 2 points. Your **reputation** grows with deeds and is shown on the panel.
+
+Characters made before this update had their attributes reset to these rules: all four go back to 5 (plus their every-fifth-level bonuses), all points are refunded, and innate attributes are rolled.
 
 ## Titles and merit
 Lords earn **merit**, and titles rise automatically: Baron, Viscount, Earl and Marquis (third, second and first class each), then Duke, Prince and Son of Heaven. Third Class Baron needs 100 merit and each class doubles that, up to 204,800 for First Class Marquis; Duke needs 1,000,000, Prince 2,000,000 and Son of Heaven 5,000,000. Every territory upgrade needs a minimum title. Your title shows before your name in chat and the player list.
@@ -68,16 +77,16 @@ The token's grade depends only on how quickly you finish. The Quest tab shows th
 | 7.5 days | 2.5–5 | Black Iron |
 | 10 days | 0–2.5 | Bronze |
 
-As in the novel, the reward is the **Village Creation Token**, a **Summoning Token** (calls a talent once historical figures arrive in Phase 3), a **Resources Bag** (logs, stone, wheat, bread and gold, more for higher grades) and **gold coins** (20 / 40 / 80 / 150).
+As in the novel, the reward is the **village creation set**: a **Village Creation Token**, a **Summoning Token** and a **Resources Bag**. A Gold run (or Silver once the Gold token is gone) gets an **Emperor-rank** Summoning Token and an **Intermediate** bag (5,000 food, 500 wood, 500 stone, 500 iron ore); slower runs get a King-rank token and a Basic bag (a fifth of that). Using the bag empties it into your territory's stores. The Summoning Token will call a historical figure of its rank once talents arrive in Phase 3. There's also a completion bonus: Gold 10,000 experience, 500 reputation and 100 gold coins, as in the novel; Silver 5,000 / 250 / 50 gold; Black Iron 2,000 / 100 / 10 gold; Bronze 1,000 / 50 / 50 silver.
 
-**Bandits** drop gold coins and sometimes Bronze-grade gear. The **chief** drops his Black Iron-grade sword, a pile of gold and his ledger. The ledger points to the **chief's buried treasure** (optional): gold, two building blueprints, a Silver-grade weapon and a Black Iron-grade piece of armour. The camp's barrels hold stolen grain and supplies.
+**Bandits** drop copper coins and sometimes a building blueprint or a Bronze-grade weapon or armour piece. The **chief** drops his Black Iron-grade sword, a purse of silver and his ledger. The ledger points to the **chief's buried treasure** (optional): gold and silver coins, two building blueprints, a Silver-grade weapon and a Black Iron-grade piece of armour. The camp's barrels hold stolen grain and supplies.
 
 Freed settlers wait by the camp and move into your village when you found it, each with their own name.
 
 Run out of time or abandon the quest and you lose the right to found a village, continuing as an Adventurer.
 
 ### Loot
-- **Gold coins:** the world's currency, as in the novel. Phase 2's market uses them.
+- **Coins:** copper, silver and gold, as in the novel: 1 gold = 100 silver = 10,000 copper. Copper is everyday money, and a gold coin is a lot. Use a coin to break it into 100 of the coin below; sneak and use to change 100 coins into one of the coin above. Phase 2's market uses them.
 - **Graded equipment:** Bronze, Black Iron, Silver and Gold grades, each with more damage (weapons) or armour and health (armour).
 - **Blueprints:** many of the novel's buildings need one (Dining Hall, Small Residential Courtyard, Blacksmith Workshop and more). Keep them for Phase 2.
 
