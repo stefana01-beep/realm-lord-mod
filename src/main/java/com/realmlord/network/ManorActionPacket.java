@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 
 /** Client to server: buttons on the Manor screen. */
 public class ManorActionPacket {
-    public enum Action { REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT }
+    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT }
 
     private final Action action;
     private final int a;
@@ -88,6 +88,10 @@ public class ManorActionPacket {
             case CANCEL_SITE -> {
                 Building site = t.building(a);
                 if (site != null && !site.complete) Village.demolish(t, site);
+            }
+            case MAP -> {
+                TerritoryMapPacket.send(p, t, b == 1);
+                return;
             }
             case OPEN_RESIDENT -> {
                 ResidentViewPacket.open(p, t.id, a);

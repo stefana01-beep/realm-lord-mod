@@ -66,10 +66,14 @@ public final class ClientPlacement {
 
     /** A quick check on the client; the server decides for certain. */
     public static boolean fits(BlockPos o) {
+        return active != null && fits(active, rotation, o);
+    }
+
+    public static boolean fits(BuildingType type, int rot, BlockPos o) {
         CompoundTag v = ClientVillageData.manor;
         if (v == null || o == null) return false;
         int cx = v.getInt("cx"), cz = v.getInt("cz"), r = v.getInt("radius");
-        int sx = sizeX(), sz = sizeZ();
+        int sx = rot % 2 == 0 ? type.width : type.depth, sz = rot % 2 == 0 ? type.depth : type.width;
         int[][] corners = {{0, 0}, {sx - 1, 0}, {0, sz - 1}, {sx - 1, sz - 1}};
         for (int[] c : corners) {
             long dx = o.getX() + c[0] - cx, dz = o.getZ() + c[1] - cz;

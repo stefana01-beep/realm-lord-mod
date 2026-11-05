@@ -21,6 +21,12 @@ public final class ClientAccess {
         else if (mc.screen instanceof ResidentScreen r) r.refresh();
     }
 
+    public static void map(com.realmlord.network.TerritoryMapPacket m) {
+        ClientMap.set(m);
+        Minecraft mc = Minecraft.getInstance();
+        if (m.open && !(mc.screen instanceof TerritoryMapScreen)) mc.setScreen(new TerritoryMapScreen(null));
+    }
+
     public static void open(int screen) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;

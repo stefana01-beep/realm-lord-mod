@@ -55,6 +55,11 @@ public class ModNetwork {
                 .decoder(ResidentViewPacket::new)
                 .consumerMainThread(ResidentViewPacket::handle)
                 .add();
+        CHANNEL.messageBuilder(TerritoryMapPacket.class, 9, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(TerritoryMapPacket::encode)
+                .decoder(TerritoryMapPacket::new)
+                .consumerMainThread(TerritoryMapPacket::handle)
+                .add();
         CHANNEL.messageBuilder(ResidentActionPacket.class, 8, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(ResidentActionPacket::encode)
                 .decoder(ResidentActionPacket::new)

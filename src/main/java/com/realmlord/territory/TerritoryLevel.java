@@ -9,19 +9,19 @@ import com.realmlord.profile.Title;
  * Radius is the mod's own: how far the territory's border reaches, in blocks.
  */
 public enum TerritoryLevel {
-    VILLAGE_1("village", 1, 0, Title.NONE, 0, 48),
-    VILLAGE_2("village", 2, 200, Title.BARON_2, 0, 64),
-    VILLAGE_3("village", 3, 500, Title.BARON_1, 0, 80),
-    TOWN_1("town", 1, 1_000, Title.VISCOUNT_3, 30, 96),
-    TOWN_2("town", 2, 2_000, Title.VISCOUNT_2, 0, 112),
-    TOWN_3("town", 3, 5_000, Title.VISCOUNT_1, 0, 128),
-    COUNTY_1("county", 1, 10_000, Title.EARL_3, 45, 144),
-    COUNTY_2("county", 2, 25_000, Title.EARL_2, 0, 160),
-    COUNTY_3("county", 3, 50_000, Title.EARL_1, 0, 176),
-    PREFECTURE_1("prefecture", 1, 100_000, Title.MARQUIS_3, 65, 208),
-    PREFECTURE_2("prefecture", 2, 500_000, Title.MARQUIS_2, 0, 240),
-    PREFECTURE_3("prefecture", 3, 1_000_000, Title.MARQUIS_1, 0, 272),
-    CAPITAL("capital", 1, 2_000_000, Title.DUKE, 90, 320);
+    VILLAGE_1("village", 1, 0, Title.NONE, 0, 64),
+    VILLAGE_2("village", 2, 200, Title.BARON_2, 0, 80),
+    VILLAGE_3("village", 3, 500, Title.BARON_1, 0, 96),
+    TOWN_1("town", 1, 1_000, Title.VISCOUNT_3, 30, 128),
+    TOWN_2("town", 2, 2_000, Title.VISCOUNT_2, 0, 144),
+    TOWN_3("town", 3, 5_000, Title.VISCOUNT_1, 0, 160),
+    COUNTY_1("county", 1, 10_000, Title.EARL_3, 45, 192),
+    COUNTY_2("county", 2, 25_000, Title.EARL_2, 0, 208),
+    COUNTY_3("county", 3, 50_000, Title.EARL_1, 0, 224),
+    PREFECTURE_1("prefecture", 1, 100_000, Title.MARQUIS_3, 65, 256),
+    PREFECTURE_2("prefecture", 2, 500_000, Title.MARQUIS_2, 0, 288),
+    PREFECTURE_3("prefecture", 3, 1_000_000, Title.MARQUIS_1, 0, 320),
+    CAPITAL("capital", 1, 2_000_000, Title.DUKE, 90, 384);
 
     public final String kind;
     public final int grade;

@@ -45,7 +45,6 @@ public class PlaceBuildingPacket {
         int id = Profiles.get(p).getTerritoryId();
         Territory t = id >= 0 ? data.byId(id) : null;
         if (bt == null || t == null || !p.getUUID().equals(t.owner)) return;
-        if (p.distanceToSqr(origin.getX(), origin.getY(), origin.getZ()) > 64 * 64) return;
         String err = Village.start(p, t, bt, origin, rotation);
         if (err != null) Notify.player(p, err);
         data.touch();

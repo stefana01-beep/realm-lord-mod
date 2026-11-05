@@ -265,6 +265,20 @@ public class VillageTests {
         done(helper, p, t);
     }
 
+    @GameTest(template = "empty", timeoutTicks = 200, batch = "village_map")
+    public static void mapShowsTheTerritory(GameTestHelper helper) {
+        ServerPlayer p = RealmTests.lord(helper, CombatClass.GENERAL);
+        Territory t = village(helper, p, 4800);
+        helper.assertTrue(t.radius() == 64, "a Grade 1 village should reach 64 blocks, reaches " + t.radius());
+        var map = com.realmlord.village.TerritoryMap.draw(helper.getLevel(), t);
+        helper.assertTrue(map.size() * map.step() >= 2 * t.radius(), "map does not cover the territory: " + map.size() + " x " + map.step());
+        helper.assertTrue(map.size() <= com.realmlord.village.TerritoryMap.MAX_SIZE + 1, "map too large: " + map.size());
+        int drawn = 0;
+        for (int c : map.rgb()) if (c != 0) drawn++;
+        helper.assertTrue(drawn > map.rgb().length * 0.8, "most of the loaded territory should be drawn: " + drawn + " of " + map.rgb().length);
+        done(helper, p, t);
+    }
+
     @GameTest(template = "empty", timeoutTicks = 400, batch = "village_people")
     public static void residentsAppearInTheVillage(GameTestHelper helper) {
         ServerPlayer p = RealmTests.lord(helper, CombatClass.GENERAL);

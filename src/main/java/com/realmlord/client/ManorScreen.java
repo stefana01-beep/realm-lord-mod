@@ -70,10 +70,12 @@ public class ManorScreen extends Screen {
                 tab = idx;
                 scroll = 0;
                 init();
-            }).bounds(x + 8 + i * 97, y + 20, 94, 16).build();
+            }).bounds(x + 8 + i * 80, y + 20, 77, 16).build();
             b.active = tab != i;
             addRenderableWidget(b);
         }
+        addRenderableWidget(Button.builder(Component.translatable("realmlord.manor.tab.map"), btn -> minecraft.setScreen(new TerritoryMapScreen(null)))
+                .bounds(x + 8 + 4 * 80, y + 20, 72, 16).build());
         switch (tab) {
             case OVERVIEW -> initOverview(v, x, y);
             case BUILD -> initBuild(v, x, y);
@@ -227,8 +229,7 @@ public class ManorScreen extends Screen {
             Component label = Component.translatable(free ? "realmlord.manor.place_free" : bt.placed() ? "realmlord.manor.place" : "realmlord.manor.build");
             Button b = Button.builder(label, btn -> {
                 if (bt.placed()) {
-                    ClientPlacement.start(bt);
-                    onClose();
+                    minecraft.setScreen(new TerritoryMapScreen(bt));
                 } else {
                     send(ManorActionPacket.Action.BUILD_FENCE, 0, 0);
                 }

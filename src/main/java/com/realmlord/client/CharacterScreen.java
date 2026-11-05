@@ -68,6 +68,10 @@ public class CharacterScreen extends Screen {
                         .bounds(x + 150, y + 158 + idx * 14, 12, 12).build();
                 plus.add(addRenderableWidget(b));
             }
+        } else if (tab == TAB_TERRITORY && ClientProfileData.hasTerritory) {
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.panel.territory.map"),
+                    b -> ModNetwork.toServer(new com.realmlord.network.ManorActionPacket(com.realmlord.network.ManorActionPacket.Action.MAP, 0, 1)))
+                    .bounds(x + W - 110, y + 44, 96, 16).build());
         } else if (tab == TAB_QUEST) {
             submit = addRenderableWidget(Button.builder(Component.translatable("realmlord.panel.quest.submit"),
                     b -> ModNetwork.toServer(new ProfileActionPacket(ProfileActionPacket.Action.QUEST_SUBMIT))).bounds(x + 10, y + H - 26, 120, 18).build());
