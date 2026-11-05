@@ -91,7 +91,7 @@ Run out of time or abandon the quest and you lose the right to found a village, 
 - **Blueprints:** many of the novel's buildings need one (Dining Hall, Small Residential Courtyard, Blacksmith Workshop and more). Keep them for Phase 2.
 
 ## Founding your village
-Use the token on the ground. A Lord's Manor is raised there, and your territory begins as a **Grade 1 Village** with a 32-block border. The first village founded in the world earns 1,100 merit, the second 1,000 and so on down to 100; the first ten are announced to everyone. Rename the token in an anvil first to name your village. The territory keeps its token grade forever. Use the manor seal to open your territory panel.
+Use the token on the ground. A Lord's Manor is raised there, and your territory begins as a **Grade 1 Village** with a 64-block border (80 at Grade 2, 96 at Grade 3, up to 384 for a capital). The first village founded in the world earns 1,100 merit, the second 1,000 and so on down to 100; the first ten are announced to everyone. Rename the token in an anvil first to name your village. The territory keeps its token grade forever. Use the manor seal to open your territory panel.
 
 The Territory tab shows what the next upgrade needs. These are the novel's requirements:
 
@@ -120,9 +120,11 @@ The Territory tab shows what the next upgrade needs. These are the novel's requi
   - The four stores, each with its daily change.
   - The political, economic, cultural and military indexes.
   - What the next upgrade still needs, and the Upgrade button.
-- **Construction:** every building of your grade and the next, with its wood, stone, time, blueprint and specialist, and how many the upgrade needs. Click **Place**: an outline follows your crosshair, green where it fits and red where it doesn't. **Right-click** places it, **sneak + right-click** turns it, **left-click** cancels. The gold edge marks the door side. The Simple Fence has no placement; it rings your whole border.
+- **Construction:** every building of your grade and the next, with its wood, stone, time, blueprint and specialist, and how many the upgrade needs. Click **Place** to put it down on the map, or choose to place it in the world: an outline follows your crosshair, green where it fits and red where it doesn't. **Right-click** places it, **sneak + right-click** turns it, **left-click** cancels. The gold edge marks the door side. The Simple Fence has no placement; it rings your whole border.
 - **People:** assign residents to Construction, Logging, Quarrying, Farming, Mining and Administration with the +/- buttons; the best-suited idle residents go first. Open any talent's card from the list.
 - **Market:** the novel's Basic Market. Buy and sell food (10 copper a unit), wood (20), stone (30) and iron ore (100) for your stores, with a 20% tax on sales. Building blueprints cost 2 gold (Grade 1), 5 gold (Grade 2) and 10 gold (Grade 3).
+
+- **Map:** a top-down map of your territory, drawn like a vanilla map, showing your border, the Lord's Manor, every building and site, and you. Point at a building to see what it is. Choosing **Place** in Construction opens this map with the building's footprint following your mouse: green where it fits, red where it doesn't, with the door side marked. Click to place, right-click to turn, or switch to placing it in the world. You can also open the map anywhere from the **Territory map** button on your character panel (J).
 
 **Construction.** Starting a building takes its wood and stone from your stores, its blueprint from your inventory, and needs a resident of the right trade where the novel requires one (a blacksmith for the Blacksmith Workshop, an officer for the Military Camp, and so on). The ground is levelled and the building rises block by block as your builders work. Five builders take the novel's listed time (12 hours for a Dining Hall, one real minute per hour by default); fewer take longer, and carpenters, masons and Master Builders work faster. All builders work on the oldest site first. When a workshop is finished, a resident of its trade moves in to run it.
 
