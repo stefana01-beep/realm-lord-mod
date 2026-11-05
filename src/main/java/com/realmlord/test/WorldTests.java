@@ -49,7 +49,7 @@ public class WorldTests {
             row.setLength(0);
             for (int x = -14464; x <= 8960; x += 224) {
                 int h = gen.getBaseHeight(x, z, Heightmap.Types.OCEAN_FLOOR_WG, level, rs);
-                Holder<Biome> b = gen.getBiomeSource().getNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(Math.max(h, 63)), QuartPos.fromBlock(z), rs.sampler());
+                Holder<Biome> b = gen.getBiomeSource().getNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(Math.max(h, 63) + 8), QuartPos.fromBlock(z), rs.sampler());
                 String id = b.unwrapKey().map(k -> k.location().getPath()).orElse("?");
                 row.append(h).append(':').append(id).append(' ');
             }

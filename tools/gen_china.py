@@ -224,9 +224,9 @@ def build(land_path):
     cont = ndimage.gaussian_filter(cont, 1.0)
     ero = np.full((H, W), 0.3, dtype=np.float64)
     lift = np.zeros((H, W))
-    temp = 0.78 - (LAT - 18) * 0.043
+    temp = 0.8 - (LAT - 18) * 0.034
     # Humidity: wet south-east, dry north-west.
-    veg = 0.65 - 0.0011 * np.where(is_land, dist_sea, 0) + np.where(LAT < 27, 0.15, 0) - np.maximum(0, LAT - 40) * 0.02
+    veg = 0.65 - 0.0011 * np.where(is_land, dist_sea, 0) + np.clip((30 - LAT) * 0.05, 0, 0.6) - np.maximum(0, LAT - 40) * 0.015
     veg = np.where(is_land, veg, 0.3)
 
     for name, (poly, targets, blur) in REGIONS.items():
