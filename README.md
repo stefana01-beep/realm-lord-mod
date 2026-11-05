@@ -165,7 +165,7 @@ Each upgrade pays merit by world order (1,100 for the first), widens your border
 `/realm` · `/realm info [player]` · `/realm territories` · `/realm role` (anyone) · `/realm reset [player]` · `/realm level <n>` · `/realm worklevel <n>` · `/realm points <n>` · `/realm merit add|set <n>` · `/realm token <grade>` · `/realm quest start|supplies|clear`
 
 ## Roadmap
-1. **Lord and Adventurer cores** (this release)
+1. **Lord and Adventurer cores** (done)
 2. **Village grades 1–3** (2a done: every building from the novel with its costs, blueprints and specialists, placement and construction, residents with jobs, talents and trade, resource jobs, the farming calendar, the market and upgrades). 2b next: militia, beast waves and the first dungeons
 3. Historical generals and ministers, departments and the four indexes
 4. Town grades 1–3, troops, formations, raids, more dungeons
