@@ -61,10 +61,12 @@ jobs:
           git config user.name "build-bot"
           git config user.email "build-bot@users.noreply.github.com"
           cp build.log /tmp/build.log || echo "no log" > /tmp/build.log
+          mkdir -p /tmp/jars && cp build/libs/*.jar /tmp/jars/ 2>/dev/null || true
           git fetch origin ci-log || true
           git checkout --orphan ci-log-tmp
           git rm -rf --cached . > /dev/null
           cp /tmp/build.log build.log
-          git add -f build.log
+          cp /tmp/jars/*.jar . 2>/dev/null || true
+          git add -f build.log *.jar 2>/dev/null || git add -f build.log
           git commit -m "Build log for ${GITHUB_SHA} (${{ job.status }})"
           git push -f origin ci-log-tmp:ci-log
