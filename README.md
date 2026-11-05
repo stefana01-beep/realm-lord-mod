@@ -19,8 +19,15 @@ Requires **Forge 47.x** for 1.20.1. No other mods needed. Runs on its own or alo
 
 Keys can be rebound under Options → Controls → Realm Lord.
 
+## Choosing where to begin
+The first time you join a world, you choose where to start before anything else.
+- **Earth Online: China worlds:** the whole map of China is shown with eight recommended regions: the Central Plains (Luoyang), Guanzhong (Chang'an), the Sichuan Basin (Chengdu), Jiangnan (Jianye), Jingxiang (Xiangyang), Youyan (Jingdu), the Fujian coast (Quanzhou) and Yunnan (Dali). Each comes with a line on what the land is like. Pick one, or click anywhere on land.
+- **Other worlds:** the world spawn, plus the nearest open plains, forest, river valley, sea coast, savanna, taiga, hill country and jungle found within 3,000 blocks. Each shows how far away it is and in which direction.
+
+You arrive on the nearest dry ground, and that spot becomes where you wake. Operators can offer the choice again with `/realm spawn`.
+
 ## Choosing your path
-When you first join, choose a game mode. The choice is permanent.
+After choosing where to begin, choose a game mode. The choice is permanent.
 
 - **Lord:** rules a territory. Takes the Village Creation quest, earns merit and titles, and picks a **sub-profession** (any combat or work occupation).
 - **Adventurer:** roams freely and learns a quarter faster. Picks one occupation, either combat or work.
@@ -129,13 +136,13 @@ When you create a world, set **World Type** to **Earth Online: China** (More Wor
   - The four stores, each with its daily change.
   - The political, economic, cultural and military indexes.
   - What the next upgrade still needs, and the Upgrade button.
-- **Construction:** every building of your grade and the next, with its wood, stone, time, blueprint and specialist, and how many the upgrade needs. Click **Place** to put it down on the map, or choose to place it in the world: an outline follows your crosshair, green where it fits and red where it doesn't. **Right-click** places it, **sneak + right-click** turns it, **left-click** cancels. The gold edge marks the door side. The Simple Fence has no placement; it rings your whole border.
+- **Construction:** every building of your grade and the next, with its wood, stone, time, blueprint and specialist, and how many the upgrade needs. Click **Place** to put it down on the map, or choose to place it in the world: an outline follows your crosshair, green where it fits and red where it doesn't. **Right-click** places it, **sneak + right-click** turns it, **left-click** cancels. The gold edge marks the door side. Choosing a spot puts nothing down; your builders go there and clear and level it themselves. The Simple Fence is laid out on the map too: its ring follows your border, and you click the ring to put gates wherever you want them.
 - **People:** assign residents to Construction, Logging, Quarrying, Farming, Mining and Administration with the +/- buttons; the best-suited idle residents go first. Open any talent's card from the list.
 - **Market:** the novel's Basic Market. Buy and sell food (10 copper a unit), wood (20), stone (30) and iron ore (100) for your stores, with a 20% tax on sales. Building blueprints cost 2 gold (Grade 1), 5 gold (Grade 2) and 10 gold (Grade 3).
 
-- **Map:** a top-down map of your territory, drawn like a vanilla map, showing your border, the Lord's Manor, every building and site, and you. Point at a building to see what it is. Choosing **Place** in Construction opens this map with the building's footprint following your mouse: green where it fits, red where it doesn't, with the door side marked. Click to place, right-click to turn, or switch to placing it in the world. You can also open the map anywhere from the **Territory map** button on your character panel (J).
+- **Map:** a top-down map of your territory, drawn like a vanilla map, showing your border, the Lord's Manor, every building and site, and you. Point at a building to see what it is, or click it to select it and **Demolish** it. **Fence gates** lets you move the fence's gates at any time; the posts change over at once. Choosing **Place** in Construction opens this map with the building's footprint following your mouse: green where it fits, red where it doesn't, with the door side marked. Click to place, right-click to turn, or switch to placing it in the world. You can also open the map anywhere from the **Territory map** button on your character panel (J).
 
-**Construction.** Starting a building takes its wood and stone from your stores, its blueprint from your inventory, and needs a resident of the right trade where the novel requires one (a blacksmith for the Blacksmith Workshop, an officer for the Military Camp, and so on). The ground is levelled and the building rises block by block as your builders work. Five builders take the novel's listed time (12 hours for a Dining Hall, one real minute per hour by default); fewer take longer, and carpenters, masons and Master Builders work faster. All builders work on the oldest site first. When a workshop is finished, a resident of its trade moves in to run it.
+**Construction.** Starting a building takes its wood and stone from your stores, its blueprint from your inventory, and needs a resident of the right trade where the novel requires one (a blacksmith for the Blacksmith Workshop, an officer for the Military Camp, and so on). Your builders walk to the site and work it by hand in three stages. First they **clear** it, felling trees and breaking whatever stands on the footprint, and keep the logs and stone they get. Then they **level** it, filling holes and dips beneath it with earth. Then they **build** it block by block, each one in a builder's hands as it goes up. If no builder is nearby (say you are away and your village is still loaded), or they are stuck for 30 seconds, the village carries on without them. Five builders take the novel's listed time (12 hours for a Dining Hall, one real minute per hour by default); fewer take longer, and carpenters, masons and Master Builders work faster. All builders work on the oldest site first. When a workshop is finished, a resident of its trade moves in to run it.
 
 **Buildings.** Every Village Grade 1–3 building from the novel:
 - **Grade 1:** Simple Fence, Dining Hall, Bathroom, Small Residential Courtyard (houses 20), Blacksmith Workshop, Grocery Shop, Logging Field, Quarry, Farmland and Military Camp.
@@ -148,7 +155,20 @@ Each has its own look, in a style of stone plinths, red posts, white walls and d
 - **Immigrants:** about 10 a day (more with a better token and happier people), but only into free housing (the manor holds 10, each courtyard 20) and up to your grade's limit (200, 500, 1,000).
 - **Talents:** some immigrants are special talents (blacksmiths, grocers, tailors, doctors, scholars, martial artists, potters, winemakers, cooks, hunters, fishermen, miners, stablemen, civil servants and officers). They're graded Bronze, Black Iron or Silver, with better stats and a specialty.
 - **Their card:** right-click a resident to open it. **Card** shows their grade, occupation and rank, loyalty, Command, Force, Intelligence, Politics, specialty and an evaluation. **Work** (Lord only) sets their job or the workshop they run. **Trade** lets anyone buy and sell with them, priced in copper. Craftsmen sell their best goods only while they work in their workshop; a visitor's purchases go into the village treasury.
-- **Who you see:** up to 24 residents walk around the village at once (talents first), working at their workplace by day and gathering at the manor by night. The rest live on in the records.
+- **Who you see:** up to 24 residents walk around the village at once (talents first). The rest live on in the records.
+- **Their day:** by day, each goes to their work.
+  - Builders go to the site.
+  - Loggers fell real trees around their Logging Field, log by log, and replant a sapling of the same kind.
+  - Quarrymen and miners work the rock face in the pit.
+  - Farmers walk their fields.
+  - Craftsmen stay in their workshop, and administrators stay by the manor.
+  - Anyone without a job wanders a different part of the village every while instead of crowding the manor.
+  - At night they go home: the first ten to the Lord's Manor, then twenty to each residential courtyard.
+- **Their pack:** every resident has a 9-slot pack, shown on their card. The Lord can open it with **Open pack** to take things out or hand things over.
+  - Logs, planks, stone and cobblestone, raw iron and wheat they carry are handed in at the manor when the pack fills or at day's end.
+  - What a worker carries in counts towards their day's work. The rest of their quota still comes in at the end of the day, so nothing is lost while you are away.
+- **Taking buildings down:** select a finished building on the map and click **Demolish** (twice, to confirm). Builders take it down from the top and bring back three quarters of its wood and stone as planks and cobblestone. Do this to move a building, or to rebuild the fence on your wider border after an upgrade. Cancelling a site returns three quarters of what it had not yet used straight away; whatever was already built is taken down the same way.
+- **The Simple Fence:** each post is an oak plank set into the ground, two oak fence blocks, and an oak plank on top, so the tops join into a rail. Each gateway is three posts wide, with a fence gate under the rail.
 
 **The day.** Every novel day (24 real minutes by default):
 - Loggers cut 10 wood each, quarrymen 5 stone and miners 2 iron ore, more with the right trade and your token's production bonus.
@@ -173,7 +193,7 @@ Each upgrade pays merit by world order (1,100 for the first), widens your border
 - `daysToComplete` (10), `goldWithinDays` (3), `silverWithinDays` (5), `blackIronWithinDays` (7.5), and an experience multiplier.
 
 ## Admin commands (op)
-`/realm` · `/realm info [player]` · `/realm territories` · `/realm capitals` · `/realm role` (anyone) · `/realm reset [player]` · `/realm level <n>` · `/realm worklevel <n>` · `/realm points <n>` · `/realm merit add|set <n>` · `/realm token <grade>` · `/realm quest start|supplies|clear`
+`/realm` · `/realm info [player]` · `/realm territories` · `/realm capitals` · `/realm role` (anyone) · `/realm spawn` · `/realm reset [player]` · `/realm level <n>` · `/realm worklevel <n>` · `/realm points <n>` · `/realm merit add|set <n>` · `/realm token <grade>` · `/realm quest start|supplies|clear`
 
 ## Roadmap
 1. **Lord and Adventurer cores** (done)
