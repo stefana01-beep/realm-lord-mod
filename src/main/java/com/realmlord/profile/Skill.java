@@ -17,10 +17,10 @@ public enum Skill {
     SWIFT_SWORD(CombatClass.CHIVALROUS_EXPERT, 1, 8),
     LIGHTNESS_SKILL(CombatClass.CHIVALROUS_EXPERT, 10, 30),
     HUNDRED_STRIKES(CombatClass.CHIVALROUS_EXPERT, 25, 20),
-    // Alchemist
-    TOXIC_FLASK(CombatClass.ALCHEMIST, 1, 12),
-    VITALITY_ELIXIR(CombatClass.ALCHEMIST, 10, 40),
-    THUNDER_PILL(CombatClass.ALCHEMIST, 25, 30),
+    // Priest (a Taoist priest: talismans, elixirs and exorcism)
+    THUNDER_TALISMAN(CombatClass.PRIEST, 1, 12),
+    GOLDEN_ELIXIR(CombatClass.PRIEST, 10, 40),
+    EXORCISM_SEAL(CombatClass.PRIEST, 25, 30),
     // Healer
     REJUVENATE(CombatClass.HEALER, 1, 15),
     ACUPUNCTURE_NEEDLE(CombatClass.HEALER, 10, 15),

@@ -16,14 +16,12 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.AreaEffectCloud;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -168,31 +166,41 @@ public final class Skills {
                 burst(level, ParticleTypes.CRIT, p.position().add(0, 1, 0), 60, 2.5);
                 sound(level, p, SoundEvents.PLAYER_ATTACK_STRONG, 1.2F);
             }
-            // ------------------------------------------------ Alchemist
-            case TOXIC_FLASK -> {
-                Vec3 at = lookPoint(p, 16);
-                AreaEffectCloud cloud = new AreaEffectCloud(level, at.x, at.y, at.z);
-                cloud.setOwner(p);
-                cloud.setRadius(3.0F);
-                cloud.setRadiusOnUse(-0.1F);
-                cloud.setWaitTime(5);
-                cloud.setDuration(dur(prof, 120));
-                cloud.addEffect(new MobEffectInstance(MobEffects.POISON, 100, 1));
-                level.addFreshEntity(cloud);
-                sound(level, p, SoundEvents.SPLASH_POTION_BREAK, 1.0F);
+            // ------------------------------------------------ Priest
+            case THUNDER_TALISMAN -> {
+                LivingEntity t = lookTarget(p, 24);
+                if (t == null) return fail(p);
+                t.hurt(p.damageSources().indirectMagic(p, p), intDamage(prof, 5F, 0.12F));
+                t.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, dur(prof, 40), 2));
+                Vec3 at = t.position();
+                for (int i = 0; i < 8; i++) {
+                    level.sendParticles(ParticleTypes.ELECTRIC_SPARK, at.x, at.y + t.getBbHeight() + 3 - i * 0.4, at.z, 6, 0.1, 0.1, 0.1, 0.02);
+                }
+                burst(level, ParticleTypes.ELECTRIC_SPARK, at.add(0, 0.5, 0), 30, 1.2);
+                sound(level, p, SoundEvents.LIGHTNING_BOLT_IMPACT, 1.6F);
             }
-            case VITALITY_ELIXIR -> {
+            case GOLDEN_ELIXIR -> {
                 for (LivingEntity a : alliesNear(p, 6)) {
                     a.addEffect(new MobEffectInstance(MobEffects.REGENERATION, dur(prof, 160), 1));
                     a.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, dur(prof, 400), 0));
+                    a.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, dur(prof, 160), 0));
                 }
-                burst(level, ParticleTypes.HAPPY_VILLAGER, p.position().add(0, 1, 0), 20, 1.5);
+                burst(level, ParticleTypes.WAX_ON, p.position().add(0, 1, 0), 30, 1.5);
                 sound(level, p, SoundEvents.BREWING_STAND_BREW, 1.0F);
             }
-            case THUNDER_PILL -> {
+            case EXORCISM_SEAL -> {
                 Vec3 at = lookPoint(p, 20);
-                float power = 2.0F + Math.min(2.0F, prof.stat(Stat.INTELLIGENCE) * 0.02F);
-                level.explode(p, at.x, at.y, at.z, power, Level.ExplosionInteraction.NONE);
+                List<LivingEntity> foes = enemiesNear(p, at, 5);
+                if (foes.isEmpty()) return fail(p);
+                for (LivingEntity e : foes) {
+                    float dmg = intDamage(prof, 6F, 0.15F);
+                    if (e.getMobType() == net.minecraft.world.entity.MobType.UNDEAD) dmg *= 2.0F;
+                    e.hurt(p.damageSources().indirectMagic(p, p), dmg);
+                    e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, dur(prof, 100), 1));
+                }
+                burst(level, ParticleTypes.END_ROD, at, 60, 4.0);
+                burst(level, ParticleTypes.SOUL_FIRE_FLAME, at, 30, 3.0);
+                sound(level, p, SoundEvents.EVOKER_CAST_SPELL, 0.8F);
             }
             // ------------------------------------------------ Healer
             case REJUVENATE -> {

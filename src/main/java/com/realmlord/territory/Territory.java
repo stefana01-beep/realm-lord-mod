@@ -24,6 +24,8 @@ public class Territory {
     /** 1 for the first village founded in the world, 2 for the second, and so on. */
     public int foundedOrder;
     public long foundedTick;
+    /** The four basic resources of the novel, held in the territory's stores. */
+    public long food, wood, stone, ironOre;
 
     public int radius() {
         return level.radius;
@@ -55,6 +57,10 @@ public class Territory {
         t.putInt("population", population);
         t.putInt("order", foundedOrder);
         t.putLong("founded", foundedTick);
+        t.putLong("food", food);
+        t.putLong("wood", wood);
+        t.putLong("stone", stone);
+        t.putLong("ironOre", ironOre);
         return t;
     }
 
@@ -72,6 +78,10 @@ public class Territory {
         r.population = t.getInt("population");
         r.foundedOrder = t.getInt("order");
         r.foundedTick = t.getLong("founded");
+        r.food = t.getLong("food");
+        r.wood = t.getLong("wood");
+        r.stone = t.getLong("stone");
+        r.ironOre = t.getLong("ironOre");
         return r;
     }
 }

@@ -209,15 +209,19 @@ public class BanditEntity extends Monster implements RangedAttackMob {
         RandomSource r = random;
         switch (getRole()) {
             case CHIEF -> {
-                spawnAtLocation(new ItemStack(ModItems.GOLD_COIN.get(), 12 + r.nextInt(9) + looting * 3));
+                spawnAtLocation(new ItemStack(ModItems.SILVER_COIN.get(), 10 + r.nextInt(11) + looting * 3));
                 spawnAtLocation(getMainHandItem().copy());
                 spawnAtLocation(new ItemStack(ModItems.BANDIT_LEDGER.get()));
             }
             case ARCHER -> {
-                spawnAtLocation(new ItemStack(ModItems.GOLD_COIN.get(), 1 + r.nextInt(3) + looting));
+                spawnAtLocation(new ItemStack(ModItems.COPPER_COIN.get(), Math.min(64, 15 + r.nextInt(26) + looting * 5)));
                 if (r.nextInt(2) == 0) spawnAtLocation(new ItemStack(Items.ARROW, 2 + r.nextInt(5)));
             }
-            default -> spawnAtLocation(new ItemStack(ModItems.GOLD_COIN.get(), 1 + r.nextInt(3) + looting));
+            default -> spawnAtLocation(new ItemStack(ModItems.COPPER_COIN.get(), Math.min(64, 15 + r.nextInt(26) + looting * 5)));
+        }
+        // As in the novel, human NPCs often carry building blueprints.
+        if (getRole() != Role.CHIEF && r.nextFloat() < 0.08F + 0.02F * looting) {
+            spawnAtLocation(com.realmlord.loot.Blueprints.random(r, false));
         }
         if (getRole() != Role.CHIEF && recentlyHit && r.nextFloat() < 0.06F + 0.02F * looting) {
             Item[] pool = {Items.IRON_SWORD, Items.LEATHER_CHESTPLATE, Items.LEATHER_HELMET, Items.CHAINMAIL_CHESTPLATE, Items.IRON_AXE};

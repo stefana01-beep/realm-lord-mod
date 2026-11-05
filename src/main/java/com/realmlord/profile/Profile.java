@@ -14,9 +14,13 @@ import java.util.List;
  */
 public class Profile {
     public static final int MAX_LEVEL = 100;
-    public static final int LORD_POINTS_PER_LEVEL = 3;
-    public static final int ADVENTURER_POINTS_PER_LEVEL = 4;
-    public static final int POINTS_PER_WORK_LEVEL = 3;
+    /** As in the novel: attributes start at 5, each level gives 2 free points, and none may pass 100. */
+    public static final int START_STAT = 5;
+    public static final int POINTS_PER_LEVEL = 2;
+    public static final int STARTING_POINTS = 2;
+    public static final int MAX_STAT = 100;
+    public static final int POINTS_PER_WORK_LEVEL = 2;
+    public static final int DATA_VERSION = 2;
 
     private PlayMode mode = PlayMode.NONE;
     private CombatClass combatClass;     // set when the (sub-)occupation is a combat one
@@ -26,7 +30,9 @@ public class Profile {
     private int points;
     private final int[] base = new int[Stat.values().length];
     private final int[] added = new int[Stat.values().length];
+    private final int[] innate = new int[Innate.values().length];
     private long merit;
+    private long reputation;
     private int workLevel = 1;
     private long workXp;
     private int selectedSkill;
@@ -38,8 +44,8 @@ public class Profile {
     // ------------------------------------------------------------------ role
 
     /**
-     * Sets the game mode and occupation and rolls the innate attributes: a small random base,
-     * the occupation's leanings and, for Lords, the Command and Politics a ruler needs.
+     * Sets the game mode and occupation. As in the novel, innate attributes are rolled between
+     * 5 and 20, the four acquired attributes all start at 5, and there are 2 free points.
      */
     public void chooseRole(PlayMode mode, CombatClass combat, WorkOccupation work, RandomSource random) {
         this.mode = mode;
@@ -52,15 +58,15 @@ public class Profile {
         selectedSkill = 0;
         java.util.Arrays.fill(added, 0);
         java.util.Arrays.fill(cooldowns, 0L);
-        for (Stat s : Stat.values()) {
-            int v = 4 + random.nextInt(5);
-            if (combat != null) v += combat.bias[s.ordinal()];
-            else if (s == Stat.INTELLIGENCE || s == Stat.POLITICS) v += 3;
-            if (mode == PlayMode.LORD && (s == Stat.COMMAND || s == Stat.POLITICS)) v += 6;
-            base[s.ordinal()] = v;
-        }
-        points = mode == PlayMode.LORD ? 10 : 12;
+        java.util.Arrays.fill(base, START_STAT);
+        rollInnate(random);
+        points = STARTING_POINTS;
+        reputation = 0;
         markDirty();
+    }
+
+    public void rollInnate(RandomSource random) {
+        for (Innate i : Innate.values()) innate[i.ordinal()] = Innate.MIN + random.nextInt(Innate.MAX - Innate.MIN + 1);
     }
 
     /** Back to an unchosen player, as if they had never joined. */
@@ -73,7 +79,9 @@ public class Profile {
         points = 0;
         java.util.Arrays.fill(base, 0);
         java.util.Arrays.fill(added, 0);
+        java.util.Arrays.fill(innate, 0);
         merit = 0;
+        reputation = 0;
         workLevel = 1;
         workXp = 0;
         selectedSkill = 0;
@@ -117,7 +125,16 @@ public class Profile {
     // ------------------------------------------------------------------ attributes
 
     public int stat(Stat s) {
-        return base[s.ordinal()] + added[s.ordinal()];
+        return Math.min(MAX_STAT, base[s.ordinal()] + added[s.ordinal()]);
+    }
+
+    public int innate(Innate i) {
+        return innate[i.ordinal()];
+    }
+
+    public void setInnate(Innate i, int v) {
+        innate[i.ordinal()] = Mth.clamp(v, 0, 100);
+        markDirty();
     }
 
     public int baseStat(Stat s) {
@@ -133,7 +150,7 @@ public class Profile {
     }
 
     public boolean allocate(Stat s) {
-        if (points <= 0) return false;
+        if (points <= 0 || base[s.ordinal()] + added[s.ordinal()] >= MAX_STAT) return false;
         points--;
         added[s.ordinal()]++;
         markDirty();
@@ -155,8 +172,16 @@ public class Profile {
         return xp;
     }
 
+    /** Experience for the current level, from the novel: EXP = 30(N^3 + 5N) - 80. */
     public static long xpToNext(int level) {
-        return 50L * level * level;
+        long n = level;
+        return 30L * (n * n * n + 5 * n) - 80;
+    }
+
+    /** Reaching level n gives 2 free points, and every fifth level +1 to all four attributes. */
+    private void levelReached(int newLevel) {
+        points += POINTS_PER_LEVEL;
+        if (newLevel % 5 == 0) for (int i = 0; i < base.length; i++) base[i]++;
     }
 
     /** Adds character experience; returns the number of levels gained. */
@@ -168,7 +193,7 @@ public class Profile {
             xp -= xpToNext(level);
             level++;
             gained++;
-            points += mode == PlayMode.LORD ? LORD_POINTS_PER_LEVEL : ADVENTURER_POINTS_PER_LEVEL;
+            levelReached(level);
         }
         if (level >= MAX_LEVEL) xp = 0;
         markDirty();
@@ -177,8 +202,7 @@ public class Profile {
 
     public void setLevel(int newLevel) {
         newLevel = Mth.clamp(newLevel, 1, MAX_LEVEL);
-        int per = mode == PlayMode.LORD ? LORD_POINTS_PER_LEVEL : ADVENTURER_POINTS_PER_LEVEL;
-        if (newLevel > level) points += (newLevel - level) * per;
+        while (level < newLevel) levelReached(++level);
         level = newLevel;
         xp = 0;
         markDirty();
@@ -241,6 +265,15 @@ public class Profile {
         merit = Math.max(0, merit + amount);
         markDirty();
         return getTitle().ordinal() > before.ordinal();
+    }
+
+    public long getReputation() {
+        return reputation;
+    }
+
+    public void addReputation(long r) {
+        reputation = Math.max(0, reputation + r);
+        markDirty();
     }
 
     public void setMerit(long m) {
@@ -321,6 +354,9 @@ public class Profile {
         t.putIntArray("base", base);
         t.putIntArray("added", added);
         t.putLong("merit", merit);
+        t.putIntArray("innate", innate);
+        t.putLong("reputation", reputation);
+        t.putInt("ver", DATA_VERSION);
         t.putInt("workLevel", workLevel);
         t.putLong("workXp", workXp);
         t.putInt("selected", selectedSkill);
@@ -342,6 +378,8 @@ public class Profile {
         copyInto(t.getIntArray("base"), base);
         copyInto(t.getIntArray("added"), added);
         merit = t.getLong("merit");
+        copyInto(t.getIntArray("innate"), innate);
+        reputation = t.getLong("reputation");
         workLevel = Math.max(1, t.getInt("workLevel"));
         workXp = t.getLong("workXp");
         selectedSkill = t.getInt("selected");
@@ -350,7 +388,20 @@ public class Profile {
         System.arraycopy(cd, 0, cooldowns, 0, Math.min(cd.length, cooldowns.length));
         territoryId = t.contains("territory") ? t.getInt("territory") : -1;
         quest.load(t.getCompound("quest"));
+        if (t.getInt("ver") < DATA_VERSION && mode != PlayMode.NONE) migrate();
         markDirty();
+    }
+
+    /**
+     * Characters made before the novel's attribute rules: attributes back to 5 plus the
+     * every-fifth-level bonuses, all their points refunded, and innate attributes rolled.
+     */
+    private void migrate() {
+        java.util.Arrays.fill(base, START_STAT + level / 5);
+        java.util.Arrays.fill(added, 0);
+        points = STARTING_POINTS + POINTS_PER_LEVEL * (level - 1) + (work != null ? POINTS_PER_WORK_LEVEL * (workLevel - 1) : 0);
+        rollInnate(RandomSource.create());
+        if (xp >= xpToNext(level)) xp = xpToNext(level) - 1;
     }
 
     private static void copyInto(int[] from, int[] to) {

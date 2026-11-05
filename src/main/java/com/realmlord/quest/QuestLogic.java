@@ -10,6 +10,7 @@ import com.realmlord.profile.Profiles;
 import com.realmlord.profile.WorkOccupation;
 import com.realmlord.entity.SettlerEntity;
 import com.realmlord.item.ResourcesBagItem;
+import com.realmlord.item.SummoningTokenItem;
 import com.realmlord.registry.ModItems;
 import com.realmlord.territory.TerritoryData;
 import com.realmlord.territory.TokenGrade;
@@ -237,13 +238,25 @@ public final class QuestLogic {
         return d == Math.floor(d) ? String.valueOf((long) d) : String.format("%.1f", d);
     }
 
-    /** Gold coins the quest pays on top of the token. */
-    public static int coinReward(TokenGrade g) {
+    /**
+     * The novel's village creation set scales with the result. A perfect run (Gold, or Silver
+     * once the Gold token is gone) earns an Emperor-rank Summoning Token and an Intermediate
+     * Resources Bag; otherwise a King-rank token and a Basic bag.
+     */
+    public static boolean perfect(TokenGrade g) {
+        return g == TokenGrade.GOLD || g == TokenGrade.SILVER;
+    }
+
+    /**
+     * Completion bonus: the novel's perfect run paid 10,000 experience, 500 reputation and
+     * 100 gold coins; slower runs earn less. Returns {experience, reputation, gold, silver}.
+     */
+    public static long[] bonus(TokenGrade g) {
         return switch (g) {
-            case BRONZE -> 20;
-            case BLACK_IRON -> 40;
-            case SILVER -> 80;
-            case GOLD -> 150;
+            case GOLD -> new long[]{10_000, 500, 100, 0};
+            case SILVER -> new long[]{5_000, 250, 50, 0};
+            case BLACK_IRON -> new long[]{2_000, 100, 10, 0};
+            case BRONZE -> new long[]{1_000, 50, 0, 50};
         };
     }
 
@@ -260,14 +273,23 @@ public final class QuestLogic {
         q.grade = g;
         q.stage = VillageQuest.Stage.CLAIMED;
         p.markDirty();
-        // The novel's rewards: the Village Creation Token, a Summoning Token and a Resources Bag, plus gold.
+        // The novel's village creation set: Village Creation Token, Summoning Token and Resources Bag.
+        int rank = perfect(g) ? 1 : 0;
+        int bag = perfect(g) ? 1 : 0;
         give(player, new ItemStack(ModItems.token(g)));
-        give(player, new ItemStack(ModItems.SUMMONING_TOKEN.get()));
-        give(player, ResourcesBagItem.of(g));
-        ResourcesBagItem.give(player, new ItemStack(ModItems.GOLD_COIN.get()), coinReward(g));
-        Notify.player(player, Component.translatable("realmlord.quest.claimed", Component.translatable(g.key()), coinReward(g)));
+        give(player, SummoningTokenItem.of(rank));
+        give(player, ResourcesBagItem.of(bag));
+        Notify.player(player, Component.translatable("realmlord.quest.claimed", Component.translatable(g.key()),
+                Component.translatable("realmlord.rank." + SummoningTokenItem.RANKS[rank]),
+                Component.translatable("realmlord.bag.tier." + ResourcesBagItem.TIERS[bag])));
+        long[] b = bonus(g);
+        ResourcesBagItem.give(player, new ItemStack(ModItems.GOLD_COIN.get()), (int) b[2]);
+        ResourcesBagItem.give(player, new ItemStack(ModItems.SILVER_COIN.get()), (int) b[3]);
+        Notify.player(player, Component.translatable("realmlord.quest.bonus", b[0], b[1],
+                b[2] > 0 ? Component.translatable("realmlord.coins.gold", b[2]) : Component.translatable("realmlord.coins.silver", b[3])));
         Profiles.grantMerit(player, g.questMerit, Component.translatable("realmlord.reason.quest"));
-        Profiles.grantXp(player, 300);
+        Profiles.get(player).addReputation(b[1]);
+        Profiles.grantXpRaw(player, b[0]);
         player.playNotifySound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 1.0F, 1.0F);
     }
 

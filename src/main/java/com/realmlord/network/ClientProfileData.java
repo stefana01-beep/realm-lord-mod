@@ -18,6 +18,8 @@ public final class ClientProfileData {
     public static int[] base = new int[4];
     public static int[] added = new int[4];
     public static long merit;
+    public static int[] innate = new int[4];
+    public static long reputation;
     public static int title;
     public static int workLevel = 1;
     public static long workXp;
@@ -52,6 +54,7 @@ public final class ClientProfileData {
     public static int cx, cy, cz;
     public static int radius;
     public static int foundedOrder;
+    public static long food, wood, stone, ironOre;
 
     // World
     public static int villagesFounded;

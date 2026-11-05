@@ -102,8 +102,11 @@ public class RealmTests {
         helper.assertTrue(prof.getMode() == PlayMode.LORD, "mode was not Lord");
         helper.assertTrue(prof.getCombatClass() == CombatClass.GENERAL, "sub-profession not set");
         helper.assertTrue(prof.quest().stage == VillageQuest.Stage.SUPPLIES, "Village Creation quest did not start");
-        helper.assertTrue(prof.stat(Stat.COMMAND) >= 10 && prof.stat(Stat.POLITICS) >= 10, "Lord lacks Command/Politics");
-        helper.assertTrue(prof.getPoints() == 10, "Lord should start with 10 free points");
+        for (Stat s : Stat.values()) helper.assertTrue(prof.stat(s) == 5, s + " should start at 5");
+        helper.assertTrue(prof.getPoints() == 2, "a new character should have 2 free points");
+        for (var i : com.realmlord.profile.Innate.values()) {
+            helper.assertTrue(prof.innate(i) >= 5 && prof.innate(i) <= 20, i + " out of range: " + prof.innate(i));
+        }
         // Choosing twice is ignored.
         QuestLogic.chooseRole(p, PlayMode.ADVENTURER, CombatClass.HEALER, null);
         helper.assertTrue(prof.getMode() == PlayMode.LORD, "a second choice overwrote the first");
@@ -133,22 +136,55 @@ public class RealmTests {
     }
 
     @GameTest(template = "empty", timeoutTicks = 100)
-    public static void levelsGivePointsAndForceGivesHealth(GameTestHelper helper) {
+    public static void novelLevellingAndAttributes(GameTestHelper helper) {
+        // The novel's curve: EXP = 30(N^3 + 5N) - 80. Level 1 needs 100; 10,000 experience
+        // from level 1 reaches level 6, as it did for the protagonist after his quest.
+        helper.assertTrue(Profile.xpToNext(1) == 100 && Profile.xpToNext(2) == 460 && Profile.xpToNext(5) == 4420, "wrong experience curve");
         ServerPlayer p = mockPlayer(helper);
         QuestLogic.chooseRole(p, PlayMode.ADVENTURER, CombatClass.CHIVALROUS_EXPERT, null);
         Profile prof = Profiles.get(p);
-        int points = prof.getPoints();
-        Profiles.grantXp(p, 100_000);
-        helper.assertTrue(prof.getLevel() > 10, "100k experience gave only level " + prof.getLevel());
-        helper.assertTrue(prof.getPoints() >= points + (prof.getLevel() - 1) * Profile.ADVENTURER_POINTS_PER_LEVEL, "level-up points missing");
-        float before = p.getMaxHealth();
-        for (int i = 0; i < 20; i++) prof.allocate(Stat.FORCE);
+        Profiles.grantXpRaw(p, 10_000);
+        helper.assertTrue(prof.getLevel() == 6, "10,000 experience should reach level 6, got " + prof.getLevel());
+        // 2 starting points + 2 per level; level 5 gave +1 to every attribute.
+        helper.assertTrue(prof.getPoints() == 2 + 2 * 5, "expected 12 points, have " + prof.getPoints());
+        for (Stat s : Stat.values()) helper.assertTrue(prof.stat(s) == 6, s + " should be 6 after level 5, is " + prof.stat(s));
+        double dmg = p.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE);
+        for (int i = 0; i < 12; i++) prof.allocate(Stat.FORCE);
         Profiles.applyAttributes(p);
-        helper.assertTrue(p.getMaxHealth() > before, "Force did not raise max health");
+        helper.assertTrue(p.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE) > dmg, "Force did not raise damage");
+        prof.setPoints(500);
+        for (int i = 0; i < 500; i++) prof.allocate(Stat.FORCE);
+        helper.assertTrue(prof.stat(Stat.FORCE) == Profile.MAX_STAT, "Force passed the cap of 100: " + prof.stat(Stat.FORCE));
+        prof.setInnate(com.realmlord.profile.Innate.BODY, 5);
+        Profiles.applyAttributes(p);
+        float frail = p.getMaxHealth();
+        prof.setInnate(com.realmlord.profile.Innate.BODY, 20);
+        Profiles.applyAttributes(p);
+        helper.assertTrue(p.getMaxHealth() > frail, "Body Structure did not raise health");
         long xp = prof.getXp();
         prof.deathPenalty();
-        helper.assertTrue(prof.getXp() <= xp && prof.getLevel() > 10, "death penalty removed a level");
+        helper.assertTrue(prof.getXp() <= xp && prof.getLevel() == 6, "death penalty removed a level");
         leave(p);
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 100)
+    public static void oldCharactersAreMigrated(GameTestHelper helper) {
+        Profile old = new Profile();
+        old.chooseRole(PlayMode.LORD, CombatClass.GENERAL, null, helper.getLevel().getRandom());
+        old.setLevel(11);
+        old.setPoints(0);
+        net.minecraft.nbt.CompoundTag tag = old.save();
+        tag.putIntArray("base", new int[]{20, 15, 9, 18});
+        tag.remove("ver");
+        tag.remove("innate");
+        Profile now = new Profile();
+        now.load(tag);
+        for (Stat s : Stat.values()) helper.assertTrue(now.baseStat(s) == 7, s + " should be 5 + 2 level bonuses, is " + now.baseStat(s));
+        helper.assertTrue(now.getPoints() == 2 + 2 * 10, "points not refunded: " + now.getPoints());
+        for (var i : com.realmlord.profile.Innate.values()) {
+            helper.assertTrue(now.innate(i) >= 5 && now.innate(i) <= 20, i + " not rolled: " + now.innate(i));
+        }
         helper.succeed();
     }
 
@@ -246,9 +282,16 @@ public class RealmTests {
         TokenGrade expect = goldBefore ? TokenGrade.SILVER : TokenGrade.GOLD;
         helper.assertTrue(q.grade == expect, "a same-day finish should earn " + expect + ", got " + q.grade);
         helper.assertTrue(p.getInventory().contains(new ItemStack(ModItems.token(expect))), "token not in inventory");
-        helper.assertTrue(p.getInventory().contains(new ItemStack(ModItems.SUMMONING_TOKEN.get())), "no Summoning Token");
+        helper.assertTrue(p.getInventory().countItem(ModItems.SUMMONING_TOKEN.get()) == 1, "no Summoning Token");
+        int rank = -1;
+        for (int i = 0; i < p.getInventory().getContainerSize(); i++) {
+            ItemStack s = p.getInventory().getItem(i);
+            if (s.is(ModItems.SUMMONING_TOKEN.get())) rank = com.realmlord.item.SummoningTokenItem.rank(s);
+        }
+        helper.assertTrue(rank == 1, "a perfect run should give an Emperor-rank Summoning Token, got rank " + rank);
+        helper.assertTrue(prof.getReputation() >= 250, "no reputation reward");
         helper.assertTrue(p.getInventory().countItem(ModItems.RESOURCES_BAG.get()) == 1, "no Resources Bag");
-        helper.assertTrue(p.getInventory().countItem(ModItems.GOLD_COIN.get()) >= QuestLogic.coinReward(expect), "gold reward missing");
+        helper.assertTrue(p.getInventory().countItem(ModItems.GOLD_COIN.get()) >= QuestLogic.bonus(expect)[2], "gold reward missing");
         helper.assertTrue(data.goldTokenClaimed(), "the world's Gold token should now be taken");
         leave(p);
         helper.succeed();
@@ -361,11 +404,11 @@ public class RealmTests {
         boolean ledger = false, graded = false;
         for (var d : drops) {
             ItemStack s = d.getItem();
-            if (s.is(ModItems.GOLD_COIN.get())) coins += s.getCount();
+            if (s.is(ModItems.SILVER_COIN.get())) coins += s.getCount();
             if (s.is(ModItems.BANDIT_LEDGER.get())) ledger = true;
             if (Gear.gradeOf(s) != null) graded = true;
         }
-        helper.assertTrue(coins >= 12, "chief dropped only " + coins + " gold coins");
+        helper.assertTrue(coins >= 10, "chief dropped only " + coins + " silver coins");
         helper.assertTrue(ledger, "chief dropped no ledger");
         helper.assertTrue(graded, "chief dropped no graded weapon");
         leave(p);
@@ -387,12 +430,30 @@ public class RealmTests {
         helper.assertTrue(bp.getHoverName().getString().contains("Dining Hall") || bp.getHoverName().getString().contains("dining_hall"),
                 "blueprint name wrong: " + bp.getHoverName().getString());
 
-        ServerPlayer p = mockPlayer(helper);
-        ItemStack bag = ResourcesBagItem.of(TokenGrade.BLACK_IRON);
+        // The Intermediate Resources Bag fills the territory's stores, as in the novel.
+        ServerPlayer p = lord(helper, CombatClass.GENERAL);
+        ItemStack bag = ResourcesBagItem.of(1);
         p.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, bag);
         bag.use(helper.getLevel(), p, net.minecraft.world.InteractionHand.MAIN_HAND);
-        helper.assertTrue(p.getInventory().countItem(Items.OAK_LOG) == 64, "Black Iron bag should give 64 logs, gave " + p.getInventory().countItem(Items.OAK_LOG));
-        helper.assertTrue(p.getInventory().countItem(ModItems.GOLD_COIN.get()) == 40, "Black Iron bag should give 40 gold");
+        helper.assertTrue(bag.getCount() == 1, "a bag was used up without a territory");
+        Territory t = Founding.found(p, helper.absolutePos(new BlockPos(1, 1, 1)).offset(3000, 0, 3000), TokenGrade.BRONZE, null);
+        helper.assertTrue(t != null, "could not found a test village");
+        bag.use(helper.getLevel(), p, net.minecraft.world.InteractionHand.MAIN_HAND);
+        helper.assertTrue(t.food == 5000 && t.wood == 500 && t.stone == 500 && t.ironOre == 500,
+                "Intermediate bag should give 5000/500/500/500, gave " + t.food + "/" + t.wood + "/" + t.stone + "/" + t.ironOre);
+
+        // Coins: one gold breaks into 100 silver, and 100 silver combine back into one gold.
+        p.getInventory().clearContent();
+        ItemStack gold = new ItemStack(ModItems.GOLD_COIN.get());
+        p.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, gold);
+        gold.use(helper.getLevel(), p, net.minecraft.world.InteractionHand.MAIN_HAND);
+        helper.assertTrue(p.getInventory().countItem(ModItems.SILVER_COIN.get()) == 100, "gold did not break into 100 silver");
+        p.setShiftKeyDown(true);
+        ItemStack silver = p.getInventory().getItem(p.getInventory().findSlotMatchingItem(new ItemStack(ModItems.SILVER_COIN.get())));
+        silver.use(helper.getLevel(), p, net.minecraft.world.InteractionHand.MAIN_HAND);
+        p.setShiftKeyDown(false);
+        helper.assertTrue(p.getInventory().countItem(ModItems.GOLD_COIN.get()) == 1 && p.getInventory().countItem(ModItems.SILVER_COIN.get()) == 0,
+                "100 silver did not combine into a gold coin");
         leave(p);
         helper.succeed();
     }
@@ -401,7 +462,7 @@ public class RealmTests {
 
     @GameTest(template = "empty", timeoutTicks = 200)
     public static void profileSurvivesTravelAndSyncs(GameTestHelper helper) {
-        ServerPlayer p = lord(helper, CombatClass.ALCHEMIST);
+        ServerPlayer p = lord(helper, CombatClass.PRIEST);
         Profiles.get(p).setLevel(12);
         ServerLevel nether = p.server.getLevel(Level.NETHER);
         helper.assertTrue(nether != null, "no Nether");
@@ -416,7 +477,7 @@ public class RealmTests {
         out.encode(buf);
         new SyncProfilePacket(buf).handle(() -> null);
         helper.assertTrue(ClientProfileData.mode == PlayMode.LORD.ordinal() && ClientProfileData.level == 12
-                && ClientProfileData.combat == CombatClass.ALCHEMIST.ordinal(), "sync packet round trip lost data");
+                && ClientProfileData.combat == CombatClass.PRIEST.ordinal(), "sync packet round trip lost data");
         leave(p);
         helper.succeed();
     }

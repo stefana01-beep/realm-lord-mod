@@ -49,17 +49,17 @@ TITLES = [
 
 CLASSES = {
     "strategist": ("Strategist",
-                   "A master of stratagems who wins battles before they begin. Leans on Intelligence. Skills: Fire Stratagem, Confusion Array, Battle Insight."),
+                   "A master of stratagems who wins battles before they begin. Skills: Fire Stratagem, Confusion Array, Battle Insight."),
     "general": ("General",
-                "A commander who leads from the front. Leans on Command and Force. Skills: War Cry, Cavalry Charge, Unyielding Will."),
+                "A commander who leads from the front. Skills: War Cry, Cavalry Charge, Unyielding Will."),
     "chivalrous_expert": ("Chivalrous Expert",
-                          "A wandering swordsman of the martial world, swift and deadly alone. Leans on Force. Skills: Swift Sword, Lightness Skill, Hundred Strikes."),
-    "alchemist": ("Alchemist",
-                  "A refiner of poisons, elixirs and volatile pills. Leans on Intelligence. Skills: Toxic Flask, Vitality Elixir, Thunder Pill."),
+                          "A wandering swordsman of the martial world, swift and deadly alone. Skills: Swift Sword, Lightness Skill, Hundred Strikes."),
+    "priest": ("Priest",
+               "A Taoist priest versed in the classics, talismans and elixirs, who later presides over temples. Skills: Thunder Talisman, Golden Elixir, Exorcism Seal."),
     "healer": ("Healer",
-               "A physician of the battlefield who mends allies and pins foes with needles. Leans on Intelligence and Politics. Skills: Rejuvenate, Acupuncture Needle, Purify."),
+               "A physician of the battlefield who mends allies and pins foes with needles. Skills: Rejuvenate, Acupuncture Needle, Purify."),
     "bailiff": ("Bailiff",
-                "A constable who hunts down outlaws and drags them to justice. Leans on Force and Command. Skills: Iron Shackles, Arrest, Patrol Sense."),
+                "A constable who hunts down outlaws and drags them to justice. Skills: Iron Shackles, Arrest, Patrol Sense."),
 }
 
 WORK = {
@@ -88,9 +88,9 @@ SKILLS = {
     "swift_sword": ("Swift Sword", "Dash and cut through the enemies ahead."),
     "lightness_skill": ("Lightness Skill", "Move like the wind: speed, high leaps and a feather's fall."),
     "hundred_strikes": ("Hundred Strikes", "A storm of blows on every foe within reach."),
-    "toxic_flask": ("Toxic Flask", "Hurl a flask that leaves a lingering cloud of poison."),
-    "vitality_elixir": ("Vitality Elixir", "You and nearby allies regenerate and resist fire."),
-    "thunder_pill": ("Thunder Pill", "Detonate a blasting pill at your target. Harms creatures, not the land."),
+    "thunder_talisman": ("Thunder Talisman", "Burn a talisman to call thunder down on your target, harming and slowing it."),
+    "golden_elixir": ("Golden Elixir", "Share an elixir: you and nearby allies regenerate, resist fire and toughen."),
+    "exorcism_seal": ("Exorcism Seal", "Seal the area you look at, harming and weakening every foe there. Undead suffer double."),
     "rejuvenate": ("Rejuvenate", "Heal yourself and nearby allies."),
     "acupuncture_needle": ("Acupuncture Needle", "A needle to the pressure points pins your target in place."),
     "purify": ("Purify", "Cleanse harmful effects and fire from yourself and nearby allies."),
@@ -101,9 +101,16 @@ SKILLS = {
 
 STATS = {
     "command": ("Command", "Command: how strong your troops are on the battlefield, how many you can lead, how easily you recruit and how quickly they respond. Now: your animals hit harder."),
-    "force": ("Force", "Force: your personal might. Raises your health and melee damage, and strengthens physical skills."),
+    "force": ("Force", "Force: the power of special attacks and the chance of critical hits (0.25% per point, for half again the damage). Also adds to melee damage and strengthens physical skills."),
     "intelligence": ("Intelligence", "Intelligence: lengthens buffs and controls, shortens skill cooldowns, widens your troops' vision and speeds weapon development."),
     "politics": ("Politics", "Politics: how well your policies work on markets and farms, and how diplomacy goes. Matters once your territory grows."),
+}
+
+INNATE = {
+    "body": ("Body Structure", "Body", "Body Structure: toughness and survival, adapting to the environment, and storing Qi. Raises your maximum health."),
+    "comprehension": ("Comprehension", "Compr.", "Comprehension: how quickly and deeply you learn. Raises all experience you earn by 1% per point above 5."),
+    "luck": ("Luck", "Luck", "Luck: unexpected windfalls and losses. Feeds the game's luck, for better fishing and loot."),
+    "charm": ("Charm", "Charm", "Charm: first impressions with NPCs and how easily sudden encounters go your way. Matters once you deal with talents and merchants."),
 }
 
 DIRS = {"east": "east", "southeast": "southeast", "south": "south", "southwest": "southwest",
@@ -151,17 +158,35 @@ def lang():
         "item.realmlord.bandit_spawn_egg": "Bandit Spawn Egg",
         "item.realmlord.settler_spawn_egg": "Settler Spawn Egg",
 
+        "item.realmlord.copper_coin": "Copper Coin",
+        "item.realmlord.silver_coin": "Silver Coin",
         "item.realmlord.gold_coin": "Gold Coin",
+        "realmlord.coin.rate": "1 gold = 100 silver = 10,000 copper",
+        "realmlord.coin.break": "Use: break one coin into 100 of the coin below",
+        "realmlord.coin.combine": "Sneak + use: change 100 coins into one of the coin above",
+        "realmlord.coin.need": "You need %s %s to change them up.",
+        "realmlord.coins.gold": "%s gold coins",
+        "realmlord.coins.silver": "%s silver coins",
         "item.realmlord.blueprint": "Blueprint",
         "item.realmlord.blueprint.named": "Blueprint: %s",
         "item.realmlord.resources_bag": "Resources Bag",
         "item.realmlord.resources_bag.named": "%s Resources Bag",
         "item.realmlord.summoning_token": "Summoning Token",
+        "item.realmlord.summoning_token.named": "Summoning Token (%s)",
+        "realmlord.rank.king": "King rank",
+        "realmlord.rank.emperor": "Emperor rank",
+        "realmlord.rank.divine": "Divine rank",
+        "realmlord.rank.saint": "Saint rank",
+        "realmlord.bag.tier.basic": "Basic",
+        "realmlord.bag.tier.intermediate": "Intermediate",
+        "realmlord.bag.tier.advanced": "Advanced",
+        "realmlord.bag.tooltip.use": "Use to empty it into your territory's stores.",
+        "realmlord.bag.no_territory": "A Resources Bag empties into a territory's stores. Found your village first.",
         "realmlord.blueprint.tooltip.grade": "A Grade %s Village building",
         "realmlord.blueprint.tooltip.keep": "Needed to construct it. Construction arrives in Phase 2; keep it safe.",
-        "realmlord.bag.opened": "You open the %s Resources Bag: timber, stone, grain and gold to start your village.",
-        "realmlord.bag.tooltip": "Holds %s logs, %s stone, %s wheat, %s bread and %s gold coins. Use to open.",
-        "realmlord.summoning.tooltip": "Calls a talent, perhaps a figure from history, to serve you.",
+        "realmlord.bag.opened": "%s Resources Bag emptied: %s food, %s wood, %s stone and %s iron ore added to the stores of %s.",
+        "realmlord.bag.tooltip": "Holds %s food, %s wood, %s stone and %s iron ore.",
+        "realmlord.summoning.tooltip": "Summons a random %s historical figure to serve you.",
         "realmlord.summoning.tooltip2": "Talents arrive in Phase 3. Keep this token until then.",
         "realmlord.summoning.not_yet": "No talent answers the call yet. Keep the Summoning Token: it will work once historical figures arrive (Phase 3).",
         "realmlord.gear.named": "%s-grade %s",
@@ -175,6 +200,7 @@ def lang():
         "realmlord.msg.work_up": "Your %s rose to level %s (%s). Unspent attribute points: %s.",
         "realmlord.msg.skill_unlocked": "New skill learned: %s.",
         "realmlord.msg.merit": "+%s merit (%s).",
+        "realmlord.msg.reputation": "+%s reputation.",
         "realmlord.msg.title": "Your merit has earned you the title %s.",
         "realmlord.msg.title_world": "%s has been raised to %s!",
         "realmlord.msg.death_penalty": "You lost %s experience in death.",
@@ -193,7 +219,8 @@ def lang():
         "realmlord.quest.chief_down": "The Bandit Chief has fallen. He dropped a ledger.",
         "realmlord.quest.cleared": "The camp is cleared and %s captive families go free: %s people will follow you. They wait by the camp until you found your village. Open the Quest tab (J) to claim your reward.",
         "realmlord.quest.cache": "You found the Bandit Chief's buried treasure.",
-        "realmlord.quest.claimed": "Village Creation quest complete! You received a %s Village Creation Token, a Summoning Token, a Resources Bag and %s gold coins. Use the token on the ground where your village should stand.",
+        "realmlord.quest.claimed": "Village Creation quest complete! You received the village creation set: a %s Village Creation Token, a Summoning Token (%s) and a %s Resources Bag. Use the token on the ground where your village should stand.",
+        "realmlord.quest.bonus": "Completion bonus: %s experience, %s reputation and %s.",
         "realmlord.quest.gold_world": "%s has earned the only Gold Village Creation Token in the world!",
         "realmlord.quest.warning": "Less than a day remains to finish the Village Creation quest.",
         "realmlord.quest.failed_time": "You ran out of time. The settlers have scattered.",
@@ -249,14 +276,14 @@ def lang():
         "realmlord.role.subtitle": "This choice cannot be undone.",
         "realmlord.role.lord_desc": "Rule a territory. Earn a Village Creation Token through a demanding quest, found your village and raise it, grade by grade, into a town, county, prefecture and beyond. Merit raises your noble title, which every upgrade requires. You also pick a sub-profession.",
         "realmlord.role.lord_restricted": "On this world, Lords may not leave their territory except for war.",
-        "realmlord.role.adventurer_desc": "Roam the world freely. Choose a combat occupation with levels and skills, or a trade that grows from Junior to Master. Adventurers learn a quarter faster, and their strength is entirely their own.",
+        "realmlord.role.adventurer_desc": "Roam the world freely. Choose a combat occupation with levels and skills, or a trade that grows from Junior to Master. Adventurers learn a quarter faster, and their strength is entirely their own. Every character rolls innate Body Structure, Comprehension, Luck and Charm.",
         "realmlord.role.pick_lord": "Become a Lord",
         "realmlord.role.pick_adventurer": "Become an Adventurer",
         "realmlord.role.choose_sub": "Choose your sub-profession",
         "realmlord.role.choose_occ": "Choose your occupation",
         "realmlord.role.tab_combat": "Combat",
         "realmlord.role.tab_work": "Work",
-        "realmlord.role.combat_desc": "Combat occupations have a character level (up to 100) and three skills each, learned at levels 1, 10 and 25. Experience is lost on death.",
+        "realmlord.role.combat_desc": "Combat occupations have a character level (up to 100) and three skills each, learned at levels 1, 10 and 25. Each level gives 2 attribute points and every fifth level raises all four by 1. Experience is lost on death.",
         "realmlord.role.work_desc": "Work occupations have no character level, only a craft level from 1 to 10 (Junior, Intermediate, Advanced, Master). They never lose experience on death. A Lord with a trade still has a character level.",
         "realmlord.role.back": "Back",
         "realmlord.role.confirm": "Confirm",
@@ -270,7 +297,8 @@ def lang():
         "realmlord.panel.adventurer_line": "Adventurer: %s",
         "realmlord.panel.merit": "Merit %s / %s",
         "realmlord.panel.merit_max": "Merit %s (highest title)",
-        "realmlord.panel.level": "Level %s",
+        "realmlord.panel.level": "Level %s · Reputation %s",
+        "realmlord.panel.innate": "Innate",
         "realmlord.panel.work_level": "%s %s, level %s",
         "realmlord.panel.attributes": "Attributes",
         "realmlord.panel.points": "%s to spend",
@@ -309,6 +337,11 @@ def lang():
         "realmlord.panel.territory.seat": "Lord's Manor: %s, %s, %s",
         "realmlord.panel.territory.border": "Border: %s blocks",
         "realmlord.panel.territory.order": "Founded: village no. %s in the world",
+        "realmlord.panel.territory.stores": "Stores",
+        "realmlord.panel.territory.food": "Food: %s",
+        "realmlord.panel.territory.wood": "Wood: %s",
+        "realmlord.panel.territory.stone": "Stone: %s",
+        "realmlord.panel.territory.iron_ore": "Iron ore: %s",
         "realmlord.panel.territory.next": "To become %s grade %s:",
         "realmlord.panel.territory.req_pop": "Population %s / %s",
         "realmlord.panel.territory.req_title": "Lord title of at least %s",
@@ -325,6 +358,7 @@ def lang():
         "realmlord.cmd.info.none": "%s has not chosen a path yet.",
         "realmlord.cmd.info.head": "%s: %s (%s), level %s, %s, %s merit",
         "realmlord.cmd.info.stats": "Command %s, Force %s, Intelligence %s, Politics %s, %s points unspent",
+        "realmlord.cmd.info.innate": "Body Structure %s, Comprehension %s, Luck %s, Charm %s, reputation %s",
         "realmlord.cmd.info.territory": "Territory: %s (%s %s grade %s), population %s, at %s, %s",
         "realmlord.cmd.territories.none": "No villages have been founded yet.",
         "realmlord.cmd.territories.line": "#%s %s, ruled by %s (%s %s grade %s), population %s",
@@ -349,6 +383,10 @@ def lang():
     for sid, (name, desc) in STATS.items():
         L[f"realmlord.stat.{sid}"] = name
         L[f"realmlord.stat.{sid}.desc"] = desc
+    for iid, (name, short, desc) in INNATE.items():
+        L[f"realmlord.innate.{iid}"] = name
+        L[f"realmlord.innate.{iid}.short"] = short
+        L[f"realmlord.innate.{iid}.desc"] = desc
     for did, name in DIRS.items():
         L[f"realmlord.dir.{did}"] = name
     for kid, name in TERRITORY_KINDS.items():
@@ -472,8 +510,8 @@ def manor_textures():
     return side, top, bottom
 
 
-def coin_texture():
-    gold = hexc("e8b931")
+def coin_texture(col="e8b931"):
+    gold = hexc(col)
     img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
     px = img.load()
     # Three stacked coins.
@@ -554,6 +592,8 @@ def textures():
         token_texture(hexc(col), glow).save(os.path.join(item_dir, f"{gid}_village_token.png"))
     ledger_texture().save(os.path.join(item_dir, "bandit_ledger.png"))
     coin_texture().save(os.path.join(item_dir, "gold_coin.png"))
+    coin_texture("cfd6e0").save(os.path.join(item_dir, "silver_coin.png"))
+    coin_texture("c27a3e").save(os.path.join(item_dir, "copper_coin.png"))
     blueprint_texture().save(os.path.join(item_dir, "blueprint.png"))
     bag_texture().save(os.path.join(item_dir, "resources_bag.png"))
     summoning_texture().save(os.path.join(item_dir, "summoning_token.png"))
@@ -573,7 +613,7 @@ def models():
     for gid in GRADES:
         w(os.path.join(ASSETS, "models", "item", f"{gid}_village_token.json"),
           {"parent": "minecraft:item/generated", "textures": {"layer0": f"realmlord:item/{gid}_village_token"}})
-    for name in ("gold_coin", "blueprint", "resources_bag", "summoning_token"):
+    for name in ("copper_coin", "silver_coin", "gold_coin", "blueprint", "resources_bag", "summoning_token"):
         w(os.path.join(ASSETS, "models", "item", f"{name}.json"),
           {"parent": "minecraft:item/generated", "textures": {"layer0": f"realmlord:item/{name}"}})
     for name in ("bandit_spawn_egg", "settler_spawn_egg"):

@@ -23,18 +23,31 @@ public final class Profiles {
     private static final UUID DAMAGE_ID = UUID.fromString("6f1b6c1e-3a6d-4a8e-9b1e-1f6a2b7d0a02");
     private static final UUID REACH_ID = UUID.fromString("6f1b6c1e-3a6d-4a8e-9b1e-1f6a2b7d0a03");
     private static final UUID SWIM_ID = UUID.fromString("6f1b6c1e-3a6d-4a8e-9b1e-1f6a2b7d0a04");
+    private static final UUID LUCK_ID = UUID.fromString("6f1b6c1e-3a6d-4a8e-9b1e-1f6a2b7d0a05");
+
+    /** Comprehension speeds all learning: +1% per point above 5. */
+    public static double comprehensionBonus(Profile prof) {
+        return 1.0 + Math.max(0, prof.innate(Innate.COMPREHENSION) - Innate.MIN) * 0.01;
+    }
 
     public static Profile get(ServerPlayer p) {
         return ProfileCapability.get(p).orElseThrow(() -> new IllegalStateException("Player has no Realm Lord profile"));
     }
 
-    /** Character experience from fighting; Adventurers learn a quarter faster. */
+    /** Character experience from fighting; Adventurers learn a quarter faster, Comprehension helps. */
     public static void grantXp(ServerPlayer p, long amount) {
         Profile prof = get(p);
+        if (!prof.hasChosen()) return;
+        double mult = RealmConfig.xpMultiplier() * comprehensionBonus(prof) * (prof.getMode() == PlayMode.ADVENTURER ? 1.25 : 1.0);
+        grantXpRaw(p, Math.round(amount * mult));
+    }
+
+    /** Exact experience, as quest rewards in the novel are stated. */
+    public static void grantXpRaw(ServerPlayer p, long amount) {
+        Profile prof = get(p);
         if (!prof.hasChosen() || !prof.hasCharacterLevel()) return;
-        double mult = RealmConfig.xpMultiplier() * (prof.getMode() == PlayMode.ADVENTURER ? 1.25 : 1.0);
         int before = prof.getLevel();
-        int gained = prof.addXp(Math.round(amount * mult));
+        int gained = prof.addXp(amount);
         if (gained > 0) {
             Notify.player(p, "realmlord.msg.level_up", prof.getLevel(), prof.getPoints());
             p.playNotifySound(SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.8F, 1.0F);
@@ -50,7 +63,7 @@ public final class Profiles {
     public static void grantWorkXp(ServerPlayer p, long amount) {
         Profile prof = get(p);
         if (prof.getWork() == null) return;
-        int gained = prof.addWorkXp(Math.round(amount * RealmConfig.xpMultiplier()));
+        int gained = prof.addWorkXp(Math.round(amount * RealmConfig.xpMultiplier() * comprehensionBonus(prof)));
         if (gained > 0) {
             Notify.player(p, Component.translatable("realmlord.msg.work_up",
                     Component.translatable(prof.getWork().key()), prof.getWorkLevel(),
@@ -77,19 +90,31 @@ public final class Profiles {
         }
     }
 
+    public static void grantReputation(ServerPlayer p, long amount) {
+        get(p).addReputation(amount);
+        Notify.player(p, Component.translatable("realmlord.msg.reputation", amount));
+    }
+
     public static void refreshName(ServerPlayer p) {
         p.refreshDisplayName();
         p.refreshTabListName();
     }
 
-    /** Force strengthens the body; some occupations change reach or swimming. */
+    /**
+     * Body Structure and level toughen the body, Force adds to melee damage, Luck feeds the
+     * game's own luck (fishing and loot); some occupations change reach or swimming.
+     */
     public static void applyAttributes(ServerPlayer p) {
         Profile prof = get(p);
-        int force = prof.hasChosen() ? prof.stat(Stat.FORCE) : 0;
-        double health = prof.hasChosen() ? Math.min(40.0, Math.max(0, force - 5) * 0.5 + (prof.getLevel() - 1) * 0.2) : 0.0;
-        double damage = prof.hasChosen() ? force * 0.05 : 0.0;
+        boolean on = prof.hasChosen();
+        int force = on ? prof.stat(Stat.FORCE) : 0;
+        int body = on ? prof.innate(Innate.BODY) : 0;
+        double health = on ? Math.min(40.0, Math.max(0, body - 5) * 0.4 + (prof.getLevel() - 1) * 0.2) : 0.0;
+        double damage = on ? force * 0.04 : 0.0;
+        double luck = on ? (prof.innate(Innate.LUCK) - 10) * 0.15 : 0.0;
         set(p, Attributes.MAX_HEALTH, HEALTH_ID, "Realm Lord health", health, AttributeModifier.Operation.ADDITION);
         set(p, Attributes.ATTACK_DAMAGE, DAMAGE_ID, "Realm Lord damage", damage, AttributeModifier.Operation.ADDITION);
+        set(p, Attributes.LUCK, LUCK_ID, "Realm Lord luck", luck, AttributeModifier.Operation.ADDITION);
         int tier = prof.getWork() == null ? -1 : WorkOccupation.tier(prof.getWorkLevel());
         double reach = prof.getWork() == WorkOccupation.ARCHITECT ? 0.5 * (tier + 1) : 0.0;
         double swim = prof.getWork() == WorkOccupation.SHIPBUILDER ? 0.1 * (tier + 1) : 0.0;

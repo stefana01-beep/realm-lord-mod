@@ -4,6 +4,7 @@ import com.realmlord.network.ClientProfileData;
 import com.realmlord.network.ModNetwork;
 import com.realmlord.network.ProfileActionPacket;
 import com.realmlord.profile.CombatClass;
+import com.realmlord.profile.Innate;
 import com.realmlord.profile.PlayMode;
 import com.realmlord.profile.Skill;
 import com.realmlord.profile.Stat;
@@ -24,7 +25,7 @@ import java.util.List;
 /** The character panel (J): Character, Village Creation quest and Territory tabs. */
 public class CharacterScreen extends Screen {
     public static final int TAB_CHARACTER = 0, TAB_QUEST = 1, TAB_TERRITORY = 2;
-    private static final int W = 340, H = 226;
+    private static final int W = 340, H = 254;
 
     private int tab;
     private final List<Button> plus = new ArrayList<>();
@@ -150,7 +151,7 @@ public class CharacterScreen extends Screen {
         }
         boolean pureWork = !lord && ClientProfileData.work >= 0;
         if (!pureWork) {
-            g.drawString(font, Component.translatable("realmlord.panel.level", ClientProfileData.level), lx, yy, Ui.INK, false);
+            g.drawString(font, Component.translatable("realmlord.panel.level", ClientProfileData.level, ClientProfileData.reputation), lx, yy, Ui.INK, false);
             Ui.bar(g, lx, yy + 10, 150, 3, ClientProfileData.xp / (double) Math.max(1, ClientProfileData.xpNext), 0xFF6FCF97);
             yy += 17;
         }
@@ -177,6 +178,15 @@ public class CharacterScreen extends Screen {
             g.drawString(font, v, lx + 120 - font.width(v), ry, Ui.GOLD, false);
             int added = ClientProfileData.added[s.ordinal()];
             if (added > 0) g.drawString(font, "+" + added, lx + 123, ry, Ui.MUTED, false);
+        }
+
+        // Innate attributes: fixed at creation, raised only by pills or cultivation methods.
+        g.drawString(font, Component.translatable("realmlord.panel.innate"), lx, y + 220, Ui.GOLD, false);
+        for (Innate i : Innate.values()) {
+            int ix = lx + (i.ordinal() % 2) * 78, iy = y + 232 + (i.ordinal() / 2) * 11;
+            g.drawString(font, Component.translatable(i.key() + ".short"), ix, iy, Ui.INK, false);
+            String v = String.valueOf(ClientProfileData.innate[i.ordinal()]);
+            g.drawString(font, v, ix + 70 - font.width(v), iy, Ui.GOLD, false);
         }
 
         // Skills
@@ -209,6 +219,12 @@ public class CharacterScreen extends Screen {
             int ry = y + 160 + s.ordinal() * 14;
             if (Ui.inside(mx, my, x + 10, ry - 2, 135, 12)) {
                 g.renderTooltip(font, font.split(Component.translatable(s.descKey()), 200), mx, my);
+            }
+        }
+        for (Innate i : Innate.values()) {
+            int ix = x + 10 + (i.ordinal() % 2) * 78, iy = y + 232 + (i.ordinal() / 2) * 11;
+            if (Ui.inside(mx, my, ix, iy - 1, 72, 10)) {
+                g.renderTooltip(font, font.split(Component.translatable(i.descKey()), 200), mx, my);
             }
         }
     }
@@ -294,6 +310,12 @@ public class CharacterScreen extends Screen {
         yy = line(g, lx, yy, "realmlord.panel.territory.seat", ClientProfileData.cx, ClientProfileData.cy, ClientProfileData.cz);
         yy = line(g, lx, yy, "realmlord.panel.territory.border", ClientProfileData.radius);
         yy = line(g, lx, yy, "realmlord.panel.territory.order", ClientProfileData.foundedOrder);
+        int sx = lx + 190, sy = ly + 28;
+        g.drawString(font, Component.translatable("realmlord.panel.territory.stores"), sx, sy, Ui.GOLD, false);
+        line(g, sx, sy + 12, "realmlord.panel.territory.food", ClientProfileData.food);
+        line(g, sx, sy + 23, "realmlord.panel.territory.wood", ClientProfileData.wood);
+        line(g, sx, sy + 34, "realmlord.panel.territory.stone", ClientProfileData.stone);
+        line(g, sx, sy + 45, "realmlord.panel.territory.iron_ore", ClientProfileData.ironOre);
         TerritoryLevel next = lvl.next();
         if (next != null) {
             yy += 6;

@@ -163,7 +163,7 @@ public class ForgeEvents {
         }
         // Character experience for whoever made the kill.
         if (event.getSource().getEntity() instanceof ServerPlayer killer && (dead instanceof Enemy || dead.getTags().contains(BanditCamp.BANDIT_TAG))) {
-            long xp = Math.max(1, Math.round(dead.getMaxHealth() * 2.0));
+            long xp = Math.max(1, Math.round(dead.getMaxHealth() * 4.0));
             Profiles.grantXp(killer, xp);
         }
         // The bandit chief carries a ledger.
@@ -177,6 +177,19 @@ public class ForgeEvents {
                     Notify.player(op, "realmlord.quest.chief_down");
                 }
             }
+        }
+    }
+
+    /** Force gives a chance of a critical strike: 0.25% per point, for half again the damage. */
+    @SubscribeEvent
+    public static void forceCrit(net.minecraftforge.event.entity.living.LivingHurtEvent event) {
+        if (!(event.getSource().getDirectEntity() instanceof ServerPlayer sp) || event.getEntity() == sp) return;
+        Profile prof = ProfileCapability.get(sp).orElse(null);
+        if (prof == null || !prof.hasChosen()) return;
+        if (sp.getRandom().nextFloat() < prof.stat(com.realmlord.profile.Stat.FORCE) * 0.0025F) {
+            event.setAmount(event.getAmount() * 1.5F);
+            sp.serverLevel().sendParticles(net.minecraft.core.particles.ParticleTypes.CRIT, event.getEntity().getX(),
+                    event.getEntity().getY(0.6), event.getEntity().getZ(), 14, 0.3, 0.3, 0.3, 0.2);
         }
     }
 

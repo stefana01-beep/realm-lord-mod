@@ -151,6 +151,9 @@ public final class RealmCommand {
                 Component.translatable(prof.getMode().key), occ, prof.getLevel(), Component.translatable(prof.getTitle().key()), prof.getMerit()), false);
         s.sendSuccess(() -> Component.translatable("realmlord.cmd.info.stats", prof.stat(Stat.COMMAND), prof.stat(Stat.FORCE),
                 prof.stat(Stat.INTELLIGENCE), prof.stat(Stat.POLITICS), prof.getPoints()), false);
+        s.sendSuccess(() -> Component.translatable("realmlord.cmd.info.innate", prof.innate(com.realmlord.profile.Innate.BODY),
+                prof.innate(com.realmlord.profile.Innate.COMPREHENSION), prof.innate(com.realmlord.profile.Innate.LUCK),
+                prof.innate(com.realmlord.profile.Innate.CHARM), prof.getReputation()), false);
         Territory t = prof.getTerritoryId() >= 0 ? TerritoryData.get(p.server).byId(prof.getTerritoryId()) : null;
         if (t != null) {
             s.sendSuccess(() -> Component.translatable("realmlord.cmd.info.territory", t.name, Component.translatable(t.grade.key()),

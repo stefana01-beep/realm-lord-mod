@@ -117,11 +117,11 @@ public final class BanditCamp {
     }
 
     /**
-     * The chief's hoard: gold coins, building blueprints, a piece of graded equipment and
+     * The chief's hoard: gold and silver coins, building blueprints, a piece of graded equipment and
      * grain, the kind of spoils a Lord in the novel takes from a bandit lair.
      */
     public static void fillTreasure(ChestBlockEntity chest, RandomSource r) {
-        chest.setItem(4, new ItemStack(ModItems.GOLD_COIN.get(), 40 + r.nextInt(21)));
+        chest.setItem(4, new ItemStack(ModItems.GOLD_COIN.get(), 2 + r.nextInt(3)));
         chest.setItem(10, Blueprints.random(r, false));
         chest.setItem(11, Blueprints.random(r, true));
         net.minecraft.world.item.Item[] weapons = {Items.IRON_SWORD, Items.IRON_AXE};
@@ -129,7 +129,7 @@ public final class BanditCamp {
         net.minecraft.world.item.Item[] armour = {Items.CHAINMAIL_CHESTPLATE, Items.IRON_HELMET, Items.IRON_BOOTS};
         chest.setItem(15, Gear.make(armour[r.nextInt(armour.length)], TokenGrade.BLACK_IRON, r));
         chest.setItem(16, new ItemStack(Items.WHEAT, 32));
-        chest.setItem(22, new ItemStack(ModItems.GOLD_COIN.get(), 10 + r.nextInt(11)));
+        chest.setItem(22, new ItemStack(ModItems.SILVER_COIN.get(), 40 + r.nextInt(21)));
     }
 
     private static void barrel(ServerLevel level, BlockPos pos, ItemStack... items) {

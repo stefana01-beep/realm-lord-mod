@@ -3,6 +3,7 @@ package com.realmlord.registry;
 import com.realmlord.RealmLord;
 import com.realmlord.item.BanditLedgerItem;
 import com.realmlord.item.BlueprintItem;
+import com.realmlord.item.CoinItem;
 import com.realmlord.item.ResourcesBagItem;
 import com.realmlord.item.SummoningTokenItem;
 import com.realmlord.item.VillageTokenItem;
@@ -36,9 +37,13 @@ public class ModItems {
         }
     }
 
-    /** The world's currency, as in the novel. */
+    /** The world's currency, as in the novel: 1 gold = 100 silver = 10,000 copper. */
+    public static final RegistryObject<Item> COPPER_COIN = ITEMS.register("copper_coin",
+            () -> new CoinItem(0, new Item.Properties()));
+    public static final RegistryObject<Item> SILVER_COIN = ITEMS.register("silver_coin",
+            () -> new CoinItem(1, new Item.Properties()));
     public static final RegistryObject<Item> GOLD_COIN = ITEMS.register("gold_coin",
-            () -> new Item(new Item.Properties()));
+            () -> new CoinItem(2, new Item.Properties().rarity(Rarity.UNCOMMON)));
 
     public static final RegistryObject<Item> BLUEPRINT = ITEMS.register("blueprint",
             () -> new BlueprintItem(new Item.Properties().stacksTo(16).rarity(Rarity.UNCOMMON)));

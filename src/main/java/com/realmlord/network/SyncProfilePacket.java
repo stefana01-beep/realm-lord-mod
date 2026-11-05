@@ -33,6 +33,8 @@ public class SyncProfilePacket {
             data.writeVarInt(p.addedStat(s));
         }
         data.writeVarLong(p.getMerit());
+        for (var i : com.realmlord.profile.Innate.values()) data.writeVarInt(p.innate(i));
+        data.writeVarLong(p.getReputation());
         data.writeVarInt(p.getTitle().ordinal());
         data.writeVarInt(p.getWorkLevel());
         data.writeVarLong(p.getWorkXp());
@@ -82,6 +84,10 @@ public class SyncProfilePacket {
             data.writeVarInt(t.center.getZ());
             data.writeVarInt(t.radius());
             data.writeVarInt(t.foundedOrder);
+            data.writeVarLong(t.food);
+            data.writeVarLong(t.wood);
+            data.writeVarLong(t.stone);
+            data.writeVarLong(t.ironOre);
         }
         data.writeVarInt(td.villagesFounded());
         data.writeBoolean(td.goldTokenClaimed());
@@ -113,6 +119,10 @@ public class SyncProfilePacket {
         ClientProfileData.base = base;
         ClientProfileData.added = added;
         ClientProfileData.merit = b.readVarLong();
+        int[] innate = new int[4];
+        for (int i = 0; i < 4; i++) innate[i] = b.readVarInt();
+        ClientProfileData.innate = innate;
+        ClientProfileData.reputation = b.readVarLong();
         ClientProfileData.title = b.readVarInt();
         ClientProfileData.workLevel = b.readVarInt();
         ClientProfileData.workXp = b.readVarLong();
@@ -157,6 +167,10 @@ public class SyncProfilePacket {
             ClientProfileData.cz = b.readVarInt();
             ClientProfileData.radius = b.readVarInt();
             ClientProfileData.foundedOrder = b.readVarInt();
+            ClientProfileData.food = b.readVarLong();
+            ClientProfileData.wood = b.readVarLong();
+            ClientProfileData.stone = b.readVarLong();
+            ClientProfileData.ironOre = b.readVarLong();
         }
         ClientProfileData.villagesFounded = b.readVarInt();
         ClientProfileData.goldClaimed = b.readBoolean();
