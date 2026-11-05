@@ -54,7 +54,7 @@ public final class ClientProfileData {
     public static int cx, cy, cz;
     public static int radius;
     public static int foundedOrder;
-    public static long food, wood, stone, ironOre;
+    public static long storeFood, storeWood, storeStone, storeIronOre;
 
     // World
     public static int villagesFounded;

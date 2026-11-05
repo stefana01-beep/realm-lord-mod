@@ -167,10 +167,10 @@ public class SyncProfilePacket {
             ClientProfileData.cz = b.readVarInt();
             ClientProfileData.radius = b.readVarInt();
             ClientProfileData.foundedOrder = b.readVarInt();
-            ClientProfileData.food = b.readVarLong();
-            ClientProfileData.wood = b.readVarLong();
-            ClientProfileData.stone = b.readVarLong();
-            ClientProfileData.ironOre = b.readVarLong();
+            ClientProfileData.storeFood = b.readVarLong();
+            ClientProfileData.storeWood = b.readVarLong();
+            ClientProfileData.storeStone = b.readVarLong();
+            ClientProfileData.storeIronOre = b.readVarLong();
         }
         ClientProfileData.villagesFounded = b.readVarInt();
         ClientProfileData.goldClaimed = b.readBoolean();

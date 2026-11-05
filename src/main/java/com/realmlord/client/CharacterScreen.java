@@ -312,10 +312,10 @@ public class CharacterScreen extends Screen {
         yy = line(g, lx, yy, "realmlord.panel.territory.order", ClientProfileData.foundedOrder);
         int sx = lx + 190, sy = ly + 28;
         g.drawString(font, Component.translatable("realmlord.panel.territory.stores"), sx, sy, Ui.GOLD, false);
-        line(g, sx, sy + 12, "realmlord.panel.territory.food", ClientProfileData.food);
-        line(g, sx, sy + 23, "realmlord.panel.territory.wood", ClientProfileData.wood);
-        line(g, sx, sy + 34, "realmlord.panel.territory.stone", ClientProfileData.stone);
-        line(g, sx, sy + 45, "realmlord.panel.territory.iron_ore", ClientProfileData.ironOre);
+        line(g, sx, sy + 12, "realmlord.panel.territory.food", ClientProfileData.storeFood);
+        line(g, sx, sy + 23, "realmlord.panel.territory.wood", ClientProfileData.storeWood);
+        line(g, sx, sy + 34, "realmlord.panel.territory.stone", ClientProfileData.storeStone);
+        line(g, sx, sy + 45, "realmlord.panel.territory.iron_ore", ClientProfileData.storeIronOre);
         TerritoryLevel next = lvl.next();
         if (next != null) {
             yy += 6;
