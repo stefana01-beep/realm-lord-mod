@@ -54,6 +54,10 @@ public final class Ui {
         g.drawString(font, text, cx - font.width(text) / 2, y, color, false);
     }
 
+    public static Component money(long copper) {
+        return com.realmlord.village.Coins.format(copper);
+    }
+
     public static boolean inside(double mx, double my, int x, int y, int w, int h) {
         return mx >= x && my >= y && mx < x + w && my < y + h;
     }

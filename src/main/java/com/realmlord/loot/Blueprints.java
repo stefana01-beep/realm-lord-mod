@@ -1,21 +1,28 @@
 package com.realmlord.loot;
 
 import com.realmlord.registry.ModItems;
+import com.realmlord.village.BuildingType;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.ArrayList;
 import java.util.List;
 
-/** The village buildings from the novel that need a blueprint, by the village grade that unlocks them. */
+/** Blueprints for the novel's buildings that need one, by the village grade that unlocks them. */
 public final class Blueprints {
     private Blueprints() {}
 
     public static final String TAG = "realmlord_building";
 
-    public static final List<String> VILLAGE_1 = List.of(
-            "dining_hall", "bathroom", "small_residential_courtyard", "blacksmith_workshop", "grocery_shop", "military_camp");
-    public static final List<String> VILLAGE_2 = List.of(
-            "ancestral_hall", "clinic", "private_school", "martial_arts_dojo", "granary", "tailor_workshop");
+    public static final List<String> VILLAGE_1 = ids(1);
+    public static final List<String> VILLAGE_2 = ids(2);
+    public static final List<String> VILLAGE_3 = ids(3);
+
+    private static List<String> ids(int grade) {
+        List<String> out = new ArrayList<>();
+        for (BuildingType t : BuildingType.ofGrade(grade)) if (t.blueprint) out.add(t.id());
+        return List.copyOf(out);
+    }
 
     public static ItemStack of(String building) {
         ItemStack s = new ItemStack(ModItems.BLUEPRINT.get());
@@ -33,8 +40,7 @@ public final class Blueprints {
     }
 
     public static int gradeOf(String building) {
-        if (VILLAGE_1.contains(building)) return 1;
-        if (VILLAGE_2.contains(building)) return 2;
-        return 0;
+        BuildingType t = BuildingType.byId(building);
+        return t == null ? 0 : t.grade;
     }
 }

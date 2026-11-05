@@ -51,6 +51,9 @@ public class SettlerEntity extends PathfinderMob {
     private String settlerName = "";
     private UUID owner;
     private BlockPos home;
+    /** The territory and resident record this settler shows, or -1. */
+    private int territoryId = -1;
+    private int residentId = -1;
 
     public SettlerEntity(EntityType<? extends SettlerEntity> type, Level level) {
         super(type, level);
@@ -155,6 +158,49 @@ public class SettlerEntity extends PathfinderMob {
         setCustomNameVisible(false);
     }
 
+    // ------------------------------------------------------------------ residents
+
+    /** Ties this entity to a resident of a territory. */
+    public void link(com.realmlord.territory.Territory t, com.realmlord.village.Resident r) {
+        territoryId = t.id;
+        residentId = r.id;
+        owner = t.owner;
+        home = t.center;
+        settlerName = r.name;
+        entityData.set(SKIN, Math.floorMod(r.skin, SKINS));
+        entityData.set(CAPTIVE, false);
+        restrictTo(t.center, 20);
+        refreshName();
+    }
+
+    public int getTerritoryId() {
+        return territoryId;
+    }
+
+    public int getResidentId() {
+        return residentId;
+    }
+
+    /** Work by day, home by night. */
+    public void routine(com.realmlord.territory.Territory t, com.realmlord.village.Resident r) {
+        if (!settlerName.equals(r.name)) {
+            settlerName = r.name;
+            refreshName();
+        }
+        BlockPos work = level().isDay() ? com.realmlord.village.Residents.workplace(t, r) : null;
+        if (work != null) restrictTo(work, 6);
+        else restrictTo(t.center, level().isDay() ? 20 : 10);
+    }
+
+    @Override
+    protected net.minecraft.world.InteractionResult mobInteract(net.minecraft.world.entity.player.Player player, net.minecraft.world.InteractionHand hand) {
+        if (residentId < 0 || isCaptive()) return super.mobInteract(player, hand);
+        if (!level().isClientSide && player instanceof net.minecraft.server.level.ServerPlayer sp) {
+            com.realmlord.network.ResidentViewPacket.open(sp, territoryId, residentId);
+        }
+        return net.minecraft.world.InteractionResult.sidedSuccess(level().isClientSide);
+    }
+
     /** Captives cannot be harmed, so a stray blast cannot spoil the quest. */
     @Override
     public boolean hurt(DamageSource source, float amount) {
@@ -169,7 +215,16 @@ public class SettlerEntity extends PathfinderMob {
     @Override
     public void tick() {
         super.tick();
-        if (tickCount % 100 != 7 || !(level() instanceof ServerLevel sl) || isCaptive() || home != null || owner == null) return;
+        if (tickCount % 100 != 7 || !(level() instanceof ServerLevel sl) || isCaptive()) return;
+        if (territoryId >= 0) {
+            // A resident's body leaves when its record is gone or another body has replaced it.
+            Territory t = TerritoryData.get(sl.getServer()).byId(territoryId);
+            var r = t == null ? null : t.resident(residentId);
+            if (r == null || !getUUID().equals(r.entity)) discard();
+            return;
+        }
+        if (owner == null) return;
+        // Freed settlers from before villages had residents: the village records take their place.
         Territory t = TerritoryData.get(sl.getServer()).ownedBy(owner);
         if (t != null) discard();
     }
@@ -192,6 +247,8 @@ public class SettlerEntity extends PathfinderMob {
         if (owner != null) tag.putUUID("Owner", owner);
         if (home != null) tag.put("Home", NbtUtils.writeBlockPos(home));
         if (hasRestriction()) tag.put("Restrict", NbtUtils.writeBlockPos(getRestrictCenter()));
+        tag.putInt("Territory", territoryId);
+        tag.putInt("Resident", residentId);
         tag.putFloat("RestrictRadius", getRestrictRadius());
     }
 
@@ -203,6 +260,8 @@ public class SettlerEntity extends PathfinderMob {
         settlerName = tag.getString("SettlerName");
         owner = tag.hasUUID("Owner") ? tag.getUUID("Owner") : null;
         home = tag.contains("Home") ? NbtUtils.readBlockPos(tag.getCompound("Home")) : null;
+        territoryId = tag.contains("Territory") ? tag.getInt("Territory") : -1;
+        residentId = tag.contains("Resident") ? tag.getInt("Resident") : -1;
         if (tag.contains("Restrict")) restrictTo(NbtUtils.readBlockPos(tag.getCompound("Restrict")), (int) tag.getFloat("RestrictRadius"));
         refreshName();
     }

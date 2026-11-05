@@ -16,6 +16,8 @@ public final class RealmConfig {
     public static final ForgeConfigSpec.DoubleValue QUEST_SILVER_DAYS;
     public static final ForgeConfigSpec.DoubleValue QUEST_BLACK_IRON_DAYS;
     public static final ForgeConfigSpec.DoubleValue XP_MULTIPLIER;
+    public static final ForgeConfigSpec.IntValue DAYS_PER_MONTH;
+    public static final ForgeConfigSpec.IntValue VISIBLE_RESIDENTS;
 
     static {
         ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
@@ -29,6 +31,13 @@ public final class RealmConfig {
         b.push("time");
         TICKS_PER_NOVEL_HOUR = b.comment("Game ticks per hour of novel time, used for construction times and other timers. 1200 ticks = 1 real minute, so a 24-hour building takes about 24 minutes.")
                 .defineInRange("ticksPerNovelHour", 1200, 20, 72000);
+        DAYS_PER_MONTH = b.comment("Novel days in each month of the Gaia calendar. Sowing happens in months 4 and 7, harvest three months later. With 2, a year is 24 novel days (about 10 real hours).")
+                .defineInRange("daysPerMonth", 2, 1, 30);
+        b.pop();
+
+        b.push("village");
+        VISIBLE_RESIDENTS = b.comment("Most residents of one territory shown walking around at once; the rest live on in the records. Talents are always shown first.")
+                .defineInRange("visibleResidents", 24, 4, 200);
         b.pop();
 
         b.push("village_creation_quest");
@@ -76,6 +85,18 @@ public final class RealmConfig {
 
     public static double questBlackIronDays() {
         return SPEC.isLoaded() ? QUEST_BLACK_IRON_DAYS.get() : 7.5;
+    }
+
+    public static int daysPerMonth() {
+        return SPEC.isLoaded() ? DAYS_PER_MONTH.get() : 2;
+    }
+
+    public static int visibleResidents() {
+        return SPEC.isLoaded() ? VISIBLE_RESIDENTS.get() : 24;
+    }
+
+    public static long ticksPerNovelDay() {
+        return 24L * ticksPerNovelHour();
     }
 
     public static double xpMultiplier() {

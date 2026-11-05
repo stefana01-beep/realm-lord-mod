@@ -35,7 +35,7 @@ public class LordsManorBlock extends Block {
                 Notify.player(sp, Component.translatable("realmlord.manor.visitor", t.name, t.ownerName));
             } else {
                 ModNetwork.sync(sp);
-                ModNetwork.send(sp, new OpenScreenPacket(OpenScreenPacket.TERRITORY));
+                com.realmlord.network.ManorViewPacket.send(sp, t, true);
             }
         }
         return InteractionResult.CONSUME;

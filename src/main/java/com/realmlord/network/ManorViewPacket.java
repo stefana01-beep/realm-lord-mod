@@ -1,0 +1,41 @@
+package com.realmlord.network;
+
+import com.realmlord.territory.Territory;
+import com.realmlord.village.Views;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.function.Supplier;
+
+/** Server to client: a snapshot of the Lord's territory for the Manor screen. */
+public class ManorViewPacket {
+    private final CompoundTag view;
+    private final boolean open;
+
+    public ManorViewPacket(CompoundTag view, boolean open) {
+        this.view = view;
+        this.open = open;
+    }
+
+    public ManorViewPacket(FriendlyByteBuf buf) {
+        view = buf.readNbt();
+        open = buf.readBoolean();
+    }
+
+    public void encode(FriendlyByteBuf buf) {
+        buf.writeNbt(view);
+        buf.writeBoolean(open);
+    }
+
+    public static void send(ServerPlayer p, Territory t, boolean open) {
+        ModNetwork.send(p, new ManorViewPacket(Views.manor(p, t), open));
+    }
+
+    public void handle(Supplier<NetworkEvent.Context> ctx) {
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> com.realmlord.client.ClientAccess.manor(view, open));
+    }
+}

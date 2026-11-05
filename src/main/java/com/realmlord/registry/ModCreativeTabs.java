@@ -24,6 +24,7 @@ public class ModCreativeTabs {
                 for (int t = 0; t < 3; t++) out.accept(com.realmlord.item.ResourcesBagItem.of(t));
                 for (String b : com.realmlord.loot.Blueprints.VILLAGE_1) out.accept(com.realmlord.loot.Blueprints.of(b));
                 for (String b : com.realmlord.loot.Blueprints.VILLAGE_2) out.accept(com.realmlord.loot.Blueprints.of(b));
+                for (String b : com.realmlord.loot.Blueprints.VILLAGE_3) out.accept(com.realmlord.loot.Blueprints.of(b));
                 out.accept(ModItems.BANDIT_LEDGER.get());
                 out.accept(ModItems.BANDIT_SPAWN_EGG.get());
                 out.accept(ModItems.SETTLER_SPAWN_EGG.get());

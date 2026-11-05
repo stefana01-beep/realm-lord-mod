@@ -215,6 +215,15 @@ public class ForgeEvents {
         if (grade != null) event.getToolTip().add(1, com.realmlord.loot.Gear.tooltip(grade));
     }
 
+    /** Every second: construction, residents and the days of every village. */
+    @SubscribeEvent
+    public static void serverTick(TickEvent.ServerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END || event.getServer().getTickCount() % 20 != 0) return;
+        TerritoryData data = TerritoryData.get(event.getServer());
+        for (Territory t : data.list()) com.realmlord.village.Village.tick(event.getServer(), t);
+        data.touch();
+    }
+
     // ------------------------------------------------------------------ commands
 
     @SubscribeEvent

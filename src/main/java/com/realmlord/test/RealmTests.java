@@ -60,7 +60,7 @@ import java.util.List;
 public class RealmTests {
 
     /** A real ServerPlayer joined through the player list over an in-memory channel. */
-    private static ServerPlayer mockPlayer(GameTestHelper helper) {
+    static ServerPlayer mockPlayer(GameTestHelper helper) {
         var server = helper.getLevel().getServer();
         var connection = new net.minecraft.network.Connection(net.minecraft.network.protocol.PacketFlow.SERVERBOUND);
         new io.netty.channel.embedded.EmbeddedChannel(connection);
@@ -83,13 +83,13 @@ public class RealmTests {
         return p;
     }
 
-    private static ServerPlayer lord(GameTestHelper helper, CombatClass c) {
+    static ServerPlayer lord(GameTestHelper helper, CombatClass c) {
         ServerPlayer p = mockPlayer(helper);
         QuestLogic.chooseRole(p, PlayMode.LORD, c, null);
         return p;
     }
 
-    private static void leave(ServerPlayer p) {
+    static void leave(ServerPlayer p) {
         p.getServer().getPlayerList().remove(p);
     }
 
@@ -328,9 +328,7 @@ public class RealmTests {
         helper.assertTrue(prof.getTerritoryId() == t.id, "profile not linked to the territory");
         helper.assertTrue(prof.getMerit() >= Founding.foundingMerit(t.foundedOrder), "founding merit not granted");
         helper.assertTrue(level.getBlockState(t.center).is(ModBlocks.LORDS_MANOR.get()), "Lord's Manor not placed");
-        int settlers = level.getEntitiesOfClass(SettlerEntity.class, new net.minecraft.world.phys.AABB(t.center).inflate(16),
-                s -> t.center.equals(s.getHome())).size();
-        helper.assertTrue(settlers >= 2, "settlers did not move into the village: " + settlers);
+        helper.assertTrue(t.residents.size() >= 10, "the village should start with the novel's ten refugees, has " + t.residents.size());
         helper.assertTrue(data.at(Level.OVERWORLD, t.center) == t, "territory lookup failed");
         helper.assertTrue(Founding.found(p, spot.offset(500, 0, 0), TokenGrade.BRONZE, null) == null, "a Lord founded two villages");
 

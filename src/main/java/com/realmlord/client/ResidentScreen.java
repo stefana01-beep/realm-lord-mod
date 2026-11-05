@@ -1,0 +1,217 @@
+package com.realmlord.client;
+
+import com.realmlord.network.ModNetwork;
+import com.realmlord.network.ResidentActionPacket;
+import com.realmlord.territory.TokenGrade;
+import com.realmlord.village.BuildingType;
+import com.realmlord.village.Job;
+import com.realmlord.village.Resident;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+
+/** A resident's character card, their work (for the Lord) and their trades. */
+public class ResidentScreen extends Screen {
+    public static final int CARD = 0, WORK = 1, TRADE = 2;
+    private static final int W = 320, H = 220;
+    private static final Job[] JOBS = {Job.IDLE, Job.CONSTRUCTION, Job.LOGGING, Job.QUARRYING, Job.FARMING, Job.MINING, Job.ADMINISTRATION};
+
+    private int tab = CARD;
+    private int scroll;
+
+    public ResidentScreen() {
+        super(Component.translatable("realmlord.resident.title"));
+    }
+
+    private CompoundTag v() {
+        return ClientVillageData.resident;
+    }
+
+    private Resident res() {
+        return Resident.load(v().getCompound("resident"));
+    }
+
+    private int left() {
+        return (width - W) / 2;
+    }
+
+    private int top() {
+        return (height - H) / 2;
+    }
+
+    private void send(ResidentActionPacket.Action a, int arg) {
+        CompoundTag v = v();
+        ModNetwork.toServer(new ResidentActionPacket(a, v.getInt("territory"), res().id, arg));
+    }
+
+    public void refresh() {
+        init();
+    }
+
+    @Override
+    protected void init() {
+        clearWidgets();
+        if (v() == null) return;
+        int x = left(), y = top();
+        boolean owner = v().getBoolean("owner");
+        String[] tabs = {"realmlord.resident.tab.card", "realmlord.resident.tab.work", "realmlord.resident.tab.trade"};
+        for (int i = 0; i < tabs.length; i++) {
+            final int idx = i;
+            Button b = Button.builder(Component.translatable(tabs[i]), btn -> {
+                tab = idx;
+                scroll = 0;
+                init();
+            }).bounds(x + 8 + i * 102, y + 20, 98, 16).build();
+            b.active = tab != i && (i != WORK || owner);
+            addRenderableWidget(b);
+        }
+        if (tab == WORK && owner) initWork(x, y);
+        if (tab == TRADE) initTrade(x, y);
+    }
+
+    private void initWork(int x, int y) {
+        CompoundTag v = v();
+        Resident r = res();
+        ListTag errs = v.getList("jobErrors", Tag.TAG_STRING);
+        int[] jobs = v.getIntArray("jobs"), places = v.getIntArray("places");
+        for (int i = 0; i < JOBS.length; i++) {
+            Job j = JOBS[i];
+            int c = jobs.length > j.ordinal() ? jobs[j.ordinal()] : 0;
+            int p = places.length > j.ordinal() ? places[j.ordinal()] : 0;
+            Component label = Component.translatable(j.key()).append(p >= 9999 || j == Job.IDLE ? Component.empty() : Component.literal(" " + c + "/" + p));
+            Button b = Button.builder(label, btn -> send(ResidentActionPacket.Action.SET_JOB, j.ordinal())).bounds(x + 10, y + 56 + i * 18, 140, 16).build();
+            String err = errs.size() > j.ordinal() ? errs.getString(j.ordinal()) : "";
+            b.active = r.job != j && err.isEmpty();
+            if (!err.isEmpty()) b.setTooltip(Tooltip.create(Component.translatable(err)));
+            addRenderableWidget(b);
+        }
+        ListTag staff = v.getList("staff", Tag.TAG_COMPOUND);
+        for (int i = 0; i < staff.size() && i < 6; i++) {
+            CompoundTag st = staff.getCompound(i);
+            BuildingType bt = BuildingType.byOrdinal(st.getInt("type"));
+            final int id = st.getInt("id");
+            Button b = Button.builder(Component.translatable(bt.key()), btn -> send(ResidentActionPacket.Action.STAFF, id)).bounds(x + 166, y + 56 + i * 18, 144, 16).build();
+            boolean mine = r.job == Job.STAFF && r.workplace == id;
+            b.active = !mine && !st.contains("by");
+            if (st.contains("by") && !mine) b.setTooltip(Tooltip.create(Component.translatable("realmlord.resident.staffed_by", st.getString("by"))));
+            addRenderableWidget(b);
+        }
+    }
+
+    private static final int TRADE_ROWS = 7;
+
+    private void initTrade(int x, int y) {
+        ListTag trades = v().getList("trades", Tag.TAG_COMPOUND);
+        scroll = Math.max(0, Math.min(scroll, trades.size() - TRADE_ROWS));
+        for (int i = 0; i < TRADE_ROWS && i + scroll < trades.size(); i++) {
+            CompoundTag t = trades.getCompound(i + scroll);
+            final int idx = i + scroll;
+            boolean sell = t.getBoolean("sell");
+            Button b = Button.builder(Component.translatable(sell ? "realmlord.trade.buy" : "realmlord.trade.sell"), btn -> send(ResidentActionPacket.Action.TRADE, idx))
+                    .bounds(x + W - 66, y + 54 + i * 20, 56, 16).build();
+            b.active = t.getBoolean("open");
+            if (!b.active) b.setTooltip(Tooltip.create(Component.translatable("realmlord.trade.no_workshop")));
+            addRenderableWidget(b);
+        }
+    }
+
+    @Override
+    public void render(GuiGraphics g, int mx, int my, float pt) {
+        renderBackground(g);
+        int x = left(), y = top();
+        Ui.panel(g, x, y, W, H);
+        CompoundTag v = v();
+        if (v == null) return;
+        Resident r = res();
+        Ui.centered(g, font, Component.literal(r.name), x + W / 2, y + 7, r.grade >= 0 ? TokenGrade.byId(r.grade).color : Ui.GOLD);
+        switch (tab) {
+            case CARD -> renderCard(g, v, r, x, y);
+            case WORK -> renderWork(g, v, r, x, y);
+            default -> renderTrade(g, v, r, x, y);
+        }
+        super.render(g, mx, my, pt);
+    }
+
+    private void renderCard(GuiGraphics g, CompoundTag v, Resident r, int x, int y) {
+        int lx = x + 12, ly = y + 44;
+        Ui.inset(g, lx - 4, ly - 4, W - 16, H - 50);
+        Component gradeName = r.grade >= 0 ? Component.translatable(TokenGrade.byId(r.grade).key()) : Component.translatable("realmlord.grade.common");
+        int yy = ly;
+        yy = line(g, lx, yy, Component.translatable("realmlord.resident.name", r.name, gradeName), r.grade >= 0 ? TokenGrade.byId(r.grade).color : Ui.INK);
+        yy = line(g, lx, yy, Component.translatable("realmlord.resident.identity", v.getString("village")), Ui.INK);
+        Component occ = r.occupation.special
+                ? Component.translatable("realmlord.resident.occupation_ranked", Component.translatable("realmlord.work.tier." + r.rank), Component.translatable(r.occupation.key()))
+                : Component.translatable(r.occupation.key());
+        yy = line(g, lx, yy, Component.translatable("realmlord.resident.occupation", occ), Ui.INK);
+        yy = line(g, lx, yy, Component.translatable("realmlord.resident.loyalty", r.loyalty), Ui.INK);
+        yy += 3;
+        String[] stats = {"command", "force", "intelligence", "politics"};
+        int[] vals = {r.command, r.force, r.intelligence, r.politics};
+        for (int i = 0; i < 4; i++) {
+            int sx = lx + (i % 2) * 140, sy = yy + (i / 2) * 11;
+            g.drawString(font, Component.translatable("realmlord.stat." + stats[i]), sx, sy, Ui.INK, false);
+            String s = String.valueOf(vals[i]);
+            g.drawString(font, s, sx + 110 - font.width(s), sy, Ui.GOLD, false);
+        }
+        yy += 26;
+        if (r.specialty != null) {
+            yy = line(g, lx, yy, Component.translatable("realmlord.resident.specialty", Component.translatable(r.specialty.key()),
+                    Math.round(r.specialtyBonus() * 100)), Ui.JADE);
+            yy = Ui.wrap(g, font, Component.translatable(r.specialty.key() + ".desc"), lx, yy, W - 28, Ui.MUTED) + 2;
+        }
+        Component work = v.contains("workType") ? Component.translatable(BuildingType.byOrdinal(v.getInt("workType")).key()) : Component.translatable(r.job.key());
+        yy = line(g, lx, yy, Component.translatable("realmlord.resident.job", work), Ui.INK);
+        if (r.militia) yy = line(g, lx, yy, Component.translatable("realmlord.resident.militia"), Ui.RED);
+        Ui.wrap(g, font, Component.translatable("realmlord.resident.evaluation", Component.translatable(r.occupation.key() + ".eval")), lx, yy + 4, W - 28, Ui.GREY);
+    }
+
+    private void renderWork(GuiGraphics g, CompoundTag v, Resident r, int x, int y) {
+        g.drawString(font, Component.translatable("realmlord.resident.jobs"), x + 10, y + 43, Ui.GOLD, false);
+        g.drawString(font, Component.translatable("realmlord.resident.workplaces"), x + 166, y + 43, Ui.GOLD, false);
+        if (v.getList("staff", Tag.TAG_COMPOUND).isEmpty()) {
+            Ui.wrap(g, font, Component.translatable("realmlord.resident.no_workplace", Component.translatable(r.occupation.key())), x + 166, y + 58, W - 176, Ui.MUTED);
+        }
+        Ui.wrap(g, font, Component.translatable("realmlord.resident.skill_hint", String.format("%.0f", (r.skillAt(r.job) - 1) * 100)), x + 10, y + H - 26, W - 20, Ui.GREY);
+    }
+
+    private void renderTrade(GuiGraphics g, CompoundTag v, Resident r, int x, int y) {
+        Component coins = Component.translatable("realmlord.market.your_coins", Ui.money(v.getLong("coins")));
+        g.drawString(font, coins, x + 10, y + 42, Ui.INK, false);
+        ListTag trades = v.getList("trades", Tag.TAG_COMPOUND);
+        if (trades.isEmpty()) g.drawString(font, Component.translatable("realmlord.trade.none"), x + 10, y + 60, Ui.MUTED, false);
+        for (int i = 0; i < TRADE_ROWS && i + scroll < trades.size(); i++) {
+            CompoundTag t = trades.getCompound(i + scroll);
+            ItemStack stack = ItemStack.of(t.getCompound("item"));
+            int ry = y + 54 + i * 20;
+            g.renderItem(stack, x + 10, ry);
+            g.renderItemDecorations(font, stack, x + 10, ry);
+            boolean sell = t.getBoolean("sell");
+            g.drawString(font, stack.getHoverName(), x + 32, ry + 4, t.getBoolean("open") ? Ui.INK : Ui.GREY, false);
+            Component price = Component.translatable(sell ? "realmlord.trade.costs" : "realmlord.trade.pays", Ui.money(t.getLong("price")));
+            g.drawString(font, price, x + W - 72 - font.width(price), ry + 4, sell ? Ui.GOLD : Ui.JADE, false);
+        }
+    }
+
+    private int line(GuiGraphics g, int x, int y, Component c, int color) {
+        g.drawString(font, c, x, y, color, false);
+        return y + 11;
+    }
+
+    @Override
+    public boolean mouseScrolled(double mx, double my, double delta) {
+        scroll = Math.max(0, scroll - (int) Math.signum(delta));
+        init();
+        return true;
+    }
+
+    @Override
+    public boolean isPauseScreen() {
+        return false;
+    }
+}

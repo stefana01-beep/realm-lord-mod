@@ -24,6 +24,16 @@ public class TerritoryData extends SavedData {
     private int villagesFounded;
     private boolean goldTokenClaimed;
     private String goldTokenHolder = "";
+    /** How many territories have reached each level, for "first in the world" merit. */
+    private int[] reached = new int[TerritoryLevel.values().length];
+
+    /** Records a territory reaching a level and returns its place (1 = first in the world). */
+    public int reach(TerritoryLevel level) {
+        if (reached.length < TerritoryLevel.values().length) reached = java.util.Arrays.copyOf(reached, TerritoryLevel.values().length);
+        reached[level.ordinal()]++;
+        setDirty();
+        return reached[level.ordinal()];
+    }
 
     public static TerritoryData get(MinecraftServer server) {
         return server.overworld().getDataStorage().computeIfAbsent(TerritoryData::load, TerritoryData::new, NAME);
@@ -101,6 +111,7 @@ public class TerritoryData extends SavedData {
         tag.putInt("founded", villagesFounded);
         tag.putBoolean("gold", goldTokenClaimed);
         tag.putString("goldHolder", goldTokenHolder);
+        tag.putIntArray("reached", reached);
         return tag;
     }
 
@@ -115,6 +126,8 @@ public class TerritoryData extends SavedData {
         d.villagesFounded = tag.getInt("founded");
         d.goldTokenClaimed = tag.getBoolean("gold");
         d.goldTokenHolder = tag.getString("goldHolder");
+        int[] r = tag.getIntArray("reached");
+        d.reached = java.util.Arrays.copyOf(r, TerritoryLevel.values().length);
         return d;
     }
 

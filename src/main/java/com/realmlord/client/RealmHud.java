@@ -20,6 +20,12 @@ public final class RealmHud {
         Minecraft mc = Minecraft.getInstance();
         if (mc.options.hideGui || mc.options.renderDebug || mc.player == null || mc.player.isSpectator() || !ClientProfileData.synced) return;
         Font font = mc.font;
+        if (ClientPlacement.active != null) {
+            Component name = Component.translatable(ClientPlacement.active.key());
+            Component hint = Component.translatable("realmlord.place.hint");
+            g.drawString(font, name, (width - font.width(name)) / 2, height / 2 + 14, Ui.GOLD, true);
+            g.drawString(font, hint, (width - font.width(hint)) / 2, height / 2 + 25, Ui.INK, true);
+        }
         int x = 4, y = 4;
         if (ClientProfileData.mode == PlayMode.NONE.ordinal()) {
             g.drawString(font, Component.translatable("realmlord.hud.choose", KeyBindings.OPEN_PANEL.getTranslatedKeyMessage()), x, y, Ui.GOLD, true);

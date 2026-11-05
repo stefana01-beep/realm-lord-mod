@@ -7,6 +7,20 @@ import net.minecraft.client.Minecraft;
 public final class ClientAccess {
     private ClientAccess() {}
 
+    public static void manor(net.minecraft.nbt.CompoundTag view, boolean open) {
+        ClientVillageData.manor = view;
+        Minecraft mc = Minecraft.getInstance();
+        if (open) mc.setScreen(new ManorScreen());
+        else if (mc.screen instanceof ManorScreen m) m.refresh();
+    }
+
+    public static void resident(net.minecraft.nbt.CompoundTag view, boolean open) {
+        ClientVillageData.resident = view;
+        Minecraft mc = Minecraft.getInstance();
+        if (open) mc.setScreen(new ResidentScreen());
+        else if (mc.screen instanceof ResidentScreen r) r.refresh();
+    }
+
     public static void open(int screen) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;

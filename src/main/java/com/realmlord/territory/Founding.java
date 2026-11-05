@@ -84,6 +84,8 @@ public final class Founding {
         data.add(t);
         prof.setTerritoryId(t.id);
         bringSettlers(level, player, center, prof.quest().captives);
+        com.realmlord.village.Village.settle(t, level.getRandom(), prof.quest().captives);
+        t.lastDay = com.realmlord.village.GaiaCalendar.day(level.getServer().overworld().getGameTime());
 
         int merit = foundingMerit(t.foundedOrder);
         Component ordinal = Component.translatable("realmlord.ordinal", t.foundedOrder);
@@ -101,27 +103,14 @@ public final class Founding {
 
     /**
      * The settlers freed from the bandits move into the new village: any still waiting at the
-     * camp leave it, and they appear around the Lord's Manor with their names.
+     * camp leave it, and join the village's records.
      */
     public static void bringSettlers(ServerLevel level, ServerPlayer player, BlockPos center, int captives) {
         java.util.UUID owner = player.getUUID();
         for (SettlerEntity s : level.getEntities(ModEntities.SETTLER.get(), e -> owner.equals(e.getOwner()) && e.getHome() == null)) {
             s.discard();
         }
-        int count = Math.max(2, Math.min(8, captives));
-        net.minecraft.util.RandomSource r = level.getRandom();
-        for (int i = 0; i < count; i++) {
-            SettlerEntity s = ModEntities.SETTLER.get().create(level);
-            if (s == null) continue;
-            double a = Math.PI * 2 * i / count + r.nextDouble() * 0.4;
-            int x = center.getX() + (int) Math.round(Math.cos(a) * 9);
-            int z = center.getZ() + (int) Math.round(Math.sin(a) * 9);
-            int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
-            s.moveTo(x + 0.5, y, z + 0.5, r.nextFloat() * 360F, 0F);
-            s.finalizeSpawn(level, level.getCurrentDifficultyAt(center), net.minecraft.world.entity.MobSpawnType.EVENT, null, null);
-            s.settle(owner, center);
-            level.addFreshEntity(s);
-        }
+        // The village's residents now appear from its records (see Residents.sync).
     }
 
     /**

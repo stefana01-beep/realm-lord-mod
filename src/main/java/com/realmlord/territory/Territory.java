@@ -26,6 +26,35 @@ public class Territory {
     public long foundedTick;
     /** The four basic resources of the novel, held in the territory's stores. */
     public long food, wood, stone, ironOre;
+    /** Treasury, in copper (1 gold = 10,000 copper). */
+    public long treasury;
+    /** People's Thoughts and Security (the novel's "Law and Order"), 0-100. */
+    public int peopleThoughts = 70;
+    public int security = 65;
+    public final java.util.List<com.realmlord.village.Resident> residents = new java.util.ArrayList<>();
+    public final java.util.List<com.realmlord.village.Building> buildings = new java.util.ArrayList<>();
+    public int nextResidentId = 1;
+    public int nextBuildingId = 1;
+    /** The last novel day the territory was simulated. */
+    public long lastDay = -1;
+    public double immigrantCarry;
+    public int hungryDays;
+    /** Random buildings offered by the last upgrade, one of which the Lord may take for free. */
+    public final java.util.List<com.realmlord.village.BuildingType> freeChoices = new java.util.ArrayList<>();
+    /** Buildings granted free, waiting to be placed. */
+    public final java.util.List<com.realmlord.village.BuildingType> freeBuilds = new java.util.ArrayList<>();
+    /** Set once residents have been created for this territory. */
+    public boolean settled;
+
+    public com.realmlord.village.Resident resident(int id) {
+        for (var r : residents) if (r.id == id) return r;
+        return null;
+    }
+
+    public com.realmlord.village.Building building(int id) {
+        for (var b : buildings) if (b.id == id) return b;
+        return null;
+    }
 
     public int radius() {
         return level.radius;
@@ -61,6 +90,23 @@ public class Territory {
         t.putLong("wood", wood);
         t.putLong("stone", stone);
         t.putLong("ironOre", ironOre);
+        t.putLong("treasury", treasury);
+        t.putInt("thoughts", peopleThoughts);
+        t.putInt("security", security);
+        net.minecraft.nbt.ListTag rs = new net.minecraft.nbt.ListTag();
+        for (var r : residents) rs.add(r.save());
+        t.put("residents", rs);
+        net.minecraft.nbt.ListTag bs = new net.minecraft.nbt.ListTag();
+        for (var b : buildings) bs.add(b.save());
+        t.put("buildings", bs);
+        t.putInt("nextResident", nextResidentId);
+        t.putInt("nextBuilding", nextBuildingId);
+        t.putLong("lastDay", lastDay);
+        t.putDouble("immCarry", immigrantCarry);
+        t.putInt("hungry", hungryDays);
+        t.putString("freeChoices", String.join(",", freeChoices.stream().map(com.realmlord.village.BuildingType::id).toList()));
+        t.putString("freeBuilds", String.join(",", freeBuilds.stream().map(com.realmlord.village.BuildingType::id).toList()));
+        t.putBoolean("settled", settled);
         return t;
     }
 
@@ -82,6 +128,30 @@ public class Territory {
         r.wood = t.getLong("wood");
         r.stone = t.getLong("stone");
         r.ironOre = t.getLong("ironOre");
+        r.treasury = t.getLong("treasury");
+        r.peopleThoughts = t.contains("thoughts") ? t.getInt("thoughts") : 70;
+        r.security = t.contains("security") ? t.getInt("security") : 65;
+        net.minecraft.nbt.ListTag rs = t.getList("residents", net.minecraft.nbt.Tag.TAG_COMPOUND);
+        for (int i = 0; i < rs.size(); i++) r.residents.add(com.realmlord.village.Resident.load(rs.getCompound(i)));
+        net.minecraft.nbt.ListTag bs = t.getList("buildings", net.minecraft.nbt.Tag.TAG_COMPOUND);
+        for (int i = 0; i < bs.size(); i++) {
+            var b = com.realmlord.village.Building.load(bs.getCompound(i));
+            if (b != null) r.buildings.add(b);
+        }
+        r.nextResidentId = Math.max(1, t.getInt("nextResident"));
+        r.nextBuildingId = Math.max(1, t.getInt("nextBuilding"));
+        r.lastDay = t.contains("lastDay") ? t.getLong("lastDay") : -1;
+        r.immigrantCarry = t.getDouble("immCarry");
+        r.hungryDays = t.getInt("hungry");
+        for (String s : t.getString("freeChoices").split(",")) {
+            var bt = com.realmlord.village.BuildingType.byId(s);
+            if (bt != null) r.freeChoices.add(bt);
+        }
+        for (String s : t.getString("freeBuilds").split(",")) {
+            var bt = com.realmlord.village.BuildingType.byId(s);
+            if (bt != null) r.freeBuilds.add(bt);
+        }
+        r.settled = t.getBoolean("settled");
         return r;
     }
 }

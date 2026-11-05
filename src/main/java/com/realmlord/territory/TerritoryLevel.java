@@ -9,19 +9,19 @@ import com.realmlord.profile.Title;
  * Radius is the mod's own: how far the territory's border reaches, in blocks.
  */
 public enum TerritoryLevel {
-    VILLAGE_1("village", 1, 0, Title.NONE, 0, 32),
-    VILLAGE_2("village", 2, 200, Title.BARON_2, 0, 40),
-    VILLAGE_3("village", 3, 500, Title.BARON_1, 0, 48),
-    TOWN_1("town", 1, 1_000, Title.VISCOUNT_3, 30, 64),
-    TOWN_2("town", 2, 2_000, Title.VISCOUNT_2, 0, 72),
-    TOWN_3("town", 3, 5_000, Title.VISCOUNT_1, 0, 80),
-    COUNTY_1("county", 1, 10_000, Title.EARL_3, 45, 96),
-    COUNTY_2("county", 2, 25_000, Title.EARL_2, 0, 112),
-    COUNTY_3("county", 3, 50_000, Title.EARL_1, 0, 128),
-    PREFECTURE_1("prefecture", 1, 100_000, Title.MARQUIS_3, 65, 160),
-    PREFECTURE_2("prefecture", 2, 500_000, Title.MARQUIS_2, 0, 192),
-    PREFECTURE_3("prefecture", 3, 1_000_000, Title.MARQUIS_1, 0, 224),
-    CAPITAL("capital", 1, 2_000_000, Title.DUKE, 90, 256);
+    VILLAGE_1("village", 1, 0, Title.NONE, 0, 48),
+    VILLAGE_2("village", 2, 200, Title.BARON_2, 0, 64),
+    VILLAGE_3("village", 3, 500, Title.BARON_1, 0, 80),
+    TOWN_1("town", 1, 1_000, Title.VISCOUNT_3, 30, 96),
+    TOWN_2("town", 2, 2_000, Title.VISCOUNT_2, 0, 112),
+    TOWN_3("town", 3, 5_000, Title.VISCOUNT_1, 0, 128),
+    COUNTY_1("county", 1, 10_000, Title.EARL_3, 45, 144),
+    COUNTY_2("county", 2, 25_000, Title.EARL_2, 0, 160),
+    COUNTY_3("county", 3, 50_000, Title.EARL_1, 0, 176),
+    PREFECTURE_1("prefecture", 1, 100_000, Title.MARQUIS_3, 65, 208),
+    PREFECTURE_2("prefecture", 2, 500_000, Title.MARQUIS_2, 0, 240),
+    PREFECTURE_3("prefecture", 3, 1_000_000, Title.MARQUIS_1, 0, 272),
+    CAPITAL("capital", 1, 2_000_000, Title.DUKE, 90, 320);
 
     public final String kind;
     public final int grade;
@@ -41,6 +41,17 @@ public enum TerritoryLevel {
 
     public String kindKey() {
         return "realmlord.territory." + kind;
+    }
+
+    /** Population cap at this level: the next level's requirement (Village 1 holds 200). */
+    public int populationCap() {
+        TerritoryLevel n = next();
+        return n == null ? Integer.MAX_VALUE : n.population;
+    }
+
+    /** Village grade 1-3, or 0 for towns and above. */
+    public int villageGrade() {
+        return kind.equals("village") ? grade : 0;
     }
 
     public TerritoryLevel next() {
