@@ -157,7 +157,15 @@ public class VillageTests {
         BlockPos outside = t.center.offset(t.radius() + 5, 0, 0);
         helper.assertTrue("realmlord.build.err.border".equals(Village.checkPlacement(level, t, BuildingType.DINING_HALL, outside, 0)), "allowed building outside the border");
         // Cost: no blueprint, no resources
-        BlockPos site = t.center.offset(14, 0, -3);
+        // Find buildable ground near the manor, as a Lord would.
+        BlockPos site = null;
+        for (int ring = 14; ring < 50 && site == null; ring += 4)
+            for (int i = 0; i < 16 && site == null; i++) {
+                double a = Math.PI * 2 * i / 16;
+                BlockPos c = t.center.offset((int) (Math.cos(a) * ring), 0, (int) (Math.sin(a) * ring));
+                if (Village.checkPlacement(level, t, BuildingType.DINING_HALL, c, 1) == null) site = c;
+            }
+        helper.assertTrue(site != null, "no buildable ground anywhere near the manor");
         helper.assertTrue(Village.start(p, t, BuildingType.DINING_HALL, site, 1) != null, "built without paying");
         t.wood = 100;
         t.stone = 100;
