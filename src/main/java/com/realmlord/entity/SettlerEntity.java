@@ -309,7 +309,10 @@ public class SettlerEntity extends PathfinderMob {
      * be, and nothing they do can harm them.
      */
     public boolean sheltered() {
-        return terr != null && residentId >= 0 && com.realmlord.territory.TerritoryEvents.inGrace(terr);
+        if (residentId < 0 || territoryId < 0) return false;
+        Territory t = terr;
+        if (t == null && level() instanceof ServerLevel sl) t = TerritoryData.get(sl.getServer()).byId(territoryId);
+        return t != null && com.realmlord.territory.TerritoryEvents.inGrace(t);
     }
 
     /** What the village's fighters go for: monsters, bandits and the wild beasts (not the grazing ox). */
