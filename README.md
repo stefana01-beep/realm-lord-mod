@@ -292,6 +292,75 @@ Each upgrade pays merit by world order (1,100 for the first), widens your border
 
 Villages already at Grade 2 or 3 get their residence the next time the manor is loaded.
 
+## Historical figures, the militia and the wilds (Phase 2b)
+
+### Summoning historical figures
+Use a **Summoning Token** to summon a figure from China's history to your village. The roster has 171 figures across four ranks: King 54, Emperor 64, Divine 39 and Saint 14. They include generals, warriors, strategists, ministers, scholars, physicians, engineers, craftsmen and admirals, among them Bai Qi, Han Xin, Zhuge Liang, Guan Zhong, Lu Ban, Hua Tuo, Zheng He and Yue Fei.
+- **What you get:** a figure of the token's rank. Each figure answers only once in the whole world, as in the novel. Divine and Saint summons are announced to everyone.
+- **What they are:** figures join as Silver-grade (King rank) or Gold-grade talents, with high Command, Force, Intelligence and Politics. They need no bed to come, and their card says who they were.
+
+### Companions
+On a talent's card, the **Duties** tab has **Follow me**. Up to three talents can walk with you.
+- **Keeping up:** they catch up if you get far ahead.
+- **Fighting:** they attack whatever hurts you or whatever you fight, plus any monster near you. Gold-grade talents carry a diamond sword, the rest iron. Their health and strength grow with Force.
+- **Wounded, not killed:** a historical figure struck down is carried home to recover until the next day.
+
+### Offices
+Also on the **Duties** tab, appoint residents to the Lord's offices: the secretaries who run the village while you are away. Each office's effect grows with the stat that matters for it, so a historical figure does it best.
+
+| Office | Opens at | Stat | Effect |
+|---|---|---|---|
+| Steward | Grade 1 | Politics | More newcomers, happier people, Political index |
+| Treasurer | Grade 1 | Politics | More taxes, Political and Economic index |
+| Works Officer | Grade 2 | Intelligence | Builders work faster |
+| Agriculture Officer | Grade 2 | Intelligence | Bigger harvests and hunts, Economic index |
+| Military Officer | Grade 2 | Command | More militia places, faster drill, Security, Military index |
+| Commerce Officer | Grade 3 | Politics | Less tax on market sales, Economic index |
+| Rites Officer | Grade 3 | Intelligence | Happier people, Cultural index |
+
+Scholars, especially historical ones, also raise the Cultural index.
+
+### The militia and hunters
+- **Militia:** enlist residents from the **Duties** tab. A Military Camp holds 10, each **Barracks** (Grade 2) 50, and a Military Officer adds more.
+  - **By day,** half drill at the camp and half walk the fence. **At night,** half keep watch.
+  - They fight any monster or beast in the territory, and every day of drill raises their Force.
+- **Hunting** is a new job. Hunters go out beyond the border to hunt wild animals, and the village gets meat and hides each day (more from a Hunter by trade).
+
+### Wild beasts and what they leave
+The wilds now hold the novel's beasts. They roam by day and night, but never inside a finished fence.
+
+| Beast | Where | Drops |
+|---|---|---|
+| Wild Boar | forests, taiga, jungle, savanna | porkchops, Boar Hide, sometimes a Boar Tusk |
+| Grey Wolf (packs) | taiga, forests, snow, mountains | Wolf Pelt, bones |
+| Mountain Tiger | jungle, forests, mountains | Tiger Pelt, often a Tiger Bone |
+| Snow Bear | snow, taiga, mountains | Bear Paw, beef, leather |
+| Boar King | dens | Boar King's Tusk, hides, tusks, meat, 3 gold coins, often a blueprint |
+
+What you can do with the drops:
+- **Hides and pelts:** craft into leather (boar and wolf 2, tiger 4), or sell them as leather.
+- **Tusk Spear:** a boar tusk on two sticks; hits harder than an iron sword.
+- **Boar King's Spear:** the king's tusk with iron and a stick; better than diamond.
+- **Tiger Bone Wine:** Three Flower Wine with a tiger bone. Gives Strength II, Regeneration II and Resistance.
+- **Braised Bear Paw:** cook a bear paw. A feast that heals and gives absorption.
+- **Selling:** tiger bone sells as herbs, and bear paw as meat.
+
+### Beast dens
+Now and then a **Boar King's den** appears in the wilds 120 to 220 blocks from a player, at most one in each stretch of country. It's a burrow under a mound of earth and roots, guarded by the king and four to six boars.
+- **Finding one:** you're told its coordinates when you first come near.
+- **The king:** a boss with a health bar. Slaying him clears the den and earns merit. He returns six days later.
+
+### The beastwave
+On every other lunar new year (Gaia years 3, 5, 7 and so on), the beasts come against every village at once, in three waves through the night.
+- **Warnings:** three days before, one day before, and on the day.
+- **The night:** beasts gather beyond the border and drive on the manor. Bigger villages draw more, and from Grade 2 a Boar King leads the last wave. A finished fence keeps them out while defenders fight from the walls and gates.
+- **No sleeping:** you can't sleep through a beastwave.
+- **Villages no one is near** fight it unseen: a fence and enough militia keep them safe; otherwise they lose food and some residents.
+- **Rewards:** at dawn the best defenders get 10, 6 and 4 gold coins, plus merit for every kill. Anyone else with five kills gets 1 gold. Militia kills count for their Lord.
+
+### Hidden buildings
+Some of the novel's buildings stay out of every list until a village earns them. The **Mazu Temple**, to the goddess of the sea, is revealed to a village of Grade 2 or more that lies by the sea. It gives +5 People's Thoughts and +6 Cultural.
+
 ## Server settings
 `config/realmlord-common.toml`:
 - `lordRestriction` (default **off**): the novel's rule that Lords cannot leave their territory except for war. Other dimensions are exempt.
@@ -303,21 +372,16 @@ Villages already at Grade 2 or 3 get their residence the next time the manor is 
 - `daysToComplete` (10), `goldWithinDays` (3), `silverWithinDays` (5), `blackIronWithinDays` (7.5), and an experience multiplier.
 
 ## Admin commands (op)
-`/realm` · `/realm info [player]` · `/realm territories` · `/realm capitals` · `/realm role` (anyone) · `/realm spawn` · `/realm reset [player]` · `/realm level <n>` · `/realm worklevel <n>` · `/realm points <n>` · `/realm merit add|set <n>` · `/realm token <grade>` · `/realm quest start|supplies|clear`
+`/realm` · `/realm info [player]` · `/realm territories` · `/realm capitals` · `/realm role` (anyone) · `/realm spawn` · `/realm reset [player]` · `/realm level <n>` · `/realm worklevel <n>` · `/realm points <n>` · `/realm merit add|set <n>` · `/realm token <grade>` · `/realm quest start|supplies|clear` · `/realm beastwave [start|stop]` (with no argument, anyone can see when the next one comes) · `/realm den`
 
 ## Roadmap
 The order follows the novel: Ouyang Shuo summons his first general, sets up the militia and his secretaries, and beats off the beastwave while Shanhai is still a village. The campaign battlefields only open once enough towns stand.
 
 1. **Lord and Adventurer cores** (done)
-2. **Village grades 1–3** (2a done, with a territory map and the China world type: every building from the novel with its costs, blueprints and specialists, placement and construction, residents with jobs, talents and trade, resource jobs, the farming calendar, the market and upgrades).
-   - **2b next:**
-     - Using the Summoning Token calls your first historical general or minister, drawn from a large roster of figures from Chinese history of every kind (generals, ministers, scholars, craftsmen and more), graded like the novel's talents.
-     - The militia team and the Barracks (Grade 2). Hunters go out on their own to hunt, or join the militia.
-     - The village's Political, Economic and Cultural indexes.
-     - The first secretaries running village affairs.
-     - Beast lairs to hunt, such as the wild boar king and its den (the first dungeons).
-     - The **beastwave** world quest, with gold for the best defenders.
-     - Hidden buildings such as the Mazu Temple.
+2. **Village grades 1–3** (done):
+   - **2a:** a territory map and the China world type, with every building from the novel and its costs, blueprints and specialists; placement and construction; residents with jobs, talents and trade; resource jobs, the farming calendar, the market and upgrades.
+   - **2b:** 171 summonable historical figures, companions, the offices, the militia and Barracks, hunters, the wild beasts and their drops, Boar King dens, the beastwave and the Mazu Temple.
+   - **Still to come:** the Auction House and special markets (ship blueprints, graded weapons and armour), more hidden buildings, and more figures.
 3. **Town grades 1–3:**
    - More historical generals and ministers, recruited through quests and reputation.
    - Departments growing into a cabinet.
