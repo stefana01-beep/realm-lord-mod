@@ -183,19 +183,26 @@ public class Phase2bTests {
         // The beastwave: on every other new year from the third year, and it sends beasts at the manor.
         helper.assertTrue(!Beastwave.waveYear(2) && Beastwave.waveYear(3) && !Beastwave.waveYear(4) && Beastwave.waveYear(5), "wrong beastwave years");
         helper.assertTrue(Beastwave.nextWaveYear(0) == 3 && Beastwave.newYearDay(3) == 24L * GaiaCalendar.daysPerMonth(), "wrong first beastwave day");
-        w.waveDay = GaiaCalendar.today(level.getServer());
-        int n = Beastwave.spawnWave(level, t, 1);
-        var wave = level.getEntitiesOfClass(Mob.class, new AABB(t.center).inflate(t.radius() + 40), e -> e.getTags().contains(Beasts.WAVE_TAG));
-        helper.assertTrue(n > 0 && wave.size() == n, "the wave did not come: " + n + " / " + wave.size());
-        helper.assertTrue(t.center.equals(Beasts.raid(wave.get(0))), "the beasts are not driving on the manor");
-        for (int k = 0; k < Math.min(3, wave.size()); k++) wave.get(k).hurt(level.damageSources().playerAttack(p), 10_000);
-        helper.assertTrue(w.waveKills.getOrDefault(p.getUUID(), 0) >= 1, "the defender's kills were not counted");
-        long coins = com.realmlord.village.Coins.count(p);
-        Beastwave.end(level.getServer(), w);
-        helper.assertTrue(com.realmlord.village.Coins.count(p) > coins, "the best defender was not rewarded");
-        helper.assertTrue(level.getEntitiesOfClass(Mob.class, new AABB(t.center).inflate(t.radius() + 40), e -> e.getTags().contains(Beasts.WAVE_TAG)).isEmpty(),
-                "beasts remained after the wave");
-        for (ItemEntity e : level.getEntitiesOfClass(ItemEntity.class, new AABB(new BlockPos(cx, gy, cz)).inflate(120))) e.discard();
-        VillageTests.done(helper, p, t);
+        // The ring where the beasts gather lies beyond the forced area: load it, and give it a moment.
+        for (int x = -8; x <= 8; x++)
+            for (int z = -8; z <= 8; z++) level.setChunkForced((cx >> 4) + x, (cz >> 4) + z, true);
+        helper.runAfterDelay(40, () -> {
+            w.waveDay = GaiaCalendar.today(level.getServer());
+            int n = Beastwave.spawnWave(level, t, 1);
+            var wave = level.getEntitiesOfClass(Mob.class, new AABB(t.center).inflate(t.radius() + 40), e -> e.getTags().contains(Beasts.WAVE_TAG));
+            helper.assertTrue(n > 0 && wave.size() == n, "the wave did not come: " + n + " / " + wave.size());
+            helper.assertTrue(t.center.equals(Beasts.raid(wave.get(0))), "the beasts are not driving on the manor");
+            for (int k = 0; k < Math.min(3, wave.size()); k++) wave.get(k).hurt(level.damageSources().playerAttack(p), 10_000);
+            helper.assertTrue(w.waveKills.getOrDefault(p.getUUID(), 0) >= 1, "the defender's kills were not counted");
+            long coins = com.realmlord.village.Coins.count(p);
+            Beastwave.end(level.getServer(), w);
+            helper.assertTrue(com.realmlord.village.Coins.count(p) > coins, "the best defender was not rewarded");
+            helper.assertTrue(level.getEntitiesOfClass(Mob.class, new AABB(t.center).inflate(t.radius() + 40), e -> e.getTags().contains(Beasts.WAVE_TAG)).isEmpty(),
+                    "beasts remained after the wave");
+            for (ItemEntity e : level.getEntitiesOfClass(ItemEntity.class, new AABB(new BlockPos(cx, gy, cz)).inflate(120))) e.discard();
+            for (int x = -8; x <= 8; x++)
+                for (int z = -8; z <= 8; z++) if (Math.abs(x) > 5 || Math.abs(z) > 5) level.setChunkForced((cx >> 4) + x, (cz >> 4) + z, false);
+            VillageTests.done(helper, p, t);
+        });
     }
 }
