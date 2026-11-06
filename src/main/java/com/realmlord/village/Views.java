@@ -18,6 +18,7 @@ public final class Views {
     private Views() {}
 
     public static CompoundTag manor(ServerPlayer p, Territory t) {
+        Village.allocateBuilders(t);
         ServerLevel level = p.serverLevel();
         CompoundTag v = new CompoundTag();
         v.putInt("id", t.id);
@@ -58,6 +59,10 @@ public final class Views {
             bt.putBoolean("complete", b.complete);
             bt.putDouble("fraction", b.demolishing ? (b.demolishFrom > 0 ? b.placed / (double) b.demolishFrom : 0) : b.fraction());
             bt.putBoolean("demolish", b.demolishing);
+            if (!b.complete) {
+                bt.putInt("crew", b.crew);
+                bt.putInt("builders", Village.buildersAt(t, b));
+            }
             bt.putInt("stage", b.stage);
             if (b.type == BuildingType.SIMPLE_FENCE) {
                 bt.putIntArray("gates", b.gates);

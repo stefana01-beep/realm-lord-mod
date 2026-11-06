@@ -77,7 +77,7 @@ public final class Residents {
                 if (b != null) return b.center();
             }
             case CONSTRUCTION -> {
-                Building b = Sites.active(t);
+                Building b = siteOf(t, r);
                 if (b != null) return b.type.placed() ? b.center() : t.center;
             }
             case LOGGING, QUARRYING, FARMING, MINING -> {
@@ -90,6 +90,13 @@ public final class Residents {
             default -> { }
         }
         return null;
+    }
+
+    /** The site a builder is working on: the one the village gave them, else the oldest. */
+    public static Building siteOf(Territory t, Resident r) {
+        Building b = t.building(r.workplace);
+        if (b != null && !b.complete) return b;
+        return Sites.active(t);
     }
 
     /** The finished field a resident with a field job works at (spread across the fields). */

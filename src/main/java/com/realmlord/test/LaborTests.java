@@ -156,4 +156,85 @@ public class LaborTests {
         RealmTests.leave(p);
         helper.succeed();
     }
+
+    @GameTest(template = "empty", timeoutTicks = 300, batch = "labor_crews")
+    public static void crewsMarshAndTheBanditCamp(GameTestHelper helper) {
+        ServerPlayer p = RealmTests.lord(helper, CombatClass.GENERAL);
+        Territory t = VillageTests.village(helper, p, 5200);
+        ServerLevel level = helper.getLevel();
+        // Two sites share the builders; a crew set by hand takes its number first.
+        Building a = site(t, BuildingType.BATHROOM, 300), b = site(t, BuildingType.DINING_HALL, 340);
+        helper.assertTrue(Village.shift(t, Job.CONSTRUCTION, 6) == 6, "could not take on 6 builders");
+        Village.allocateBuilders(t);
+        helper.assertTrue(Village.buildersAt(t, a) == 3 && Village.buildersAt(t, b) == 3, "builders not shared: " + Village.buildersAt(t, a) + "/" + Village.buildersAt(t, b));
+        a.crew = 5;
+        Village.allocateBuilders(t);
+        helper.assertTrue(Village.buildersAt(t, a) == 5 && Village.buildersAt(t, b) == 1, "crew not honoured: " + Village.buildersAt(t, a) + "/" + Village.buildersAt(t, b));
+        Village.construct(level, t, 20);
+        helper.assertTrue(a.progress > 0 && b.progress > 0, "both sites should rise at once");
+        helper.assertTrue(a.progress * 2 >= b.progress * 5, "five builders should work far faster than one: " + a.progress + " vs " + b.progress);
+        // Fields take any number of workers.
+        VillageTests.built(t, BuildingType.LOGGING_FIELD);
+        while (t.residents.size() < 40) Village.add(t, Resident.random(level.getRandom(), com.realmlord.village.Occupation.FARMER, 0));
+        helper.assertTrue(Village.shift(t, Job.LOGGING, 25) == 25, "a logging field should take 25 loggers");
+
+        // Building on marsh: shallow water is filled in, deep water is not.
+        int gy = t.center.getY() - 1;
+        BlockPos pad = t.center.offset(16, 0, 16);
+        for (int x = -2; x < 22; x++)
+            for (int z = -2; z < 22; z++) {
+                for (int y = -6; y <= 0; y++) level.setBlock(new BlockPos(pad.getX() + x, gy + y, pad.getZ() + z), Blocks.STONE.defaultBlockState(), 2);
+                for (int y = 1; y < 20; y++) level.setBlock(new BlockPos(pad.getX() + x, gy + y, pad.getZ() + z), Blocks.AIR.defaultBlockState(), 2);
+            }
+        for (int x = 2; x < 6; x++)
+            for (int z = 2; z < 6; z++)
+                for (int y = -1; y <= 0; y++) level.setBlock(new BlockPos(pad.getX() + x, gy + y, pad.getZ() + z), Blocks.WATER.defaultBlockState(), 2);
+        BlockPos at = new BlockPos(pad.getX(), gy + 1, pad.getZ());
+        String err = Village.checkPlacement(level, t, BuildingType.BATHROOM, at, 0);
+        helper.assertTrue(err == null, "a shallow pond should be buildable: " + err);
+        for (int x = 2; x < 6; x++)
+            for (int z = 2; z < 6; z++)
+                for (int y = -5; y <= 0; y++) level.setBlock(new BlockPos(pad.getX() + x, gy + y, pad.getZ() + z), Blocks.WATER.defaultBlockState(), 2);
+        helper.assertTrue("realmlord.build.err.water".equals(Village.checkPlacement(level, t, BuildingType.BATHROOM, at, 0)), "deep water should not be buildable");
+
+        // The bandit camp: salvaging it returns its materials and leaves nothing behind.
+        com.realmlord.quest.VillageQuest q = Profiles.get(p).quest();
+        BlockPos camp = t.center.offset(-60, 0, -60);
+        for (int x = -14; x <= 14; x++)
+            for (int z = -14; z <= 14; z++) {
+                level.setBlock(new BlockPos(camp.getX() + x, gy, camp.getZ() + z), Blocks.GRASS_BLOCK.defaultBlockState(), 2);
+                for (int y = 1; y < 12; y++) level.setBlock(new BlockPos(camp.getX() + x, gy + y, camp.getZ() + z), Blocks.AIR.defaultBlockState(), 2);
+            }
+        q.camp = new BlockPos(camp.getX(), gy + 1, camp.getZ());
+        com.realmlord.quest.BanditCamp.build(level, p, q);
+        q.stage = com.realmlord.quest.VillageQuest.Stage.CLEARED;
+        int before = p.getInventory().countItem(Items.BROWN_WOOL);
+        helper.assertTrue(com.realmlord.quest.QuestLogic.decideCamp(p, true), "could not salvage the camp");
+        helper.assertTrue(p.getInventory().countItem(Items.BROWN_WOOL) - before >= 27, "tent cloth not recovered");
+        helper.assertTrue(p.getInventory().countItem(Items.CAMPFIRE) >= 1 && p.getInventory().countItem(Items.IRON_BARS) >= 8, "campfire or pen bars not recovered");
+        int left = 0;
+        for (int x = -12; x <= 12; x++)
+            for (int z = -12; z <= 12; z++)
+                for (int y = 0; y <= 4; y++) {
+                    var s2 = level.getBlockState(q.camp.offset(x, y, z));
+                    if (s2.is(Blocks.SPRUCE_FENCE) || s2.is(Blocks.BROWN_WOOL) || s2.is(Blocks.IRON_BARS) || s2.is(Blocks.CAMPFIRE)) left++;
+                }
+        helper.assertTrue(left == 0, "camp blocks left standing: " + left);
+        helper.assertTrue(!com.realmlord.quest.QuestLogic.decideCamp(p, false), "could decide twice");
+        // Tidy up the band.
+        for (var e : level.getEntities((net.minecraft.world.entity.Entity) null, new net.minecraft.world.phys.AABB(q.camp).inflate(40),
+                e -> e.getTags().contains(com.realmlord.quest.BanditCamp.BANDIT_TAG) || e.getTags().contains(com.realmlord.quest.BanditCamp.CAPTIVE_TAG))) e.discard();
+        VillageTests.done(helper, p, t);
+    }
+
+    private static Building site(Territory t, BuildingType type, int dx) {
+        Building b = new Building();
+        b.id = t.nextBuildingId++;
+        b.type = type;
+        b.origin = t.center.offset(dx, 0, 1000);
+        b.stage = Building.BUILD;
+        b.workNeeded = Village.workNeeded(type);
+        t.buildings.add(b);
+        return b;
+    }
 }

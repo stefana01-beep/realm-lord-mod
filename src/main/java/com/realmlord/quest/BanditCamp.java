@@ -162,6 +162,86 @@ public final class BanditCamp {
             }
     }
 
+    /** What the camp is built of: everything salvaging it takes apart. */
+    private static final java.util.Set<Block> CAMP_BLOCKS = java.util.Set.of(Blocks.SPRUCE_FENCE, Blocks.BROWN_WOOL, Blocks.BROWN_CARPET,
+            Blocks.IRON_BARS, Blocks.SPRUCE_LOG, Blocks.SPRUCE_SLAB, Blocks.HAY_BLOCK, Blocks.BARREL, Blocks.CAMPFIRE, Blocks.CHEST);
+
+    /**
+     * Takes the camp apart: every tent pole, cloth, bar, log, slab, barrel and the campfire comes
+     * back as an item, with whatever was still in the barrels and the chest. The trampled ground
+     * grows over again. Returns what was recovered.
+     */
+    public static java.util.List<ItemStack> salvage(ServerLevel level, BlockPos c) {
+        java.util.List<ItemStack> out = new java.util.ArrayList<>();
+        for (int dx = -12; dx <= PEN_X + 3; dx++)
+            for (int dz = -12; dz <= 12; dz++)
+                for (int dy = -1; dy <= 4; dy++) {
+                    BlockPos p = c.offset(dx, dy, dz);
+                    BlockState s = level.getBlockState(p);
+                    if (!CAMP_BLOCKS.contains(s.getBlock())) continue;
+                    if (s.is(Blocks.CHEST) && !p.equals(c.below())) continue;
+                    if (level.getBlockEntity(p) instanceof net.minecraft.world.Container box) {
+                        for (int i = 0; i < box.getContainerSize(); i++) if (!box.getItem(i).isEmpty()) out.add(box.removeItemNoUpdate(i));
+                    }
+                    ItemStack item = new ItemStack(s.getBlock().asItem());
+                    if (s.is(Blocks.SPRUCE_SLAB) && s.getValue(SlabBlock.TYPE) == SlabType.DOUBLE) item.setCount(2);
+                    if (!item.isEmpty()) out.add(item);
+                    level.setBlock(p, dy < 0 ? Blocks.DIRT.defaultBlockState() : Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+                }
+        // The trampled ground grows over.
+        for (int dx = -10; dx <= 10; dx++)
+            for (int dz = -10; dz <= 10; dz++) {
+                BlockPos p = c.offset(dx, -1, dz);
+                BlockState s = level.getBlockState(p);
+                if ((s.is(Blocks.DIRT_PATH) || s.is(Blocks.COARSE_DIRT) || s.is(Blocks.DIRT)) && level.getBlockState(p.above()).isAir()) {
+                    level.setBlock(p, Blocks.GRASS_BLOCK.defaultBlockState(), Block.UPDATE_ALL);
+                }
+            }
+        return merge(out);
+    }
+
+    private static java.util.List<ItemStack> merge(java.util.List<ItemStack> in) {
+        java.util.List<ItemStack> out = new java.util.ArrayList<>();
+        for (ItemStack s : in) {
+            for (ItemStack o : out) {
+                if (s.isEmpty()) break;
+                if (ItemStack.isSameItemSameTags(o, s) && o.getCount() < o.getMaxStackSize()) {
+                    int move = Math.min(s.getCount(), o.getMaxStackSize() - o.getCount());
+                    o.grow(move);
+                    s.shrink(move);
+                }
+            }
+            if (!s.isEmpty()) out.add(s);
+        }
+        return out;
+    }
+
+    /**
+     * Dry, fairly level ground for a camp, judged from the terrain generator itself so far-off
+     * land need not be loaded: no sea, lake, river or swamp under the camp or its ring.
+     */
+    public static boolean goodSite(ServerLevel level, int x, int z) {
+        var gen = level.getChunkSource().getGenerator();
+        var rs = level.getChunkSource().randomState();
+        int lo = Integer.MAX_VALUE, hi = Integer.MIN_VALUE;
+        int[][] probes = {{0, 0}, {11, 0}, {-11, 0}, {0, 11}, {0, -11}, {8, 8}, {-8, 8}, {8, -8}, {-8, -8}, {PEN_X + 3, 0}};
+        for (int[] o : probes) {
+            int px = x + o[0], pz = z + o[1];
+            int floor = gen.getBaseHeight(px, pz, Heightmap.Types.OCEAN_FLOOR_WG, level, rs);
+            int surface = gen.getBaseHeight(px, pz, Heightmap.Types.WORLD_SURFACE_WG, level, rs);
+            if (surface > floor || floor <= level.getSeaLevel()) return false;
+            if (com.realmlord.worldgen.ChinaMap.ready() && com.realmlord.territory.SpawnPicker.isChina(level)
+                    && com.realmlord.worldgen.ChinaMap.riverAt(px, pz) > 0.02) return false;
+            var biome = gen.getBiomeSource().getNoiseBiome(net.minecraft.core.QuartPos.fromBlock(px), net.minecraft.core.QuartPos.fromBlock(floor),
+                    net.minecraft.core.QuartPos.fromBlock(pz), rs.sampler());
+            if (biome.is(net.minecraft.tags.BiomeTags.IS_OCEAN) || biome.is(net.minecraft.tags.BiomeTags.IS_RIVER) || biome.is(net.minecraft.tags.BiomeTags.IS_BEACH)
+                    || biome.is(net.minecraft.world.level.biome.Biomes.SWAMP) || biome.is(net.minecraft.world.level.biome.Biomes.MANGROVE_SWAMP)) return false;
+            lo = Math.min(lo, floor);
+            hi = Math.max(hi, floor);
+        }
+        return hi - lo <= 8;
+    }
+
     private static void mark(Entity e, String tag, UUID owner) {
         e.addTag(tag);
         e.getPersistentData().putUUID(OWNER_KEY, owner);

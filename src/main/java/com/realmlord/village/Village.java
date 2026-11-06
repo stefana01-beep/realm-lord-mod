@@ -120,9 +120,9 @@ public final class Village {
         if (job == Job.CONSTRUCTION || job == Job.IDLE) return Integer.MAX_VALUE;
         if (job == Job.ADMINISTRATION) return ADMIN_PLACES;
         if (job == Job.STAFF) return 0;
-        int n = 0;
-        for (Building b : t.buildings) if (b.complete && b.type.fieldJob() == job) n += b.type.fieldPlaces();
-        return n;
+        // A field takes any number of workers; each one adds to its output.
+        for (Building b : t.buildings) if (b.complete && b.type.fieldJob() == job) return Integer.MAX_VALUE;
+        return 0;
     }
 
     /** The resident staffing a building, or null. */
@@ -446,16 +446,30 @@ public final class Village {
             return "realmlord.build.err.manor";
         }
         for (Building b : t.buildings) if (b.type.placed() && b.overlaps(origin.getX(), origin.getZ(), sx, sz, 1)) return "realmlord.build.err.overlap";
-        // Ground: water cannot be built on, and slopes are limited.
+        // Ground: settlers fill in shallow water, ponds and marsh, but not deep water; slopes are limited.
         int lo = Integer.MAX_VALUE, hi = Integer.MIN_VALUE;
-        for (int[] c : corners) {
-            int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, origin.getX() + c[0], origin.getZ() + c[1]);
-            lo = Math.min(lo, y);
-            hi = Math.max(hi, y);
-            if (!level.getFluidState(new BlockPos(origin.getX() + c[0], y - 1, origin.getZ() + c[1])).isEmpty()) return "realmlord.build.err.water";
+        for (int x = 0; x < sx; x += Math.max(1, Math.min(2, sx - 1 - x))) {
+            for (int z = 0; z < sz; z += Math.max(1, Math.min(2, sz - 1 - z))) {
+                int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, origin.getX() + x, origin.getZ() + z);
+                lo = Math.min(lo, y);
+                hi = Math.max(hi, y);
+                if (waterDepth(level, origin.getX() + x, y - 1, origin.getZ() + z) > MAX_FILL_DEPTH) return "realmlord.build.err.water";
+                if (z == sz - 1) break;
+            }
+            if (x == sx - 1) break;
         }
         if (hi - lo > 6) return "realmlord.build.err.slope";
         return null;
+    }
+
+    /** The deepest water settlers will fill in to build on. */
+    public static final int MAX_FILL_DEPTH = 3;
+
+    /** How many blocks of water stand at a column, counting down from a block. */
+    public static int waterDepth(ServerLevel level, int x, int top, int z) {
+        int d = 0;
+        while (d <= 16 && !level.getFluidState(new BlockPos(x, top - d, z)).isEmpty()) d++;
+        return d;
     }
 
     /** What is missing to construct a building (resources, blueprint, specialist), or null. */
@@ -553,12 +567,60 @@ public final class Village {
      * design rising block by block as the work is done.
      */
     public static void construct(ServerLevel level, Territory t, int ticks) {
-        Building site = Sites.active(t);
-        if (site == null) return;
+        allocateBuilders(t);
+        for (Building site : new ArrayList<>(t.buildings)) {
+            if (site.complete) continue;
+            double work = 0;
+            for (Resident r : t.residents) {
+                if (r.job == Job.CONSTRUCTION && !r.militia && r.workplace == site.id) work += r.skillAt(Job.CONSTRUCTION);
+            }
+            if (work > 0) work(level, t, site, work, ticks);
+        }
+    }
+
+    /**
+     * Shares the builders out among the sites. A site the Lord gave a crew gets that many (in
+     * order, while builders last); the rest are split evenly over the other sites, the oldest
+     * getting any left over. Every builder adds work, so more builders on a site finish it
+     * sooner, and with enough builders several buildings rise at once.
+     */
+    public static void allocateBuilders(Territory t) {
+        List<Building> sites = new ArrayList<>();
+        for (Building b : t.buildings) if (!b.complete) sites.add(b);
         List<Resident> builders = withJob(t, Job.CONSTRUCTION);
-        if (builders.isEmpty()) return;
-        double work = 0;
-        for (Resident r : builders) work += r.skillAt(Job.CONSTRUCTION);
+        builders.removeIf(r -> r.militia);
+        builders.sort(Comparator.comparingInt(r -> r.id));
+        for (Resident r : builders) r.workplace = -1;
+        if (sites.isEmpty() || builders.isEmpty()) return;
+        int next = 0;
+        List<Building> shared = new ArrayList<>();
+        for (Building b : sites) {
+            if (b.crew < 0) {
+                shared.add(b);
+                continue;
+            }
+            for (int i = 0; i < b.crew && next < builders.size(); i++) builders.get(next++).workplace = b.id;
+        }
+        if (shared.isEmpty()) {
+            // Builders nobody asked for help at the oldest site.
+            while (next < builders.size()) builders.get(next++).workplace = sites.get(0).id;
+            return;
+        }
+        int left = builders.size() - next, each = left / shared.size(), extra = left % shared.size();
+        for (int s = 0; s < shared.size(); s++) {
+            int n = each + (s < extra ? 1 : 0);
+            for (int i = 0; i < n; i++) builders.get(next++).workplace = shared.get(s).id;
+        }
+    }
+
+    /** How many builders are working a site now. */
+    public static int buildersAt(Territory t, Building b) {
+        int n = 0;
+        for (Resident r : t.residents) if (r.job == Job.CONSTRUCTION && !r.militia && r.workplace == b.id) n++;
+        return n;
+    }
+
+    private static void work(ServerLevel level, Territory t, Building site, double work, int ticks) {
         if (!site.demolishing) site.progress = Math.min(site.workNeeded, site.progress + Math.round(work * ticks));
         // Builders on the site do the work by hand; otherwise the village gets on with it.
         boolean byHand = buildersNear(level, t, site) && level.getGameTime() - site.lastWork < Sites.STALL_TICKS;
@@ -577,7 +639,7 @@ public final class Village {
         BlockPos c = site.type.placed() ? site.center() : t.center;
         double reach = site.type.placed() ? 48 : t.radius() + 16;
         for (Resident r : t.residents) {
-            if (r.job != Job.CONSTRUCTION || r.militia || r.entity == null) continue;
+            if (r.job != Job.CONSTRUCTION || r.militia || r.entity == null || r.workplace != site.id) continue;
             net.minecraft.world.entity.Entity e = level.getEntity(r.entity);
             if (e != null && e.isAlive() && e.distanceToSqr(c.getX() + 0.5, e.getY(), c.getZ() + 0.5) < reach * reach) return true;
         }
@@ -622,7 +684,7 @@ public final class Village {
         double share = b.free ? 0 : Sites.SALVAGE;
         t.wood += Math.round(b.type.wood * share * (1 - built));
         t.stone += Math.round(b.type.stone * share * (1 - built));
-        for (Resident r : t.residents) if (r.workplace == b.id) {
+        for (Resident r : t.residents) if (r.workplace == b.id && r.job != Job.CONSTRUCTION) {
             r.job = Job.IDLE;
             r.workplace = -1;
         }

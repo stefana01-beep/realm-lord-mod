@@ -30,6 +30,8 @@ public class Building {
     public int salvageWood, salvageStone, demolishFrom;
     /** Game time a worker last did something here; a site left alone gets done by the village. */
     public long lastWork;
+    /** Builders the Lord set for this site, or -1 to share the free builders with the other sites. */
+    public int crew = -1;
 
     // The Simple Fence: its ring, the ground height of each post and where the gates are.
     public int fenceRadius;
@@ -91,6 +93,7 @@ public class Building {
         t.putBoolean("demolish", demolishing);
         t.putIntArray("salvage", new int[]{salvageWood, salvageStone, demolishFrom});
         t.putLong("lastWork", lastWork);
+        t.putInt("crew", crew);
         t.putInt("fenceR", fenceRadius);
         if (fenceYs != null) t.putIntArray("fenceYs", fenceYs);
         t.putIntArray("gates", gates);
@@ -123,6 +126,7 @@ public class Building {
             b.demolishFrom = sv[2];
         }
         b.lastWork = t.getLong("lastWork");
+        b.crew = t.contains("crew") ? t.getInt("crew") : -1;
         b.fenceRadius = t.getInt("fenceR");
         b.fenceYs = t.contains("fenceYs") ? t.getIntArray("fenceYs") : null;
         b.gates = t.contains("gates") ? t.getIntArray("gates") : new int[]{0, 90, 180, 270};

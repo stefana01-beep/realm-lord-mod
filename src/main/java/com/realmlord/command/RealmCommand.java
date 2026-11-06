@@ -57,6 +57,9 @@ public final class RealmCommand {
                     com.realmlord.territory.SpawnPicker.offer(c.getSource().getPlayerOrException());
                     return 1;
                 }))
+                .then(Commands.literal("camp")
+                        .then(Commands.literal("keep").executes(c -> QuestLogic.decideCamp(c.getSource().getPlayerOrException(), false) ? 1 : 0))
+                        .then(Commands.literal("salvage").executes(c -> QuestLogic.decideCamp(c.getSource().getPlayerOrException(), true) ? 1 : 0)))
                 .then(Commands.literal("role").executes(c -> {
                     ServerPlayer p = c.getSource().getPlayerOrException();
                     ModNetwork.send(p, new OpenScreenPacket(Profiles.get(p).hasChosen() ? OpenScreenPacket.CHARACTER : OpenScreenPacket.ROLE));

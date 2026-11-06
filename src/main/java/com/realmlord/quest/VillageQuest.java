@@ -31,6 +31,8 @@ public class VillageQuest {
     public int food;
     public BlockPos camp;          // centre of the bandit camp (y filled in once built)
     public boolean campBuilt;
+    /** What the Lord did with the cleared camp: 0 not yet decided, 1 kept it, 2 salvaged it. */
+    public int campChoice;
     public int banditsLeft;
     public int captives;
     public boolean chiefKilled;
@@ -58,6 +60,7 @@ public class VillageQuest {
         t.putInt("food", food);
         if (camp != null) t.put("camp", NbtUtils.writeBlockPos(camp));
         t.putBoolean("built", campBuilt);
+        t.putInt("campChoice", campChoice);
         t.putInt("bandits", banditsLeft);
         t.putInt("captives", captives);
         t.putBoolean("chief", chiefKilled);
@@ -80,6 +83,7 @@ public class VillageQuest {
         food = t.getInt("food");
         camp = t.contains("camp") ? NbtUtils.readBlockPos(t.getCompound("camp")) : null;
         campBuilt = t.getBoolean("built");
+        campChoice = t.getInt("campChoice");
         banditsLeft = t.getInt("bandits");
         captives = t.getInt("captives");
         chiefKilled = t.getBoolean("chief");

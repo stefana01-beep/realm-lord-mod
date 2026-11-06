@@ -119,9 +119,20 @@ public final class QuestLogic {
         q.stage = VillageQuest.Stage.BANDITS;
         ServerLevel level = player.server.overworld();
         BlockPos origin = player.level().dimension().equals(Level.OVERWORLD) ? player.blockPosition() : level.getSharedSpawnPos();
+        // Somewhere dry: never on the sea, a lake, a river or a swamp.
         double angle = player.getRandom().nextDouble() * Math.PI * 2;
         int dist = 150 + player.getRandom().nextInt(71);
         q.camp = new BlockPos(origin.getX() + (int) (Math.cos(angle) * dist), 64, origin.getZ() + (int) (Math.sin(angle) * dist));
+        for (int i = 0; i < 64; i++) {
+            double a = player.getRandom().nextDouble() * Math.PI * 2;
+            int d = 150 + player.getRandom().nextInt(71) + (i / 16) * 60;
+            int x = origin.getX() + (int) (Math.cos(a) * d), z = origin.getZ() + (int) (Math.sin(a) * d);
+            if (BanditCamp.goodSite(level, x, z)) {
+                q.camp = new BlockPos(x, 64, z);
+                dist = d;
+                break;
+            }
+        }
         q.campBuilt = false;
         p.markDirty();
         Notify.player(player, Component.translatable("realmlord.quest.bandits",
@@ -199,7 +210,46 @@ public final class QuestLogic {
         }
         p.markDirty();
         Notify.player(player, Component.translatable("realmlord.quest.cleared", q.captives, q.captives * 5));
+        offerCamp(player);
         player.playNotifySound(SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.8F, 0.8F);
+    }
+
+    /** Asks the Lord what to do with the cleared camp, with buttons in the chat. */
+    public static void offerCamp(ServerPlayer player) {
+        Component keep = Component.translatable("realmlord.camp.keep_button").withStyle(s -> s.withColor(ChatFormatting.GREEN)
+                .withClickEvent(new net.minecraft.network.chat.ClickEvent(net.minecraft.network.chat.ClickEvent.Action.RUN_COMMAND, "/realm camp keep"))
+                .withHoverEvent(new net.minecraft.network.chat.HoverEvent(net.minecraft.network.chat.HoverEvent.Action.SHOW_TEXT, Component.translatable("realmlord.camp.keep_tip"))));
+        Component salvage = Component.translatable("realmlord.camp.salvage_button").withStyle(s -> s.withColor(ChatFormatting.GOLD)
+                .withClickEvent(new net.minecraft.network.chat.ClickEvent(net.minecraft.network.chat.ClickEvent.Action.RUN_COMMAND, "/realm camp salvage"))
+                .withHoverEvent(new net.minecraft.network.chat.HoverEvent(net.minecraft.network.chat.HoverEvent.Action.SHOW_TEXT, Component.translatable("realmlord.camp.salvage_tip"))));
+        player.sendSystemMessage(Component.translatable("realmlord.camp.choose", keep, salvage));
+    }
+
+    /** Keeps the camp standing, or takes it apart and gives the Lord every material in it. */
+    public static boolean decideCamp(ServerPlayer player, boolean salvage) {
+        Profile p = Profiles.get(player);
+        VillageQuest q = p.quest();
+        if (!q.campBuilt || q.camp == null || q.campChoice != 0
+                || (q.stage != VillageQuest.Stage.CLEARED && q.stage != VillageQuest.Stage.CLAIMED)) {
+            Notify.player(player, "realmlord.camp.not_now");
+            return false;
+        }
+        q.campChoice = salvage ? 2 : 1;
+        p.markDirty();
+        if (!salvage) {
+            Notify.player(player, "realmlord.camp.kept");
+        } else {
+            List<ItemStack> got = BanditCamp.salvage(player.server.overworld(), q.camp);
+            int n = 0;
+            for (ItemStack s : got) {
+                n += s.getCount();
+                give(player, s);
+            }
+            Notify.player(player, Component.translatable("realmlord.camp.salvaged", n));
+            player.playNotifySound(SoundEvents.WOOD_BREAK, SoundSource.BLOCKS, 1.0F, 1.0F);
+        }
+        ModNetwork.sync(player);
+        return true;
     }
 
     // ------------------------------------------------------------------ the hidden cache

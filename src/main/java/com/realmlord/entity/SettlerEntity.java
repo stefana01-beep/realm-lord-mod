@@ -202,6 +202,7 @@ public class SettlerEntity extends PathfinderMob {
     private int wanderUntil;
     // Building
     private com.realmlord.village.Sites.Op op;
+    private com.realmlord.village.Building lastSite;
     private int opAge;
     // Felling a tree, top log first
     private java.util.List<BlockPos> treeLogs = new java.util.ArrayList<>();
@@ -260,7 +261,7 @@ public class SettlerEntity extends PathfinderMob {
             com.realmlord.village.Building field = com.realmlord.village.Residents.field(t, r);
             switch (r.job) {
                 case CONSTRUCTION -> {
-                    com.realmlord.village.Building site = com.realmlord.village.Sites.active(t);
+                    com.realmlord.village.Building site = com.realmlord.village.Residents.siteOf(t, r);
                     if (site != null) {
                         activity = Activity.BUILD;
                         spot = site.type.placed() ? site.center() : (op != null ? op.pos() : t.center);
@@ -440,8 +441,10 @@ public class SettlerEntity extends PathfinderMob {
     }
 
     private void build(ServerLevel sl) {
-        com.realmlord.village.Building site = com.realmlord.village.Sites.active(terr);
+        com.realmlord.village.Building site = com.realmlord.village.Residents.siteOf(terr, res);
         if (site == null) return;
+        if (op != null && !site.equals(lastSite)) op = null;
+        lastSite = site;
         if (op == null || ++opAge > 40) {
             op = com.realmlord.village.Sites.next(sl, terr, site);
             opAge = 0;

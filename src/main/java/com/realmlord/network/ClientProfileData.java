@@ -34,6 +34,8 @@ public final class ClientProfileData {
     public static int questStage;
     public static int logs, stone, food;
     public static boolean hasCamp;
+    /** The cleared bandit camp is waiting for the Lord to keep or salvage it. */
+    public static boolean campChoicePending;
     public static int campX, campZ;
     public static int banditsLeft;
     public static int captives;

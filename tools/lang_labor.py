@@ -67,6 +67,18 @@ TEXT = {
     "realmlord.spawn.world_spawn.desc": "Begin where the world begins.",
     "realmlord.cmd.spawn": "Choosing a starting place.",
     "key.realmlord.world_map": "World map",
+    # The cleared bandit camp
+    "realmlord.camp.choose": "What becomes of the bandit camp? %s  %s",
+    "realmlord.camp.keep_button": "[Keep the camp]",
+    "realmlord.camp.salvage_button": "[Salvage it]",
+    "realmlord.camp.keep_tip": "Leave the tents, pen and campfire standing where they are.",
+    "realmlord.camp.salvage_tip": "Take the whole camp apart: every pole, cloth, bar, log, barrel and the campfire comes back to you as materials, with anything left inside, and the ground grows over.",
+    "realmlord.camp.kept": "The bandit camp stays standing.",
+    "realmlord.camp.salvaged": "You take the bandit camp apart and carry off %s items of materials. Nothing of it remains.",
+    "realmlord.camp.not_now": "There is no cleared bandit camp waiting for your decision.",
+    # Building on marsh, and crews
+    "realmlord.build.err.water": "Too deep. Settlers fill in ponds, marsh and shallow water up to 3 blocks deep, but not this.",
+    "realmlord.manor.crew.tip": "Builders on this site. + and - set the number yourself (gold), taking on idle residents if needed; going below zero returns the site to sharing the free builders (grey). Every builder adds work, with no limit.",
     "realmlord.worldmap.title": "World Map",
     "realmlord.worldmap.me": "Find me",
     "realmlord.worldmap.whole": "Whole world",

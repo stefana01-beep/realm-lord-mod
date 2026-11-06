@@ -291,7 +291,7 @@ public final class Sites {
         if (!t.buildings.remove(b)) return;
         BuildingDesigns.forget(b);
         for (Resident r : t.residents) if (r.workplace == b.id) {
-            r.job = Job.IDLE;
+            if (r.job != Job.CONSTRUCTION) r.job = Job.IDLE;
             r.workplace = -1;
         }
     }

@@ -29,7 +29,7 @@ public class CharacterScreen extends Screen {
 
     private int tab;
     private final List<Button> plus = new ArrayList<>();
-    private Button submit, claim, abandon;
+    private Button submit, claim, abandon, keepCamp, salvageCamp;
     private boolean confirmAbandon;
 
     public CharacterScreen(int tab) {
@@ -77,6 +77,12 @@ public class CharacterScreen extends Screen {
                     b -> ModNetwork.toServer(new ProfileActionPacket(ProfileActionPacket.Action.QUEST_SUBMIT))).bounds(x + 10, y + H - 26, 120, 18).build());
             claim = addRenderableWidget(Button.builder(Component.translatable("realmlord.panel.quest.claim"),
                     b -> ModNetwork.toServer(new ProfileActionPacket(ProfileActionPacket.Action.QUEST_CLAIM))).bounds(x + 10, y + H - 26, 120, 18).build());
+            keepCamp = addRenderableWidget(Button.builder(Component.translatable("realmlord.camp.keep_button"),
+                    b -> ModNetwork.toServer(new ProfileActionPacket(ProfileActionPacket.Action.CAMP_KEEP)))
+                    .bounds(x + 136, y + H - 26, 96, 18).tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("realmlord.camp.keep_tip"))).build());
+            salvageCamp = addRenderableWidget(Button.builder(Component.translatable("realmlord.camp.salvage_button"),
+                    b -> ModNetwork.toServer(new ProfileActionPacket(ProfileActionPacket.Action.CAMP_SALVAGE)))
+                    .bounds(x + 236, y + H - 26, 96, 18).tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("realmlord.camp.salvage_tip"))).build());
             abandon = addRenderableWidget(Button.builder(Component.translatable("realmlord.panel.quest.abandon"), b -> {
                 if (!confirmAbandon) {
                     confirmAbandon = true;
@@ -104,6 +110,7 @@ public class CharacterScreen extends Screen {
             submit.visible = lord && st == VillageQuest.Stage.SUPPLIES.ordinal();
             claim.visible = lord && st == VillageQuest.Stage.CLEARED.ordinal();
             abandon.visible = lord && (st == VillageQuest.Stage.SUPPLIES.ordinal() || st == VillageQuest.Stage.BANDITS.ordinal());
+            keepCamp.visible = salvageCamp.visible = lord && ClientProfileData.campChoicePending;
         }
     }
 

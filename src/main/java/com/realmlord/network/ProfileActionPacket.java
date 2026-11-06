@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 
 /** Client to server: buttons on the character panel and the skill hotkeys. */
 public class ProfileActionPacket {
-    public enum Action { ALLOCATE, USE_SKILL, NEXT_SKILL, PREV_SKILL, QUEST_SUBMIT, QUEST_CLAIM, QUEST_ABANDON, OPEN_PANEL }
+    public enum Action { ALLOCATE, USE_SKILL, NEXT_SKILL, PREV_SKILL, QUEST_SUBMIT, QUEST_CLAIM, QUEST_ABANDON, OPEN_PANEL, CAMP_KEEP, CAMP_SALVAGE }
 
     private final Action action;
     private final int arg;
@@ -51,6 +51,8 @@ public class ProfileActionPacket {
             case QUEST_SUBMIT -> QuestLogic.submitSupplies(player);
             case QUEST_CLAIM -> QuestLogic.claim(player);
             case QUEST_ABANDON -> QuestLogic.abandon(player);
+            case CAMP_KEEP -> QuestLogic.decideCamp(player, false);
+            case CAMP_SALVAGE -> QuestLogic.decideCamp(player, true);
             case OPEN_PANEL -> {
                 ModNetwork.sync(player);
                 ModNetwork.send(player, new OpenScreenPacket(p.hasChosen() ? OpenScreenPacket.CHARACTER : OpenScreenPacket.ROLE));

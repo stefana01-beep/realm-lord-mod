@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 
 /** Client to server: buttons on the Manor screen. */
 public class ManorActionPacket {
-    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT, DEMOLISH }
+    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT, DEMOLISH, CREW }
 
     private final Action action;
     private final int a;
@@ -88,6 +88,25 @@ public class ManorActionPacket {
             case CANCEL_SITE -> {
                 Building site = t.building(a);
                 if (site != null && !site.complete && !site.demolishing) Village.demolish(p.serverLevel(), t, site);
+            }
+            case CREW -> {
+                // b: +1 or -1 builders on site a. Below zero returns the site to sharing the free builders.
+                Building site = t.building(a);
+                if (site == null || site.complete) return;
+                Village.allocateBuilders(t);
+                int now = Village.buildersAt(t, site);
+                int want = (int) (now + b);
+                if (want < 0 || (b < 0 && site.crew < 0 && now == 0)) {
+                    site.crew = -1;
+                } else {
+                    site.crew = want;
+                    // Not enough builders for all the crews asked for: take on idle residents.
+                    int asked = 0;
+                    for (Building o : t.buildings) if (!o.complete && o.crew > 0) asked += o.crew;
+                    int have = Village.count(t, com.realmlord.village.Job.CONSTRUCTION);
+                    if (asked > have) Village.shift(t, com.realmlord.village.Job.CONSTRUCTION, asked - have);
+                }
+                Village.allocateBuilders(t);
             }
             case DEMOLISH -> {
                 Building b = t.building(a);

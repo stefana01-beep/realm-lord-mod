@@ -100,7 +100,8 @@ public class VillageTests {
         ServerLevel level = helper.getLevel();
         built(t, BuildingType.LOGGING_FIELD);
         built(t, BuildingType.QUARRY);
-        helper.assertTrue(Village.places(t, Job.LOGGING) == 10, "a logging field holds 10 workers");
+        helper.assertTrue(Village.places(t, Job.LOGGING) == Integer.MAX_VALUE, "a logging field takes any number of workers");
+        helper.assertTrue(Village.places(t, Job.MINING) == 0, "no mining without a mining field");
         helper.assertTrue(Village.shift(t, Job.LOGGING, 4) == 4, "could not assign 4 loggers");
         helper.assertTrue(Village.shift(t, Job.QUARRYING, 2) == 2, "could not assign 2 quarrymen");
         helper.assertTrue(Village.shift(t, Job.MINING, 2) == 0, "assigned miners without a mining field");

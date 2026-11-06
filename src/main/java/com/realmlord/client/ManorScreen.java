@@ -248,7 +248,12 @@ public class ManorScreen extends Screen {
             }
             final int id = b.getInt("id");
             addRenderableWidget(Button.builder(Component.translatable("realmlord.manor.cancel"), btn -> send(ManorActionPacket.Action.CANCEL_SITE, id, 0))
-                    .bounds(x + 190, y + 196 + shown * 12, 44, 11).tooltip(Tooltip.create(Component.translatable("realmlord.manor.cancel.tip"))).build());
+                    .bounds(x + 184, y + 196 + shown * 12, 40, 11).tooltip(Tooltip.create(Component.translatable("realmlord.manor.cancel.tip"))).build());
+            // Builders on this site: fewer, more.
+            addRenderableWidget(Button.builder(Component.literal("-"), btn -> send(ManorActionPacket.Action.CREW, id, -1))
+                    .bounds(x + 228, y + 196 + shown * 12, 11, 11).tooltip(Tooltip.create(Component.translatable("realmlord.manor.crew.tip"))).build());
+            addRenderableWidget(Button.builder(Component.literal("+"), btn -> send(ManorActionPacket.Action.CREW, id, 1))
+                    .bounds(x + 266, y + 196 + shown * 12, 11, 11).tooltip(Tooltip.create(Component.translatable("realmlord.manor.crew.tip"))).build());
             shown++;
         }
         int job = Job.CONSTRUCTION.ordinal();
@@ -306,6 +311,9 @@ public class ManorScreen extends Screen {
                         : Component.translatable(bt.key());
                 g.drawString(font, font.plainSubstrByWidth(label.getString(), 108), x + 10, sy, down ? Ui.RED : Ui.INK, false);
                 Ui.bar(g, x + 120, sy + 2, 60, 4, b.getDouble("fraction"), down ? 0xFFC8423B : 0xFF6FCF97);
+                // Builders here, gold when the Lord set the number.
+                String n = String.valueOf(b.getInt("builders"));
+                g.drawString(font, n, x + 253 - font.width(n) / 2, sy + 2, b.getInt("crew") >= 0 ? Ui.GOLD : Ui.MUTED, false);
             }
             shown++;
         }

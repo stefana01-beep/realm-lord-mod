@@ -59,6 +59,7 @@ public class SyncProfilePacket {
         data.writeVarInt(q.camp == null ? 0 : q.camp.getX());
         data.writeVarInt(q.camp == null ? 0 : q.camp.getZ());
         data.writeVarInt(q.banditsLeft);
+        data.writeBoolean(q.campBuilt && q.campChoice == 0 && (q.stage == VillageQuest.Stage.CLEARED || q.stage == VillageQuest.Stage.CLAIMED));
         data.writeVarInt(q.captives);
         data.writeBoolean(q.chiefKilled);
         data.writeBoolean(q.cacheFound);
@@ -147,6 +148,7 @@ public class SyncProfilePacket {
         ClientProfileData.campX = b.readVarInt();
         ClientProfileData.campZ = b.readVarInt();
         ClientProfileData.banditsLeft = b.readVarInt();
+        ClientProfileData.campChoicePending = b.readBoolean();
         ClientProfileData.captives = b.readVarInt();
         ClientProfileData.chiefKilled = b.readBoolean();
         ClientProfileData.cacheFound = b.readBoolean();
