@@ -483,7 +483,7 @@ public final class Village {
         if (type.grade > t.level.villageGrade() && t.level.villageGrade() > 0) return "realmlord.build.err.grade";
         if (free) return null;
         if (t.wood < type.wood || t.stone < type.stone) return "realmlord.build.err.resources";
-        if (type.blueprint && findBlueprint(p, type) < 0) return "realmlord.build.err.blueprint";
+        if (type.blueprint && !knowsBlueprint(p, t, type)) return "realmlord.build.err.blueprint";
         if (type.specialist != null && !hasSpecialist(t, type.specialist, type.specialistRank)) return "realmlord.build.err.specialist";
         return null;
     }
@@ -532,7 +532,11 @@ public final class Village {
         } else {
             t.wood -= type.wood;
             t.stone -= type.stone;
-            if (type.blueprint && !p.getAbilities().instabuild) p.getInventory().getItem(findBlueprint(p, type)).shrink(1);
+            // A blueprint carried but not yet learned is learned now; a learned one is never used up.
+            if (type.blueprint && !t.blueprints.contains(type.id()) && findBlueprint(p, type) >= 0) {
+                p.getInventory().getItem(findBlueprint(p, type)).shrink(1);
+                t.blueprints.add(type.id());
+            }
         }
         Building b = new Building();
         b.id = t.nextBuildingId++;
@@ -540,6 +544,8 @@ public final class Village {
         b.rotation = rotation & 3;
         b.free = free;
         b.workNeeded = Math.max(1, workNeeded(type));
+        b.w = type.width;
+        b.d = type.depth;
         b.lastWork = level.getGameTime();
         if (type.placed()) {
             // The builders clear and level the ground themselves; nothing is put down yet.
@@ -899,10 +905,32 @@ public final class Village {
         return 0;
     }
 
+    /** Buys a blueprint: the item, to learn by right-clicking it (or to keep, give or sell). */
     public static boolean buyBlueprint(ServerPlayer p, BuildingType type) {
         if (!type.blueprint || !Coins.pay(p, type.blueprintPrice())) return false;
         com.realmlord.item.ResourcesBagItem.give(p, Blueprints.of(type.id()), 1);
         return true;
+    }
+
+    /** True if the village has learned a building's blueprint, or the Lord carries one. */
+    public static boolean knowsBlueprint(ServerPlayer p, Territory t, BuildingType type) {
+        return !type.blueprint || t.blueprints.contains(type.id()) || p.getAbilities().instabuild || findBlueprint(p, type) >= 0;
+    }
+
+    /**
+     * Teaches the Lord's village a blueprint: the village's builders keep the plan, so every
+     * later building of that kind needs no blueprint. Returns a message key.
+     */
+    public static String learnBlueprint(ServerPlayer p, String building) {
+        BuildingType type = BuildingType.byId(building);
+        if (type == null || !type.blueprint) return "realmlord.blueprint.learn.unknown";
+        int id = com.realmlord.profile.Profiles.get(p).getTerritoryId();
+        com.realmlord.territory.TerritoryData data = com.realmlord.territory.TerritoryData.get(p.server);
+        Territory t = id >= 0 ? data.byId(id) : null;
+        if (t == null || !p.getUUID().equals(t.owner)) return "realmlord.blueprint.learn.no_village";
+        if (!t.blueprints.add(type.id())) return "realmlord.blueprint.learn.known";
+        data.touch();
+        return null;
     }
 
     public static long stock(Territory t, int resource) {

@@ -67,6 +67,18 @@ TEXT = {
     "realmlord.spawn.world_spawn.desc": "Begin where the world begins.",
     "realmlord.cmd.spawn": "Choosing a starting place.",
     "key.realmlord.world_map": "World map",
+    # Learning blueprints
+    "realmlord.build.err.blueprint": "Your village has not learned this blueprint. Buy one at the market (or take one from bandits) and right-click it.",
+    "realmlord.blueprint.tooltip.learn": "Right-click to teach it to your village: build it as often as you like from then on.",
+    "realmlord.blueprint.learn.done": "Your village has learned the %s blueprint. Build it as often as you like.",
+    "realmlord.blueprint.learn.known": "Your village already knows the %s blueprint. Keep this one, give it away or sell it at the market.",
+    "realmlord.blueprint.learn.no_village": "Only a Lord can teach a blueprint (%s) to their village; found yours first.",
+    "realmlord.blueprint.learn.unknown": "This blueprint is blank.",
+    "realmlord.manor.bp_learned": "Learned",
+    "realmlord.market.learned": "Learned",
+    "realmlord.market.buy_bp.tip": "You get the blueprint; right-click it to teach it to your village for good.",
+    "realmlord.manor.sites_range": "%s-%s of %s",
+    "realmlord.tablet.founded": "Founded",
     "realmlord.activity.sleeping": "Asleep",
     # Goods
     "realmlord.goods.grain": "Grain", "realmlord.goods.wood": "Wood", "realmlord.goods.stone": "Stone", "realmlord.goods.iron_ore": "Iron ore",

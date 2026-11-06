@@ -49,12 +49,26 @@ public class Building {
     public long sowDay;
     public float sowYield = 1.0F;
 
+    /**
+     * The footprint this building was laid out with (before turning). Fixed when it is placed, so
+     * a later change to a building type's size never moves the walls of ones already standing.
+     */
+    public int w, d;
+
+    public int width() {
+        return w > 0 ? w : type.width;
+    }
+
+    public int depth() {
+        return d > 0 ? d : type.depth;
+    }
+
     public int sizeX() {
-        return rotation % 2 == 0 ? type.width : type.depth;
+        return rotation % 2 == 0 ? width() : depth();
     }
 
     public int sizeZ() {
-        return rotation % 2 == 0 ? type.depth : type.width;
+        return rotation % 2 == 0 ? depth() : width();
     }
 
     public BlockPos center() {
@@ -99,6 +113,8 @@ public class Building {
         t.putIntArray("salvage", new int[]{salvageWood, salvageStone, demolishFrom});
         t.putLong("lastWork", lastWork);
         t.putInt("crew", crew);
+        t.putInt("w", width());
+        t.putInt("d", depth());
         t.putInt("fenceR", fenceRadius);
         if (fenceYs != null) t.putIntArray("fenceYs", fenceYs);
         if (fenceFill != null) t.putIntArray("fenceFill", fenceFill);
@@ -133,6 +149,14 @@ public class Building {
         }
         b.lastWork = t.getLong("lastWork");
         b.crew = t.contains("crew") ? t.getInt("crew") : -1;
+        if (t.contains("w")) {
+            b.w = t.getInt("w");
+            b.d = t.getInt("d");
+        } else if (b.type == BuildingType.SMALL_RESIDENTIAL_COURTYARD) {
+            // Courtyards from before they were enlarged keep their 9 x 9 walls.
+            b.w = 9;
+            b.d = 9;
+        }
         b.fenceRadius = t.getInt("fenceR");
         b.fenceYs = t.contains("fenceYs") ? t.getIntArray("fenceYs") : null;
         b.fenceFill = t.contains("fenceFill") ? t.getIntArray("fenceFill") : null;

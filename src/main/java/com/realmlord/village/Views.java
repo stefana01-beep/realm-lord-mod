@@ -45,6 +45,7 @@ public final class Views {
             goods.add(gt);
         }
         v.put("goods", goods);
+        v.putString("learned", String.join(",", t.blueprints));
         int stored = 0;
         for (int i = 0; i < t.storage.getContainerSize(); i++) if (!t.storage.getItem(i).isEmpty()) stored++;
         v.putInt("stored", stored);
@@ -97,7 +98,8 @@ public final class Views {
             o.putBoolean("free", free);
             String err = Village.checkCost(p, t, type, free);
             if (err != null) o.putString("err", err);
-            o.putBoolean("blueprint", !type.blueprint || hasBlueprint(p, type));
+            o.putBoolean("blueprint", Village.knowsBlueprint(p, t, type));
+            o.putBoolean("learned", t.blueprints.contains(type.id()));
             o.putBoolean("specialist", type.specialist == null || Village.hasSpecialist(t, type.specialist, type.specialistRank));
             opts.add(o);
         }

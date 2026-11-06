@@ -70,8 +70,8 @@ public final class BuildingDesigns {
 
         Canvas(Building b) {
             this.b = b;
-            this.w = b.type.width;
-            this.d = b.type.depth;
+            this.w = b.width();
+            this.d = b.depth();
             this.rot = switch (b.rotation & 3) {
                 case 1 -> Rotation.CLOCKWISE_90;
                 case 2 -> Rotation.CLOCKWISE_180;
@@ -338,6 +338,49 @@ public final class BuildingDesigns {
 
     // ------------------------------------------------------------------ homes
 
+    /** The first, smaller courtyard (9 x 9), kept for courtyards built with it. */
+    private static void courtyardSmall(Canvas c, int w, int d) {
+        c.fill(0, -1, 0, w - 1, -1, d - 1, Blocks.GRASS_BLOCK.defaultBlockState());
+        for (int x = 0; x < w; x++)
+            for (int z = 0; z < d; z++) {
+                boolean edge = x == 0 || z == 0 || x == w - 1 || z == d - 1;
+                if (edge) {
+                    c.set(x, -1, z, PLINTH);
+                    c.set(x, 0, z, Blocks.STONE_BRICK_WALL);
+                    c.set(x, 1, z, Blocks.STONE_BRICK_WALL);
+                }
+            }
+        c.set(w / 2, 0, 0, AIR);
+        c.set(w / 2, 1, 0, AIR);
+        c.set(w / 2, -1, 0, Blocks.DIRT_PATH);
+        // House across the back.
+        int hz0 = d - 5;
+        for (int x = 1; x < w - 1; x++)
+            for (int z = hz0; z < d - 1; z++) {
+                boolean edge = x == 1 || x == w - 2 || z == hz0 || z == d - 2;
+                c.set(x, -1, z, FLOOR);
+                for (int y = 0; y < 3; y++) c.set(x, y, z, edge ? (y == 2 ? BEAM : WALL) : AIR);
+            }
+        for (int x : new int[]{1, w - 2})
+            for (int z : new int[]{hz0, d - 2})
+                for (int y = 0; y < 3; y++) c.set(x, y, z, POST);
+        c.door(w / 2, 0, hz0, Blocks.SPRUCE_DOOR, Direction.NORTH);
+        c.set(w / 2 - 2, 1, hz0, WINDOW);
+        c.set(w / 2 + 2, 1, hz0, WINDOW);
+        for (int x = 2; x < w - 2; x += 2) if (x != w / 2) c.bed(x, 0, d - 3, Blocks.RED_BED, Direction.SOUTH);
+        for (int x = 0; x < w; x++)
+            for (int z = hz0 - 1; z < d; z++) {
+                boolean rim = x == 0 || x == w - 1 || z == hz0 - 1 || z == d - 1;
+                c.set(x, 3, z, rim ? TILE_SLAB : TILE);
+            }
+        for (int x = 1; x < w - 1; x++) c.set(x, 4, hz0 + 1, TILE_SLAB);
+        // Well and garden.
+        c.set(2, 0, 2, Blocks.COBBLESTONE_WALL);
+        c.set(2, -1, 2, Blocks.WATER);
+        c.set(w - 3, 0, 2, Blocks.POPPY);
+        c.set(w - 3, 0, 3, Blocks.OXEYE_DAISY);
+    }
+
     /** Straw beds: plain, cheap bedding for ordinary folk (yellow beds look like straw). */
     static final Block STRAW_BED = Blocks.YELLOW_BED;
 
@@ -347,6 +390,10 @@ public final class BuildingDesigns {
      * hall and 5 in each wing.
      */
     private static void courtyard(Canvas c, int w, int d) {
+        if (w < 17) {
+            courtyardSmall(c, w, d);
+            return;
+        }
         c.fill(0, -1, 0, w - 1, -1, d - 1, Blocks.GRASS_BLOCK.defaultBlockState());
         for (int x = 0; x < w; x++)
             for (int z = 0; z < d; z++) {

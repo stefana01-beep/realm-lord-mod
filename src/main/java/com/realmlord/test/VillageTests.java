@@ -187,7 +187,23 @@ public class VillageTests {
         String err = Village.start(p, t, BuildingType.DINING_HALL, site, 1);
         helper.assertTrue(err == null, "could not start the Dining Hall: " + err);
         helper.assertTrue(t.wood == 70 && t.stone == 80, "costs not taken: " + t.wood + "/" + t.stone);
-        helper.assertTrue(p.getInventory().countItem(ModItems.BLUEPRINT.get()) == 0, "blueprint not used up");
+        helper.assertTrue(p.getInventory().countItem(ModItems.BLUEPRINT.get()) == 0, "blueprint not taken in");
+        // The village has learned it: the next Dining Hall needs no blueprint.
+        helper.assertTrue(t.blueprints.contains("dining_hall"), "blueprint not learned by the village");
+        helper.assertTrue(!"realmlord.build.err.blueprint".equals(Village.checkCost(p, t, BuildingType.DINING_HALL, false)), "a learned blueprint should not be needed again");
+        // Right-clicking a blueprint teaches it too, and only once.
+        p.getInventory().add(Blueprints.of("bathroom"));
+        int slot = p.getInventory().findSlotMatchingItem(Blueprints.of("bathroom"));
+        p.getInventory().selected = slot >= 0 && slot < 9 ? slot : p.getInventory().selected;
+        if (slot >= 0 && slot < 9) {
+            p.getInventory().getItem(slot).use(level, p, net.minecraft.world.InteractionHand.MAIN_HAND);
+            helper.assertTrue(t.blueprints.contains("bathroom") && p.getInventory().countItem(ModItems.BLUEPRINT.get()) == 0, "right-click did not teach the blueprint");
+        }
+        // Courtyards built before they were enlarged keep their 9 x 9 walls.
+        var oldYard = new net.minecraft.nbt.CompoundTag();
+        oldYard.putString("type", "small_residential_courtyard");
+        var legacy = Building.load(oldYard);
+        helper.assertTrue(legacy == null || legacy.sizeX() == 9, "an old courtyard changed size: " + (legacy == null ? "?" : legacy.sizeX()));
         Building b = t.buildings.get(t.buildings.size() - 1);
         helper.assertTrue(Village.checkPlacement(level, t, BuildingType.BATHROOM, b.origin, 0) != null, "allowed a building on top of another");
         // Choosing the spot puts nothing down: builders clear and level it first.

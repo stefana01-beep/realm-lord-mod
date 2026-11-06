@@ -238,6 +238,8 @@ public class SettlerEntity extends PathfinderMob {
         }
         decide();
         if (isSleeping() && (activity != Activity.HOME || bed == null)) wake();
+        // Woken some other way (their bed broken, say): free to move again.
+        if (!isSleeping()) wake();
         r.activity = isSleeping() ? "realmlord.activity.sleeping" : activity.key();
         restrictTo(spot, spotRadius);
         equip();

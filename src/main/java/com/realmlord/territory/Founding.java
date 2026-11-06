@@ -65,7 +65,8 @@ public final class Founding {
             return null;
         }
 
-        int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, target.getX(), target.getZ());
+        // The real ground, not the top of a tree.
+        int y = com.realmlord.village.Village.groundAt(level, target.getX(), target.getZ());
         BlockPos center = new BlockPos(target.getX(), y, target.getZ());
         Direction front = Direction.getNearest(player.getX() - center.getX(), 0, player.getZ() - center.getZ());
         if (front.getAxis() == Direction.Axis.Y) front = Direction.SOUTH;
@@ -83,6 +84,7 @@ public final class Founding {
         t.foundedTick = level.getGameTime();
         data.add(t);
         prof.setTerritoryId(t.id);
+        raiseTablet(level, center, front, t.name);
         bringSettlers(level, player, center, prof.quest().captives);
         com.realmlord.village.Village.settle(t, level.getRandom(), prof.quest().captives);
         t.lastDay = com.realmlord.village.GaiaCalendar.day(level.getServer().overworld().getGameTime());
@@ -220,6 +222,33 @@ public final class Founding {
                     .setValue(net.minecraft.world.level.block.BedBlock.PART, net.minecraft.world.level.block.state.properties.BedPart.FOOT);
             level.setBlock(b[0], foot, Block.UPDATE_CLIENTS);
             level.setBlock(b[1], foot.setValue(net.minecraft.world.level.block.BedBlock.PART, net.minecraft.world.level.block.state.properties.BedPart.HEAD), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    /**
+     * The founding tablet: as in the novel, a stone tablet three metres tall rises before the
+     * Lord's Manor when the village is founded, bearing the village's name.
+     */
+    public static void raiseTablet(ServerLevel level, BlockPos c, Direction front, String name) {
+        Direction side = front.getClockWise();
+        BlockPos base = c.relative(front, 7).relative(side, 4);
+        int y = com.realmlord.village.Village.groundAt(level, base.getX(), base.getZ());
+        base = new BlockPos(base.getX(), y, base.getZ());
+        set(level, base.getX(), y - 1, base.getZ(), Blocks.STONE_BRICKS.defaultBlockState());
+        for (int i = 0; i < 3; i++) set(level, base.getX(), y + i, base.getZ(), Blocks.POLISHED_ANDESITE.defaultBlockState());
+        set(level, base.getX(), y + 3, base.getZ(), Blocks.ANDESITE_SLAB.defaultBlockState());
+        // The name, carved on its face.
+        BlockPos face = base.above().relative(front);
+        level.setBlock(face, Blocks.SPRUCE_WALL_SIGN.defaultBlockState().setValue(net.minecraft.world.level.block.WallSignBlock.FACING, front), Block.UPDATE_ALL);
+        if (level.getBlockEntity(face) instanceof net.minecraft.world.level.block.entity.SignBlockEntity sign) {
+            String a = name.length() > 15 ? name.substring(0, 15) : name, b = name.length() > 15 ? name.substring(15, Math.min(30, name.length())) : "";
+            net.minecraft.world.level.block.entity.SignText text = new net.minecraft.world.level.block.entity.SignText()
+                    .setMessage(0, Component.literal(a)).setMessage(1, Component.literal(b))
+                    .setMessage(3, Component.translatable("realmlord.tablet.founded")).setHasGlowingText(true);
+            sign.setText(text, true);
+            sign.setWaxed(true);
+            sign.setChanged();
+            level.sendBlockUpdated(face, level.getBlockState(face), level.getBlockState(face), Block.UPDATE_ALL);
         }
     }
 

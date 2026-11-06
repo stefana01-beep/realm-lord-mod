@@ -33,6 +33,8 @@ public class Territory {
     public final double[] goodsCarry = new double[com.realmlord.village.Goods.values().length];
     /** The Lord's Manor storehouse: anything else the Lord keeps for later. */
     public final net.minecraft.world.SimpleContainer storage = new net.minecraft.world.SimpleContainer(54);
+    /** Building blueprints the village has learned (building ids): built as often as wanted. */
+    public final java.util.Set<String> blueprints = new java.util.LinkedHashSet<>();
     /** People's Thoughts and Security (the novel's "Law and Order"), 0-100. */
     public int peopleThoughts = 70;
     public int security = 65;
@@ -119,6 +121,7 @@ public class Territory {
         }
         t.put("goods", g);
         t.put("storage", storage.createTag());
+        t.putString("blueprints", String.join(",", blueprints));
         return t;
     }
 
@@ -147,6 +150,7 @@ public class Territory {
             r.goodsCarry[good.ordinal()] = g.getDouble(good.id + "_carry");
         }
         r.storage.fromTag(t.getList("storage", net.minecraft.nbt.Tag.TAG_COMPOUND));
+        for (String s : t.getString("blueprints").split(",")) if (!s.isBlank()) r.blueprints.add(s);
         r.peopleThoughts = t.contains("thoughts") ? t.getInt("thoughts") : 70;
         r.security = t.contains("security") ? t.getInt("security") : 65;
         net.minecraft.nbt.ListTag rs = t.getList("residents", net.minecraft.nbt.Tag.TAG_COMPOUND);

@@ -36,6 +36,9 @@ public class ManorScreen extends Screen {
 
     private static int tab = OVERVIEW;
     private int scroll;
+    /** First site shown in the Construction tab's list of sites under way. */
+    private int siteScroll;
+    private static final int SITE_ROWS = 3;
     private int refreshTimer;
 
     public ManorScreen() {
@@ -238,11 +241,21 @@ public class ManorScreen extends Screen {
             addRenderableWidget(b);
         }
         // Sites under construction
-        ListTag bs = v.getList("buildings", Tag.TAG_COMPOUND);
+        List<CompoundTag> sites = sites(v);
+        siteScroll = Math.max(0, Math.min(siteScroll, sites.size() - SITE_ROWS));
+        if (sites.size() > SITE_ROWS) {
+            addRenderableWidget(Button.builder(Component.literal("▲"), btn -> {
+                siteScroll--;
+                init();
+            }).bounds(x + 128, y + 184, 12, 10).build()).active = siteScroll > 0;
+            addRenderableWidget(Button.builder(Component.literal("▼"), btn -> {
+                siteScroll++;
+                init();
+            }).bounds(x + 142, y + 184, 12, 10).build()).active = siteScroll + SITE_ROWS < sites.size();
+        }
         int shown = 0;
-        for (int i = 0; i < bs.size() && shown < 3; i++) {
-            CompoundTag b = bs.getCompound(i);
-            if (b.getBoolean("complete")) continue;
+        for (int i = siteScroll; i < sites.size() && shown < SITE_ROWS; i++) {
+            CompoundTag b = sites.get(i);
             if (b.getBoolean("demolish")) {
                 shown++;
                 continue;
@@ -278,8 +291,9 @@ public class ManorScreen extends Screen {
             g.drawString(font, cost, x + 150, ry + 4, Ui.MUTED, false);
             int cx = x + 210;
             if (bt.blueprint) {
-                boolean have = o.getBoolean("blueprint");
-                g.drawString(font, Component.literal(have ? "✔ " : "✖ ").append(Component.translatable("realmlord.manor.bp")), cx, ry, have ? Ui.JADE : Ui.RED, false);
+                boolean have = o.getBoolean("blueprint"), learned = o.getBoolean("learned");
+                g.drawString(font, Component.literal(have ? "✔ " : "✖ ").append(Component.translatable(learned ? "realmlord.manor.bp_learned" : "realmlord.manor.bp")),
+                        cx, ry, have ? Ui.JADE : Ui.RED, false);
             }
             if (bt.specialist != null) {
                 boolean have = o.getBoolean("specialist");
@@ -297,12 +311,15 @@ public class ManorScreen extends Screen {
         }
         // Sites
         g.drawString(font, Component.translatable("realmlord.manor.sites"), x + 10, y + 186, Ui.GOLD, false);
-        ListTag bs = v.getList("buildings", Tag.TAG_COMPOUND);
+        List<CompoundTag> sites = sites(v);
+        if (sites.size() > SITE_ROWS) {
+            g.drawString(font, Component.translatable("realmlord.manor.sites_range", siteScroll + 1, Math.min(sites.size(), siteScroll + SITE_ROWS), sites.size()),
+                    x + 158, y + 186, Ui.MUTED, false);
+        }
         int shown = 0;
-        for (int i = 0; i < bs.size(); i++) {
-            CompoundTag b = bs.getCompound(i);
-            if (b.getBoolean("complete")) continue;
-            if (shown < 3) {
+        for (int i = siteScroll; i < sites.size(); i++) {
+            CompoundTag b = sites.get(i);
+            if (shown < SITE_ROWS) {
                 BuildingType bt = BuildingType.byOrdinal(b.getInt("type"));
                 int sy = y + 197 + shown * 12;
                 boolean down = b.getBoolean("demolish");
@@ -393,6 +410,14 @@ public class ManorScreen extends Screen {
 
     private static final int BP_ROWS = 5;
 
+    /** Every site being built or taken down, oldest first. */
+    private static List<CompoundTag> sites(CompoundTag v) {
+        List<CompoundTag> out = new ArrayList<>();
+        ListTag bs = v.getList("buildings", Tag.TAG_COMPOUND);
+        for (int i = 0; i < bs.size(); i++) if (!bs.getCompound(i).getBoolean("complete")) out.add(bs.getCompound(i));
+        return out;
+    }
+
     private List<BuildingType> blueprintRows(CompoundTag v) {
         int grade = TerritoryLevel.byId(v.getInt("level")).villageGrade();
         if (grade == 0) grade = 3;
@@ -452,8 +477,12 @@ public class ManorScreen extends Screen {
             scroll = Math.max(0, Math.min(scroll, bps.size() - BP_ROWS));
             for (int i = 0; i < BP_ROWS && i + scroll < bps.size(); i++) {
                 BuildingType bt = bps.get(i + scroll);
-                addRenderableWidget(Button.builder(Component.translatable("realmlord.market.buy"), b -> send(ManorActionPacket.Action.BUY_BLUEPRINT, bt.ordinal(), 0))
-                        .bounds(x + W - 62, y + 152 + i * 16, 52, 14).build());
+                boolean learned = java.util.Arrays.asList(v.getString("learned").split(",")).contains(bt.id());
+                Button buy = Button.builder(Component.translatable(learned ? "realmlord.market.learned" : "realmlord.market.buy"),
+                        b -> send(ManorActionPacket.Action.BUY_BLUEPRINT, bt.ordinal(), 0)).bounds(x + W - 62, y + 152 + i * 16, 52, 14).build();
+                buy.active = !learned;
+                if (!learned) buy.setTooltip(Tooltip.create(Component.translatable("realmlord.market.buy_bp.tip")));
+                addRenderableWidget(buy);
             }
         }
     }
@@ -522,6 +551,11 @@ public class ManorScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mx, double my, double delta) {
+        if (tab == BUILD && my >= top() + 182) {
+            siteScroll = Math.max(0, siteScroll - (int) Math.signum(delta));
+            init();
+            return true;
+        }
         scroll = Math.max(0, scroll - (int) Math.signum(delta));
         init();
         return true;
