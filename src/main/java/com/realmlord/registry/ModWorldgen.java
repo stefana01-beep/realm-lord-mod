@@ -14,4 +14,10 @@ public class ModWorldgen {
 
     public static final RegistryObject<Codec<? extends DensityFunction>> CHINA_MAP =
             DENSITY_FUNCTIONS.register("china_map", ChinaDensity.CODEC::codec);
+
+    public static final DeferredRegister<net.minecraft.world.level.levelgen.feature.Feature<?>> FEATURES =
+            DeferredRegister.create(Registries.FEATURE, RealmLord.MODID);
+
+    public static final RegistryObject<com.realmlord.worldgen.RiverWaterFeature> RIVER_WATER =
+            FEATURES.register("river_water", com.realmlord.worldgen.RiverWaterFeature::new);
 }

@@ -46,7 +46,8 @@ public final class RealmCommand {
                 .then(Commands.literal("capitals").executes(c -> {
                     for (int i = 0; i < com.realmlord.worldgen.ChinaMap.CAPITALS.length; i++) {
                         final int k = i;
-                        int[] pos = com.realmlord.worldgen.ChinaMap.CAPITAL_POS[k];
+                        double[] ll = com.realmlord.worldgen.ChinaMap.CAPITAL_LONLAT[k];
+                        int[] pos = com.realmlord.worldgen.ChinaMap.blockOf(ll[0], ll[1]);
                         c.getSource().sendSuccess(() -> Component.translatable("realmlord.cmd.capital", com.realmlord.worldgen.ChinaMap.CAPITALS[k], pos[0], pos[1]), false);
                     }
                     c.getSource().sendSuccess(() -> Component.translatable("realmlord.cmd.capitals_note"), false);

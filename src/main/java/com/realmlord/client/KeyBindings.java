@@ -15,13 +15,15 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.lwjgl.glfw.GLFW;
 
-/** J: character panel · R: use the selected skill · Y: next skill (sneak + Y: previous). */
+/** J: character panel · M: world map · R: use the selected skill · Y: next skill (sneak + Y: previous). */
 public final class KeyBindings {
     private KeyBindings() {}
 
     public static final String CATEGORY = "key.categories.realmlord";
     public static final KeyMapping OPEN_PANEL = new KeyMapping("key.realmlord.panel",
             KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_J, CATEGORY);
+    public static final KeyMapping WORLD_MAP = new KeyMapping("key.realmlord.world_map",
+            KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_M, CATEGORY);
     public static final KeyMapping USE_SKILL = new KeyMapping("key.realmlord.use_skill",
             KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_R, CATEGORY);
     public static final KeyMapping CYCLE_SKILL = new KeyMapping("key.realmlord.cycle_skill",
@@ -32,6 +34,7 @@ public final class KeyBindings {
         @SubscribeEvent
         public static void register(RegisterKeyMappingsEvent event) {
             event.register(OPEN_PANEL);
+            event.register(WORLD_MAP);
             event.register(USE_SKILL);
             event.register(CYCLE_SKILL);
         }
@@ -47,6 +50,9 @@ public final class KeyBindings {
             while (OPEN_PANEL.consumeClick()) {
                 ClientAccess.open(ClientProfileData.mode == 0 ? com.realmlord.network.OpenScreenPacket.ROLE
                         : com.realmlord.network.OpenScreenPacket.CHARACTER);
+            }
+            while (WORLD_MAP.consumeClick()) {
+                mc.setScreen(new WorldMapScreen());
             }
             while (USE_SKILL.consumeClick()) {
                 ModNetwork.toServer(new ProfileActionPacket(ProfileActionPacket.Action.USE_SKILL));

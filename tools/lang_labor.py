@@ -66,6 +66,12 @@ TEXT = {
     "realmlord.spawn.world_spawn": "World spawn",
     "realmlord.spawn.world_spawn.desc": "Begin where the world begins.",
     "realmlord.cmd.spawn": "Choosing a starting place.",
+    "key.realmlord.world_map": "World map",
+    "realmlord.worldmap.title": "World Map",
+    "realmlord.worldmap.me": "Find me",
+    "realmlord.worldmap.whole": "Whole world",
+    "realmlord.worldmap.at": "X %s, Z %s",
+    "realmlord.worldmap.at_real": "X %s, Z %s  (%s°N, %s°E)",
 }
 
 CHINA = {

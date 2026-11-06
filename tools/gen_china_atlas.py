@@ -23,7 +23,7 @@ import gen_china as G  # noqa: E402
 ROOT = os.path.join(os.path.dirname(__file__), "..", "src", "main", "resources")
 PNG = os.path.join(ROOT, "assets", "realmlord", "textures", "gui", "china_map.png")
 LABELS = os.path.join(ROOT, "realmlord", "china", "labels.json")
-S = 2  # image pixels per map pixel
+S = 1  # image pixels per map pixel
 
 # Modern province -> the novel's province (as on the fan maps of The World Online).
 NOVEL = {
@@ -112,53 +112,44 @@ def color(hexs):
     return np.array([int(hexs[i:i + 2], 16) / 255 for i in (1, 3, 5)])
 
 
-def main(land_path, countries_path, echarts_path):
-    ch = G.build(land_path)
+def main(land_path, dem_path, echarts_path):
+    ch = G.build(land_path, dem_path, os.path.join(os.path.dirname(os.path.abspath(land_path)), "..", "..", "ne"))
     w, h = G.W * S, G.H * S
     up = lambda a: ndimage.zoom(a, S, order=1)[:h, :w]
 
     land = raster_polys(G.decode_topojson(land_path), (w, h), 255)
     is_land = land > 0.5
-    cont, ero, temp, veg = up(ch["cont"]), up(ch["ero"]), up(ch["temp"]), up(ch["veg"])
-    mtn, lift, riv = up(ch["mountain"]), up(ch["lift"]), up(ch["river"])
+    elev, temp, veg = up(ch["elev"]), up(ch["temp"]), up(ch["veg"])
 
-    # A height for shading: plateaus, ranges, hills.
-    elev = 0.12 * np.clip(cont + 0.05, 0, 1) + 0.22 * np.clip(0.3 - ero, 0, 1.3) + 0.55 * mtn + 1.1 * lift
-    elev = ndimage.gaussian_filter(elev, 1.2)
-    gy, gx = np.gradient(elev * 60)
-    shade = np.clip(0.5 + (-gx - gy) * 0.35, 0, 1)
-
-    # Land colours: green lowland, drier grass, desert, tan uplands, snowy heights.
-    wet, mid, dry, desert = color("#7FA65A"), color("#A3AE6C"), color("#C9B985"), color("#E3D09C")
-    upland, high, snow = color("#B39B74"), color("#9A8062"), color("#F3F1EC")
-    base = lerp(mid, wet, (veg - 0.0) * 2.5)
-    base = lerp(base, dry, (-veg - 0.1) * 2.5)
-    base = lerp(base, desert, np.clip((-veg - 0.55) * 3, 0, 1) * (temp > 0.15))
-    base = lerp(base, upland, (elev - 0.28) * 3)
-    base = lerp(base, high, (elev - 0.55) * 3)
-    base = lerp(base, snow, np.maximum((elev - 0.75) * 3, (-temp - 0.55) * 3))
-    base = base * (0.78 + 0.44 * shade[..., None])
-    # Sea: pale near the shore, deeper offshore.
-    dist = ndimage.distance_transform_edt(~is_land) / (S * 8)
-    sea = lerp(color("#B9D9E8"), color("#6F9FC4"), dist)
+    # Real heights, shaded from the north-west.
+    e = ndimage.gaussian_filter(np.maximum(elev, 0), 0.7)
+    gy, gx = np.gradient(e)
+    shade = np.clip(0.55 + (-gx - gy) / 900.0, 0, 1)
+    # Colours by height, like an atlas: green lowland, yellow-brown upland, grey-brown
+    # mountains, white high peaks; dry country tinted sand.
+    stops = [(0, "#7DA35C"), (200, "#9AB66B"), (600, "#C8C584"), (1200, "#D2B67E"), (2200, "#B8916A"),
+             (3500, "#9C7D66"), (4600, "#B7AAA0"), (5600, "#F2F0EC")]
+    hs = np.array([s_[0] for s_ in stops], float)
+    cs = np.array([color(s_[1]) for s_ in stops])
+    base = np.stack([np.interp(e, hs, cs[:, k]) for k in range(3)], -1)
+    dryness = np.clip((-veg - 0.35) * 1.6, 0, 1) * (temp > 0.0)
+    base = lerp(base, color("#E2CD98"), dryness * np.clip(1 - e / 3500, 0, 1))
+    base = base * (0.72 + 0.56 * shade[..., None])
+    # Sea, deeper offshore.
+    depth = np.clip(-elev / 4000, 0, 1)
+    sea = lerp(color("#B6D7E8"), color("#5F92BD"), depth ** 0.5)
     rgb = lerp(sea, base, land)
-    # A parchment tint, like the novel's maps.
-    rgb = lerp(rgb, color("#E9DCB8"), np.full(rgb.shape[:2], 0.12))
-    # Shoreline.
+    rgb = lerp(rgb, color("#E9DCB8"), np.full(rgb.shape[:2], 0.10))
     coast = ndimage.binary_dilation(is_land) & ~ndimage.binary_erosion(is_land)
     rgb[coast] = rgb[coast] * 0.55 + color("#4E6F86") * 0.45
+    # Rivers and lakes, as they run in the world.
+    rs = up(ch["river_str"])
+    rd = up(ch["river_dist"])
+    wet = (rd < 24 + 40 * rs) & is_land & (rs > 0.15)
+    rgb[wet] = rgb[wet] * 0.25 + color("#3F78B5") * 0.75
 
     img = Image.fromarray((np.clip(rgb, 0, 1) * 255).astype(np.uint8), "RGB")
     d = ImageDraw.Draw(img, "RGBA")
-
-    # Rivers and lakes.
-    for name, line, strength in G.RIVERS:
-        pts = [hi(lo, la) for lo, la in line]
-        d.line(pts, fill=(70, 120, 175, 230), width=max(1, round(1 + 2 * strength)), joint="curve")
-    for lon, lat, km in G.LAKES:
-        x, y = hi(lon, lat)
-        r = km / G.KM_PX * S * 0.45
-        d.ellipse([x - r, y - r, x + r, y + r], fill=(80, 130, 185, 255))
 
     # The novel's provinces: thin borders inside, a strong line around the realm.
     provs = provinces(echarts_path)

@@ -1,211 +1,211 @@
 {
  "image": [
-  1472,
-  1048
+  2064,
+  1469
  ],
  "labels": [
   {
    "name": "Beijiang",
-   "x": 3328,
-   "z": -2640,
+   "x": 18605,
+   "z": -14814,
    "kind": "province"
   },
   {
    "name": "Chuanbei",
-   "x": -1812,
-   "z": 3103,
+   "x": -10154,
+   "z": 17374,
    "kind": "province"
   },
   {
    "name": "Chuannan",
-   "x": -1254,
-   "z": 4262,
+   "x": -7021,
+   "z": 23867,
    "kind": "province"
   },
   {
    "name": "Donghai",
-   "x": 2329,
-   "z": 644,
+   "x": 13040,
+   "z": 3607,
    "kind": "province"
   },
   {
    "name": "Guanxi",
-   "x": -1710,
-   "z": -310,
+   "x": -9575,
+   "z": -1737,
    "kind": "province"
   },
   {
    "name": "Heidong",
-   "x": -5194,
-   "z": -390,
+   "x": -29089,
+   "z": -2182,
    "kind": "province"
   },
   {
    "name": "Jiangchuan",
-   "x": 1072,
-   "z": 2773,
+   "x": 5995,
+   "z": 15548,
    "kind": "province"
   },
   {
    "name": "Jiangnan",
-   "x": 2478,
-   "z": 2154,
+   "x": 13873,
+   "z": 12082,
    "kind": "province"
   },
   {
    "name": "Jin Country",
-   "x": 4901,
-   "z": -4723,
+   "x": 27448,
+   "z": -26450,
    "kind": "province"
   },
   {
    "name": "Jingchu",
-   "x": -45,
-   "z": 1436,
+   "x": -278,
+   "z": 8069,
    "kind": "province"
   },
   {
    "name": "Jingdu",
-   "x": 1026,
-   "z": -1741,
+   "x": 5745,
+   "z": -9752,
    "kind": "province"
   },
   {
    "name": "Lingnan",
-   "x": 309,
-   "z": 4341,
+   "x": 1733,
+   "z": 24312,
    "kind": "province"
   },
   {
    "name": "Ludong",
-   "x": 1855,
-   "z": -697,
+   "x": 10393,
+   "z": -3888,
    "kind": "province"
   },
   {
    "name": "Minnan",
-   "x": 1806,
-   "z": 3384,
+   "x": 10112,
+   "z": 18968,
    "kind": "province"
   },
   {
    "name": "Mongolia",
-   "x": -472,
-   "z": -3173,
+   "x": -2644,
+   "z": -17767,
    "kind": "province"
   },
   {
    "name": "Qiongzhou",
-   "x": -896,
-   "z": 6131,
+   "x": -5015,
+   "z": 34331,
    "kind": "province"
   },
   {
    "name": "Shu",
-   "x": -2926,
-   "z": 1615,
+   "x": -16403,
+   "z": 9055,
    "kind": "province"
   },
   {
    "name": "Taiyuan",
-   "x": -49,
-   "z": -1189,
+   "x": -282,
+   "z": -6626,
    "kind": "province"
   },
   {
    "name": "Tibet",
-   "x": -7963,
-   "z": 1121,
+   "x": -44591,
+   "z": 6278,
    "kind": "province"
   },
   {
    "name": "Wannan",
-   "x": 1565,
-   "z": 1101,
+   "x": 8738,
+   "z": 6184,
    "kind": "province"
   },
   {
    "name": "West Turk",
-   "x": -8777,
-   "z": -2855,
+   "x": -49150,
+   "z": -15986,
    "kind": "province"
   },
   {
    "name": "Xiangnan",
-   "x": -238,
-   "z": 2766,
+   "x": -1335,
+   "z": 15530,
    "kind": "province"
   },
   {
    "name": "Yizhou",
-   "x": 2784,
-   "z": 4381,
+   "x": 15593,
+   "z": 24535,
    "kind": "province"
   },
   {
    "name": "Yunnan",
-   "x": -3656,
-   "z": 3943,
+   "x": -20358,
+   "z": 21950,
    "kind": "province"
   },
   {
    "name": "Zhongyuan",
-   "x": 384,
-   "z": 273,
+   "x": 2141,
+   "z": 1569,
    "kind": "province"
   },
   {
    "name": "Lianzhou Basin",
-   "x": -1042,
-   "z": 4819,
+   "x": -5836,
+   "z": 26984,
    "kind": "place"
   },
   {
    "name": "Korea",
-   "x": 4836,
-   "z": -1105,
+   "x": 27083,
+   "z": -6189,
    "kind": "foreign"
   },
   {
    "name": "Vietnam",
-   "x": -2231,
-   "z": 5574,
+   "x": -12493,
+   "z": 31214,
    "kind": "foreign"
   },
   {
    "name": "India",
-   "x": -10731,
-   "z": 4023,
+   "x": -60093,
+   "z": 22531,
    "kind": "foreign"
   },
   {
    "name": "Outer Mongolia",
-   "x": -3078,
-   "z": -4922,
+   "x": -17235,
+   "z": -27563,
    "kind": "foreign"
   },
   {
    "name": "Japan",
-   "x": 7670,
-   "z": -549,
+   "x": 42950,
+   "z": -3072,
    "kind": "foreign"
   },
   {
    "name": "Yellow Sea",
-   "x": 3599,
-   "z": -350,
+   "x": 20153,
+   "z": -1959,
    "kind": "sea"
   },
   {
    "name": "East Sea",
-   "x": 3924,
-   "z": 2036,
+   "x": 21976,
+   "z": 11399,
    "kind": "sea"
   },
   {
    "name": "South Sea",
-   "x": 668,
-   "z": 6409,
+   "x": 3739,
+   "z": 35890,
    "kind": "sea"
   }
  ]

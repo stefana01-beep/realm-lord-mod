@@ -30,7 +30,7 @@ import java.util.List;
 public class SpawnScreen extends Screen {
     private static final ResourceLocation MAP = RealmLord.id("textures/gui/china_map.png");
     /** Image pixels per map pixel (see tools/gen_china_atlas.py). */
-    private static final int IMAGE_SCALE = 2;
+    private static final int IMAGE_SCALE = 1;
 
     private record Label(String name, int x, int z, String kind) {}
 

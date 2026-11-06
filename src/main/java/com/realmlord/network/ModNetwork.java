@@ -80,6 +80,16 @@ public class ModNetwork {
                 .decoder(SpawnChoicePacket::new)
                 .consumerMainThread(SpawnChoicePacket::handle)
                 .add();
+        CHANNEL.messageBuilder(WorldInfoPacket.class, 13, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(WorldInfoPacket::encode)
+                .decoder(WorldInfoPacket::new)
+                .consumerMainThread(WorldInfoPacket::handle)
+                .add();
+        CHANNEL.messageBuilder(WorldInfoPacket.Request.class, 14, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(WorldInfoPacket.Request::encode)
+                .decoder(WorldInfoPacket.Request::new)
+                .consumerMainThread(WorldInfoPacket.Request::handle)
+                .add();
     }
 
     public static void toServer(Object packet) {

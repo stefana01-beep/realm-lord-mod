@@ -65,6 +65,7 @@ public class ForgeEvents {
         Profiles.applyAttributes(sp);
         Profiles.refreshName(sp);
         ModNetwork.sync(sp);
+        com.realmlord.network.WorldInfoPacket.send(sp);
         if (!Profiles.get(sp).hasChosen()) {
             // First the path; where in the world to begin follows it.
             Notify.player(sp, "realmlord.msg.welcome");

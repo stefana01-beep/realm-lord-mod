@@ -7,20 +7,24 @@ import net.minecraft.util.KeyDispatchDataCodec;
 import net.minecraft.world.level.levelgen.DensityFunction;
 
 /**
- * A density function that reads one climate channel from the China map, keeping a vanilla
- * noise function as fine detail. Used by the China world's noise settings.
+ * A density function that reads one terrain channel from the China map, with a vanilla noise
+ * function as fine detail, and another (the fallback, by default the detail itself) used beyond
+ * the map's edges. Used by the China world's noise settings.
  */
-public record ChinaDensity(String channel, DensityFunction detail, double detailAmount) implements DensityFunction {
+public record ChinaDensity(String channel, DensityFunction detail, double detailAmount, java.util.Optional<DensityFunction> fallback) implements DensityFunction {
     public static final MapCodec<ChinaDensity> DATA = RecordCodecBuilder.mapCodec(i -> i.group(
             Codec.STRING.fieldOf("channel").forGetter(ChinaDensity::channel),
             DensityFunction.HOLDER_HELPER_CODEC.fieldOf("detail").forGetter(ChinaDensity::detail),
-            Codec.DOUBLE.fieldOf("detail_amount").forGetter(ChinaDensity::detailAmount)
+            Codec.DOUBLE.fieldOf("detail_amount").forGetter(ChinaDensity::detailAmount),
+            DensityFunction.HOLDER_HELPER_CODEC.optionalFieldOf("fallback").forGetter(ChinaDensity::fallback)
     ).apply(i, ChinaDensity::new));
     public static final KeyDispatchDataCodec<ChinaDensity> CODEC = KeyDispatchDataCodec.of(DATA);
 
     @Override
     public double compute(FunctionContext ctx) {
-        return ChinaMap.value(channel, ctx.blockX(), ctx.blockZ(), detail.compute(ctx), detailAmount);
+        double d = detail.compute(ctx);
+        double f = fallback.isPresent() ? fallback.get().compute(ctx) : d;
+        return ChinaMap.value(channel, ctx.blockX(), ctx.blockZ(), d, detailAmount, f);
     }
 
     @Override
@@ -30,17 +34,17 @@ public record ChinaDensity(String channel, DensityFunction detail, double detail
 
     @Override
     public DensityFunction mapAll(Visitor visitor) {
-        return visitor.apply(new ChinaDensity(channel, detail.mapAll(visitor), detailAmount));
+        return visitor.apply(new ChinaDensity(channel, detail.mapAll(visitor), detailAmount, fallback.map(f -> f.mapAll(visitor))));
     }
 
     @Override
     public double minValue() {
-        return -2.0;
+        return -5.0;
     }
 
     @Override
     public double maxValue() {
-        return 2.0;
+        return 5.0;
     }
 
     @Override

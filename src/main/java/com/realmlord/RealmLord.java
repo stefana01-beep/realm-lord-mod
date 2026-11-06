@@ -25,6 +25,7 @@ public class RealmLord {
         ModItems.ITEMS.register(bus);
         ModEntities.ENTITIES.register(bus);
         com.realmlord.registry.ModWorldgen.DENSITY_FUNCTIONS.register(bus);
+        com.realmlord.registry.ModWorldgen.FEATURES.register(bus);
         ModCreativeTabs.TABS.register(bus);
         ModNetwork.register();
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, RealmConfig.SPEC);

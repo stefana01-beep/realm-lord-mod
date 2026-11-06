@@ -38,17 +38,17 @@ public final class SpawnPicker {
 
     public record Option(String key, int x, int z) {}
 
-    /** The China world's recommended regions: key and block position. */
+    /** The China world's recommended regions: key, longitude, latitude (a little off each city, on open land). */
     private static final Object[][] CHINA = {
-            {"shanhai", -1091, 5077},
-            {"central_plains", 40, 30},
-            {"guanzhong", -1143, 170},
-            {"sichuan", -2729, 1574},
-            {"jiangnan", 2068, 1018},
-            {"jingxiang", -101, 1026},
-            {"youyan", 1286, -2099},
-            {"fujian", 2000, 3860},
-            {"yunnan", -3980, 3582},
+            {"shanhai", 109.10, 21.85},
+            {"central_plains", 112.60, 34.70},
+            {"guanzhong", 108.80, 34.40},
+            {"sichuan", 104.00, 30.80},
+            {"jiangnan", 118.70, 31.90},
+            {"jingxiang", 112.20, 32.10},
+            {"youyan", 116.30, 39.80},
+            {"fujian", 118.50, 25.00},
+            {"yunnan", 100.25, 25.70},
     };
 
     /** Kinds of country to look for on ordinary worlds. */
@@ -76,7 +76,10 @@ public final class SpawnPicker {
 
     private static List<Option> china() {
         List<Option> out = new ArrayList<>();
-        for (Object[] c : CHINA) out.add(new Option("realmlord.spawn.china." + c[0], (int) c[1], (int) c[2]));
+        for (Object[] c : CHINA) {
+            int[] b = ChinaMap.blockOf((double) c[1], (double) c[2]);
+            out.add(new Option("realmlord.spawn.china." + c[0], b[0], b[1]));
+        }
         return out;
     }
 

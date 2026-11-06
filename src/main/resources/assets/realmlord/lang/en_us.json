@@ -27,6 +27,7 @@
   "key.realmlord.cycle_skill": "Next skill (sneak: previous)",
   "key.realmlord.panel": "Character panel",
   "key.realmlord.use_skill": "Use selected skill",
+  "key.realmlord.world_map": "World map",
   "realmlord.activity.admin": "Handling village affairs",
   "realmlord.activity.build": "Building",
   "realmlord.activity.chop": "Felling trees",
@@ -699,5 +700,10 @@
   "realmlord.work.veterinarian": "Veterinarian",
   "realmlord.work.veterinarian.desc": "Learns by feeding, breeding and taming animals. Animals you feed recover, and your own animals take less damage.",
   "realmlord.work.winemaker": "Winemaker",
-  "realmlord.work.winemaker.desc": "Learns by brewing and preparing sugar and honey. Potions you drink last longer."
+  "realmlord.work.winemaker.desc": "Learns by brewing and preparing sugar and honey. Potions you drink last longer.",
+  "realmlord.worldmap.at": "X %s, Z %s",
+  "realmlord.worldmap.at_real": "X %s, Z %s  (%s°N, %s°E)",
+  "realmlord.worldmap.me": "Find me",
+  "realmlord.worldmap.title": "World Map",
+  "realmlord.worldmap.whole": "Whole world"
 }
