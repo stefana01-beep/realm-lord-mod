@@ -76,6 +76,8 @@ You have **10 days** (Minecraft days, 20 real minutes each). The bandits are str
 2. **Free the settlers:** bandits hold them captive in a camp 150–220 blocks away, always on dry, fairly level ground (never on the sea, a lake, a river, a beach or a swamp): four swordsmen, two archers and their chief, all looking like players. Defeat them all.
 3. **Claim your reward** in the Quest tab.
 
+While you hunt the bandits, the ones from your camp within 128 blocks **glow with an outline** that only you can see, so they can't hide in jungle or tall grass. If you already rule a village, the quest is not needed and can't be started.
+
 The token's grade depends only on how quickly you finish. The Quest tab shows the time left and the token you'd get right now.
 
 | Finished within | Days left | Token |
@@ -89,10 +91,12 @@ As in the novel, the reward is the **village creation set**: a **Village Creatio
 
 **Bandits** drop copper coins and sometimes a building blueprint or a Bronze-grade weapon or armour piece. The **chief** drops his Black Iron-grade sword, a purse of silver and his ledger. The ledger points to the **chief's buried treasure** (optional): gold and silver coins, two building blueprints, a Silver-grade weapon and a Black Iron-grade piece of armour. The camp's barrels hold stolen grain and supplies.
 
-Freed settlers wait by the camp and move into your village when you found it, each with their own name. When you found the village, the novel's **founding tablet** rises before the Lord's Manor: a stone column three blocks tall bearing the village's name.
+**The bandits' spoils.** Clearing the camp gives you two Grade 1 village blueprints and 5 gold coins from the chief's strongbox. The supplies they had stolen (400 grain, 200 wood, 150 stone and 30 iron ore) are set aside and go straight into your village's stores when you found it.
+
+Freed settlers move into your village when you found it, but only while there are beds: the Lord's Manor sleeps ten, and the novel's ten refugees take those. The rest wait and move in as soon as you build housing (a Small Residential Courtyard has 20 beds). When you found the village, the novel's **founding tablet** rises before the Lord's Manor: a stone column three blocks tall bearing the village's name.
 
 **The cleared camp is yours to keep or salvage.** Once the bandits are gone, the chat and the Quest tab offer **Keep the camp** or **Salvage it** (also `/realm camp keep` or `/realm camp salvage`).
-- **Salvage it:** the whole camp is taken apart. Every tent pole, cloth, pen bar and log, the barrels, the hay and the campfire come back to you as items, along with anything still inside them. The trampled ground grows over, so no stray structure is left in the world.
+- **Salvage it:** the whole camp is taken apart. Its timber and stone go to your village's stores (or are set aside for them if you haven't founded it yet). The cloth, pen bars, barrels, hay and campfire come back to you as items, along with anything still inside them. The trampled ground grows over, so no stray structure is left in the world.
 - **Keep the camp:** it stays as it is.
 
 You can decide any time after clearing the camp, even after claiming your reward.
@@ -105,7 +109,7 @@ Run out of time or abandon the quest and you lose the right to found a village, 
 - **Blueprints:** many of the novel's buildings need one (Dining Hall, Small Residential Courtyard, Blacksmith Workshop and more). Keep them for Phase 2.
 
 ## Founding your village
-Use the token on the ground. A Lord's Manor is raised there, and your territory begins as a **Grade 1 Village** with a 64-block border (80 at Grade 2, 96 at Grade 3, up to 384 for a capital). The first village founded in the world earns 1,100 merit, the second 1,000 and so on down to 100; the first ten are announced to everyone. Rename the token in an anvil first to name your village. The territory keeps its token grade forever. Use the manor seal to open your territory panel.
+Use the token on the ground and **name your village** in the box that opens (an anvil name on the token fills it in). A Lord's Manor is raised there, and your territory begins as a **Grade 1 Village** with a 64-block border (80 at Grade 2, 96 at Grade 3, up to 384 for a capital). The first village founded in the world earns 1,100 merit, the second 1,000 and so on down to 100; the first ten are announced to everyone. The territory keeps its token grade forever. Use the manor seal to open your territory panel.
 
 The Territory tab shows what the next upgrade needs. These are the novel's requirements:
 
@@ -191,11 +195,23 @@ Press **M** anywhere to open the world map. Scroll to zoom, drag to move around,
 
 - **Map:** a top-down map of your territory, drawn like a vanilla map, showing your border, the Lord's Manor, every building and site, and you. Point at a building to see what it is, or click it to select it and **Demolish** it. **Fence gates** lets you move the fence's gates at any time; the posts change over at once. Choosing **Place** in Construction opens this map with the building's footprint following your mouse: green where it fits, red where it doesn't, with the door side marked. Click to place, right-click to turn, or switch to placing it in the world. You can also open the map anywhere from the **Territory map** button on your character panel (J).
 
-**Construction.** Starting a building takes its wood and stone from your stores, needs its blueprint to be known to your village, and needs a resident of the right trade where the novel requires one (a blacksmith for the Blacksmith Workshop, an officer for the Military Camp, and so on). Your builders walk to the site and work it by hand in three stages. First they **clear** it, felling trees and breaking whatever stands on the footprint, and keep the logs and stone they get. Then they **level** it, filling holes and dips beneath it with earth. Then they **build** it block by block, each one in a builder's hands as it goes up, never skipping a block whose ground isn't loaded. Before a building counts as finished, they go over the whole design once more and put right anything missing or knocked out of place. If no builder is nearby (say you are away and your village is still loaded), or they are stuck for 30 seconds, the village carries on without them. Five builders take the novel's listed time (12 hours for a Dining Hall, one real minute per hour by default). There is **no limit on builders**: each one adds work, so ten builders finish twice as fast as five. Carpenters, masons and Master Builders work faster.
+**Construction.** Starting a building takes its wood and stone from your stores, needs its blueprint to be known to your village, and needs a resident of the right trade where the novel requires one (a blacksmith for the Blacksmith Workshop, an officer for the Military Camp, and so on). Your builders walk to the site and work it by hand in three stages. First they **clear** it, felling trees and breaking whatever stands on the footprint. Everything useful goes **straight into the village's stores**: logs and planks as wood, stone, gravel and cobblestone as stone, iron ore, and sand, clay and earth as goods of their own; saplings go to the storehouse. The earth is used again to fill holes on other sites. Then they **level** it, filling holes and dips beneath it with earth. Then they **build** it block by block, each one in a builder's hands as it goes up, never skipping a block whose ground isn't loaded. Before a building counts as finished, they go over the whole design once more and put right anything missing or knocked out of place. If no builder is nearby (say you are away and your village is still loaded), or they are stuck for 30 seconds, the village carries on without them. Five builders take the novel's listed time (12 hours for a Dining Hall, one real minute per hour by default). There is **no limit on builders**: each one adds work, so ten builders finish twice as fast as five. Carpenters, masons and Master Builders work faster.
 - **Blueprints are learned, not used up:** right-click a blueprint to teach it to your village for good, then build that kind of building as often as you like. A blueprint you carry but haven't learned is learned the first time you build with it. Spare copies can be given away or sold on the Special Items platform. The Construction tab shows **Learned**, and the market marks blueprints you already know.
 - **Sites under way:** the list under the buildings scrolls with the arrows or the mouse wheel, showing which sites you're looking at (for example "4-6 of 9"). Each site has its own crew controls.
 - **Sharing builders:** builders are shared evenly among all the sites, so several buildings rise at once.
 - **Crews:** in the Construction tab, each site shows its builders with **−** and **+**. Setting a number yourself (shown in gold) gives that site a fixed crew, taking on idle residents if there aren't enough builders. Going below zero returns the site to sharing (grey). When a workshop is finished, a resident of its trade moves in to run it.
+
+**Paths.** On the territory map, click **Lay a path**, then click points along the way (up to 32; right-click removes the last). Choose a surface and a width of 1 to 3 blocks:
+
+| Surface | Cost per block |
+|---|---|
+| Dirt | free |
+| Gravel | 1 stone per 2 blocks |
+| Plank | 1 wood |
+| Cobblestone | 1 stone |
+| Stone brick | 2 stone |
+
+The cost is paid when you lay it out. Builders lay the path like any other site, keeping the way even: a ditch is bridged with earth and a hump is cut down. Paths go around buildings and the manor and stop short of the fence. Click a path on the map to select it; **Demolish** turns it back to grass. Paths don't speed up walking yet.
 
 **Buildings.** Every Village Grade 1–3 building from the novel:
 - **Grade 1:** Simple Fence, Dining Hall, Bathroom, Small Residential Courtyard (17 × 15, straw beds for 20), Blacksmith Workshop, Grocery Shop, Logging Field, Quarry, Farmland and Military Camp.
@@ -204,7 +220,8 @@ Press **M** anywhere to open the world map. Scroll to zoom, drag to move around,
 
 Each has its own look, in a style of stone plinths, red posts, white walls and dark tiled roofs.
 
-**Residents.** Your village begins as the novel's did, with ten refugees: a village chief (a Bronze civil servant), two fruit farmers, a carpenter, a mason and five farmers. Settlers you freed from the bandits join them.
+**Residents.** Your village begins as the novel's did, with ten refugees: a village chief (a Bronze civil servant), two fruit farmers, a carpenter, a mason and five farmers. Settlers you freed from the bandits join them as beds allow.
+- **Wandering refugees** roam the wilds in ones and twos. Any who come within 48 blocks of a village's border settle there if it has a free bed; if not, they move on and are gone after two days.
 - **Immigrants:** about 10 a day (more with a better token and happier people), but only into free housing (the manor holds 10, each courtyard 20) and up to your grade's limit (200, 500, 1,000).
 - **Talents:** some immigrants are special talents (blacksmiths, grocers, tailors, doctors, scholars, martial artists, potters, winemakers, cooks, hunters, fishermen, miners, stablemen, civil servants and officers). They're graded Bronze, Black Iron or Silver, with better stats and a specialty.
 - **Their card:** right-click a resident to open it. **Card** shows their grade, occupation and rank, loyalty, Command, Force, Intelligence, Politics, specialty and an evaluation. **Work** (Lord only) sets their job or the workshop they run. **Trade** lets anyone buy and sell with them, priced in copper. Craftsmen sell their best goods only while they work in their workshop; a visitor's purchases go into the village treasury.
