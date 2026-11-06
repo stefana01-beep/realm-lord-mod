@@ -19,6 +19,7 @@ public class ClientModEvents {
     @SubscribeEvent
     public static void renderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntities.BANDIT.get(), ctx -> new HumanRenderer<>(ctx, HumanRenderer::banditSkin));
+        event.registerEntityRenderer(ModEntities.FIRE_OIL.get(), net.minecraft.client.renderer.entity.ThrownItemRenderer::new);
         event.registerEntityRenderer(ModEntities.SETTLER.get(), ctx -> new HumanRenderer<>(ctx, HumanRenderer::settlerSkin));
     }
 }

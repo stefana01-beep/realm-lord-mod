@@ -35,6 +35,11 @@ public final class ClientAccess {
         net.minecraft.client.Minecraft.getInstance().setScreen(new NamingScreen(p));
     }
 
+    public static void guide() {
+        net.minecraft.client.Minecraft.getInstance().setScreen(new net.minecraft.client.gui.screens.inventory.BookViewScreen(
+                new net.minecraft.client.gui.screens.inventory.BookViewScreen.WrittenBookAccess(com.realmlord.item.GuideItem.book())));
+    }
+
     public static void open(int screen) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;

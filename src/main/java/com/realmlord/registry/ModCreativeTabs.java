@@ -25,6 +25,13 @@ public class ModCreativeTabs {
                 for (String b : com.realmlord.loot.Blueprints.VILLAGE_1) out.accept(com.realmlord.loot.Blueprints.of(b));
                 for (String b : com.realmlord.loot.Blueprints.VILLAGE_2) out.accept(com.realmlord.loot.Blueprints.of(b));
                 for (String b : com.realmlord.loot.Blueprints.VILLAGE_3) out.accept(com.realmlord.loot.Blueprints.of(b));
+                out.accept(ModItems.VILLAGE_GUIDE.get());
+                out.accept(ModItems.SALT.get());
+                out.accept(ModItems.MEDICINAL_HERBS.get());
+                out.accept(ModItems.THREE_FLOWER_WINE.get());
+                out.accept(ModItems.LINEN.get());
+                out.accept(ModItems.FINE_SILK.get());
+                out.accept(ModItems.FIRE_OIL.get());
                 out.accept(ModItems.BANDIT_LEDGER.get());
                 out.accept(ModItems.BANDIT_SPAWN_EGG.get());
                 out.accept(ModItems.SETTLER_SPAWN_EGG.get());

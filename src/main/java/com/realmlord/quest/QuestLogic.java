@@ -47,6 +47,9 @@ public final class QuestLogic {
         Profile p = Profiles.get(player);
         if (p.hasChosen()) return;
         p.chooseRole(mode, combat, work, player.getRandom());
+        // Everyone starts with the handbook.
+        net.minecraft.world.item.ItemStack guide = new net.minecraft.world.item.ItemStack(com.realmlord.registry.ModItems.VILLAGE_GUIDE.get());
+        if (!player.getInventory().add(guide)) player.drop(guide, false);
         Component occ = Component.translatable(combat != null ? combat.key() : work.key());
         if (mode == PlayMode.LORD) {
             Notify.player(player, Component.translatable("realmlord.msg.chose_lord", occ));

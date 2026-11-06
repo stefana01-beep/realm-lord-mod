@@ -94,9 +94,50 @@ public enum Goods {
         if (i == Items.COD || i == Items.SALMON) return new Unit(FISH, 1);
         if (i == Items.LEATHER) return new Unit(LEATHER, 1);
         if (i == Items.FLOWER_POT || i == Items.DECORATED_POT) return new Unit(POTTERY, 1);
+        if (i == com.realmlord.registry.ModItems.SALT.get()) return new Unit(SALT, 1);
+        if (i == com.realmlord.registry.ModItems.LINEN.get()) return new Unit(LINEN, 1);
+        if (i == com.realmlord.registry.ModItems.FINE_SILK.get()) return new Unit(FINE_SILK, 1);
+        if (i == com.realmlord.registry.ModItems.MEDICINAL_HERBS.get()) return new Unit(HERBS, 1);
+        if (i == com.realmlord.registry.ModItems.THREE_FLOWER_WINE.get()) return new Unit(WINE, 1);
+        if (i == com.realmlord.registry.ModItems.FIRE_OIL.get()) return new Unit(FIRE_OIL, 1);
         if (i == Items.IRON_PICKAXE || i == Items.IRON_AXE || i == Items.IRON_SHOVEL || i == Items.IRON_HOE) return new Unit(TOOLS, 1);
         if (i == Items.IRON_SWORD || i == Items.BOW || i == Items.CROSSBOW) return new Unit(WEAPONS, 1);
         return null;
+    }
+
+    /** The item a good is taken out of the stores as, and how many units each one holds. */
+    public Unit item() {
+        return new Unit(this, switch (this) {
+            case WOOD -> 2;
+            case FLOUR -> 3;
+            case CLAY -> 1;
+            default -> 1;
+        });
+    }
+
+    public Item itemOf() {
+        return switch (this) {
+            case GRAIN -> Items.WHEAT;
+            case WOOD -> Items.OAK_LOG;
+            case STONE -> Items.COBBLESTONE;
+            case IRON_ORE -> Items.RAW_IRON;
+            case SALT -> com.realmlord.registry.ModItems.SALT.get();
+            case MEAT -> Items.BEEF;
+            case FISH -> Items.COD;
+            case LEATHER -> Items.LEATHER;
+            case HERBS -> com.realmlord.registry.ModItems.MEDICINAL_HERBS.get();
+            case FLOUR -> Items.BREAD;
+            case WINE -> com.realmlord.registry.ModItems.THREE_FLOWER_WINE.get();
+            case POTTERY -> Items.FLOWER_POT;
+            case TOOLS -> Items.IRON_PICKAXE;
+            case WEAPONS -> Items.IRON_SWORD;
+            case LINEN -> com.realmlord.registry.ModItems.LINEN.get();
+            case FINE_SILK -> com.realmlord.registry.ModItems.FINE_SILK.get();
+            case FIRE_OIL -> com.realmlord.registry.ModItems.FIRE_OIL.get();
+            case SAND -> Items.SAND;
+            case CLAY -> Items.CLAY_BALL;
+            case EARTH -> Items.DIRT;
+        };
     }
 
     /**

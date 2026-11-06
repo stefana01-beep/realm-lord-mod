@@ -185,6 +185,8 @@ def add(L):
     L.update(ROUND_PATHS)
     L.update(ROUND_CLEARING)
     L.update(ROUND_SAFETY)
+    import gen_goods
+    gen_goods.lang(L)
 
 
 ROUND_PATHS = {

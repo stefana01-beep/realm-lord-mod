@@ -16,6 +16,10 @@ public class ModEntities {
             () -> EntityType.Builder.<BanditEntity>of(BanditEntity::new, MobCategory.MONSTER)
                     .sized(0.6F, 1.8F).clientTrackingRange(10).build(RealmLord.id("bandit").toString()));
 
+    public static final RegistryObject<EntityType<com.realmlord.entity.FireOilEntity>> FIRE_OIL = ENTITIES.register("fire_oil",
+            () -> EntityType.Builder.<com.realmlord.entity.FireOilEntity>of(com.realmlord.entity.FireOilEntity::new, MobCategory.MISC)
+                    .sized(0.25F, 0.25F).clientTrackingRange(4).updateInterval(10).build(RealmLord.id("fire_oil").toString()));
+
     public static final RegistryObject<EntityType<SettlerEntity>> SETTLER = ENTITIES.register("settler",
             () -> EntityType.Builder.<SettlerEntity>of(SettlerEntity::new, MobCategory.MISC)
                     .sized(0.6F, 1.8F).clientTrackingRange(10).build(RealmLord.id("settler").toString()));

@@ -61,6 +61,8 @@ public final class Trades {
                 l.add(buy(Items.RAW_IRON, 8, 300));
             }
             case GROCER -> {
+                l.add(sell(com.realmlord.registry.ModItems.SALT.get(), 8, 200, true));
+                l.add(sell(com.realmlord.registry.ModItems.FIRE_OIL.get(), 1, 150, true));
                 l.add(sell(Items.TORCH, 16, 60, true));
                 l.add(sell(Items.CANDLE, 4, 60, true));
                 l.add(sell(Items.STRING, 8, 60, true));
@@ -69,6 +71,8 @@ public final class Trades {
                 l.add(buy(Items.WHEAT, 16, 50));
             }
             case TAILOR -> {
+                l.add(sell(com.realmlord.registry.ModItems.LINEN.get(), 1, 1200, true));
+                l.add(sell(com.realmlord.registry.ModItems.FINE_SILK.get(), 1, 6000, true));
                 l.add(sell(Items.LEATHER_CHESTPLATE, 1, 400, true));
                 l.add(sell(Items.LEATHER_HELMET, 1, 250, true));
                 l.add(sell(Items.WHITE_WOOL, 8, 120, true));
@@ -76,6 +80,7 @@ public final class Trades {
                 l.add(buy(Items.LEATHER, 4, 120));
             }
             case DOCTOR -> {
+                l.add(sell(com.realmlord.registry.ModItems.MEDICINAL_HERBS.get(), 4, 120));
                 l.add(sell(Items.GLISTERING_MELON_SLICE, 1, 300));
                 l.add(sell(Items.HONEY_BOTTLE, 2, 200, true));
                 l.add(sell(Items.GOLDEN_CARROT, 2, 400, true));
@@ -99,10 +104,12 @@ public final class Trades {
                 l.add(buy(Items.CLAY_BALL, 16, 60));
             }
             case WINEMAKER -> {
+                l.add(sell(com.realmlord.registry.ModItems.THREE_FLOWER_WINE.get(), 1, 120, true));
                 l.add(sell(Items.HONEY_BOTTLE, 3, 240, true));
                 l.add(sell(Items.GLASS_BOTTLE, 8, 80));
                 l.add(sell(Items.SUGAR, 16, 80));
                 l.add(buy(Items.SWEET_BERRIES, 16, 40));
+                l.add(buy(Items.WHEAT, 16, 50));
             }
             case COOK -> {
                 l.add(sell(Items.COOKED_BEEF, 4, 120));

@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 
 /** Client to server: buttons on the Manor screen. */
 public class ManorActionPacket {
-    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT, DEMOLISH, CREW, BUY_GOOD, SELL_GOOD, SELL_SPECIAL, HAND_IN, SELL_STORAGE, OPEN_STORAGE }
+    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT, DEMOLISH, CREW, BUY_GOOD, SELL_GOOD, SELL_SPECIAL, HAND_IN, SELL_STORAGE, OPEN_STORAGE, TAKE_GOOD }
 
     private final Action action;
     private final int a;
@@ -83,6 +83,12 @@ public class ManorActionPacket {
                 var g = com.realmlord.village.Goods.byOrdinal(a);
                 long units = b < 0 && g != null ? g.stock(t) : Math.max(1, Math.min(100_000, b));
                 if (units <= 0 || !Village.sellGood(p, t, g, units)) Notify.player(p, "realmlord.market.not_enough");
+            }
+            case TAKE_GOOD -> {
+                var g = com.realmlord.village.Goods.byOrdinal(a);
+                int n = Village.takeGood(p, t, g, (int) Math.max(1, Math.min(640, b)));
+                if (n <= 0) Notify.player(p, "realmlord.market.not_enough");
+                else p.displayClientMessage(Component.translatable("realmlord.market.taken", n, new net.minecraft.world.item.ItemStack(g.itemOf()).getHoverName()), true);
             }
             case SELL_SPECIAL -> {
                 long got = Village.sellSpecial(p);

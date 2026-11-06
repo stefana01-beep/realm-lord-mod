@@ -465,6 +465,14 @@ public class ManorScreen extends Screen {
                             .bounds(x + bx[k], ry - 3, bw[k], 13).tooltip(Tooltip.create(tip)).build());
                 }
             }
+            for (int r = 0; r < GOOD_ROWS && r + scroll < n; r++) {
+                Goods g = Goods.values()[r + scroll];
+                int ry = y + 70 + r * 15;
+                addRenderableWidget(Button.builder(Component.translatable("realmlord.market.take"),
+                                b -> send(ManorActionPacket.Action.TAKE_GOOD, g.ordinal(), hasShiftDown() ? new net.minecraft.world.item.ItemStack(g.itemOf()).getMaxStackSize() : 1))
+                        .bounds(x + 190, ry - 3, 30, 13).tooltip(Tooltip.create(Component.translatable("realmlord.market.take.tip",
+                                new net.minecraft.world.item.ItemStack(g.itemOf()).getHoverName(), g.item().units()))).build());
+            }
             int by = y + H - 30;
             addRenderableWidget(Button.builder(Component.translatable("realmlord.storage.open"), b -> send(ManorActionPacket.Action.OPEN_STORAGE, 0, 0))
                     .bounds(x + 8, by, 120, 16).tooltip(Tooltip.create(Component.translatable("realmlord.storage.open.tip"))).build());

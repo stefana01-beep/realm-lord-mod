@@ -57,6 +57,12 @@ public final class RealmCommand {
                     com.realmlord.territory.SpawnPicker.offer(c.getSource().getPlayerOrException());
                     return 1;
                 }))
+                .then(Commands.literal("guide").executes(c -> {
+                    ServerPlayer p = c.getSource().getPlayerOrException();
+                    ItemStack g = new ItemStack(ModItems.VILLAGE_GUIDE.get());
+                    if (!p.getInventory().add(g)) p.drop(g, false);
+                    return 1;
+                }))
                 .then(Commands.literal("trust")
                         .then(Commands.argument("player", EntityArgument.player()).executes(c -> trust(c, EntityArgument.getPlayer(c, "player"), true))))
                 .then(Commands.literal("untrust")

@@ -54,6 +54,20 @@ public class ModItems {
     public static final RegistryObject<Item> SUMMONING_TOKEN = ITEMS.register("summoning_token",
             () -> new SummoningTokenItem(new Item.Properties().stacksTo(16).rarity(Rarity.EPIC).fireResistant()));
 
+    // The novel's goods, made in the village's workshops and traded on the market.
+    public static final RegistryObject<Item> SALT = ITEMS.register("salt", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> LINEN = ITEMS.register("linen", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> FINE_SILK = ITEMS.register("fine_silk", () -> new Item(new Item.Properties().rarity(Rarity.UNCOMMON)));
+    public static final RegistryObject<Item> MEDICINAL_HERBS = ITEMS.register("medicinal_herbs", () -> new Item(new Item.Properties()
+            .food(new net.minecraft.world.food.FoodProperties.Builder().nutrition(1).saturationMod(0.1F).alwaysEat().fast()
+                    .effect(() -> new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.REGENERATION, 100, 1), 1.0F).build())));
+    public static final RegistryObject<Item> THREE_FLOWER_WINE = ITEMS.register("three_flower_wine",
+            () -> new com.realmlord.item.WineItem(new Item.Properties().stacksTo(16)));
+    public static final RegistryObject<Item> FIRE_OIL = ITEMS.register("fire_oil",
+            () -> new com.realmlord.item.FireOilItem(new Item.Properties().stacksTo(16)));
+    public static final RegistryObject<Item> VILLAGE_GUIDE = ITEMS.register("village_guide",
+            () -> new com.realmlord.item.GuideItem(new Item.Properties().stacksTo(1)));
+
     public static final RegistryObject<Item> BANDIT_LEDGER = ITEMS.register("bandit_ledger",
             () -> new BanditLedgerItem(new Item.Properties().stacksTo(1)));
 

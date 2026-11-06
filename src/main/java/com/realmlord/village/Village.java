@@ -1150,6 +1150,27 @@ public final class Village {
     }
 
     /** Sells the village's goods at the market; the coins go to the Lord, less the 20% tax. */
+    /**
+     * Takes goods out of the stores as items into the Lord's pack (up to count items; what does
+     * not fit falls at their feet). Returns how many items were taken.
+     */
+    public static int takeGood(ServerPlayer p, Territory t, Goods g, int count) {
+        if (g == null || count <= 0) return 0;
+        Goods.Unit u = g.item();
+        int n = (int) Math.min(count, g.stock(t) / u.units());
+        if (n <= 0) return 0;
+        g.add(t, -(long) n * u.units());
+        net.minecraft.world.item.Item item = g.itemOf();
+        int left = n;
+        while (left > 0) {
+            int batch = Math.min(left, new net.minecraft.world.item.ItemStack(item).getMaxStackSize());
+            net.minecraft.world.item.ItemStack st = new net.minecraft.world.item.ItemStack(item, batch);
+            if (!p.getInventory().add(st)) p.drop(st, false);
+            left -= batch;
+        }
+        return n;
+    }
+
     public static boolean sellGood(ServerPlayer p, Territory t, Goods g, long units) {
         if (g == null || units <= 0 || g.stock(t) < units) return false;
         g.add(t, -units);
