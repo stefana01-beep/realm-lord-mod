@@ -12,8 +12,23 @@ public final class GaiaCalendar {
     public static final int[] SOWING_MONTHS = {4, 7};
     public static final int GROWING_MONTHS = 3;
 
-    public static long day(long gameTime) {
-        return gameTime / RealmConfig.ticksPerNovelDay();
+    /** A novel day is a Minecraft day: 24,000 ticks, from one sunrise to the next. */
+    public static final long TICKS_PER_DAY = 24000L;
+
+    /** The day number for a count of ticks. */
+    public static long day(long ticks) {
+        return ticks / TICKS_PER_DAY;
+    }
+
+    /**
+     * Today's novel day, from the time of day in the main world, so sleeping through the night
+     * (or /time) brings the next day at once. If the daylight cycle is switched off, the days
+     * follow the world's running time instead, so villages still live on.
+     */
+    public static long today(net.minecraft.server.MinecraftServer server) {
+        net.minecraft.server.level.ServerLevel w = server.overworld();
+        boolean cycle = w.getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_DAYLIGHT);
+        return day(cycle ? w.getDayTime() : w.getGameTime());
     }
 
     public static int year(long day) {

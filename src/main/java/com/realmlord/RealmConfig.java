@@ -33,7 +33,7 @@ public final class RealmConfig {
         b.push("time");
         TICKS_PER_NOVEL_HOUR = b.comment("Game ticks per hour of novel time, used for construction times and other timers. 1200 ticks = 1 real minute, so a 24-hour building takes about 24 minutes.")
                 .defineInRange("ticksPerNovelHour", 1200, 20, 72000);
-        DAYS_PER_MONTH = b.comment("Novel days in each month of the Gaia calendar. Sowing happens in months 4 and 7, harvest three months later. With 2, a year is 24 novel days (about 10 real hours).")
+        DAYS_PER_MONTH = b.comment("Novel days in each month of the Gaia calendar. Sowing happens in months 4 and 7, harvest three months later. With 2, a year is 24 novel days (8 real hours, a novel day being one Minecraft day).")
                 .defineInRange("daysPerMonth", 2, 1, 30);
         b.pop();
 

@@ -577,6 +577,48 @@ public class LaborTests {
         VillageTests.done(helper, p, t);
     }
 
+    @GameTest(template = "empty", timeoutTicks = 200, batch = "labor_sleep")
+    public static void sleepingBringsANewDay(GameTestHelper helper) {
+        ServerPlayer p = RealmTests.lord(helper, CombatClass.GENERAL);
+        Territory t = VillageTests.village(helper, p, 7600);
+        ServerLevel level = helper.getLevel();
+        var server = level.getServer();
+        var world = server.overworld();
+        var rule = world.getGameRules().getRule(net.minecraft.world.level.GameRules.RULE_DAYLIGHT);
+        boolean wasCycle = rule.get();
+        long wasTime = world.getDayTime();
+        rule.set(true, server);
+        // Room for newcomers: a courtyard's twenty beds, plenty of food, a content village.
+        VillageTests.built(t, BuildingType.SMALL_RESIDENTIAL_COURTYARD);
+        t.food = 10_000;
+        t.peopleThoughts = 80;
+        // Evening of some day.
+        long night = (wasTime / 24000L + 3) * 24000L + 18000L;
+        world.setDayTime(night);
+        t.lastDay = night / 24000L;
+        Village.tick(server, t);
+        long before = t.lastDay;
+        int people = t.residents.size();
+        helper.assertTrue(before == night / 24000L, "the village should be on today's date: " + before + " vs " + night / 24000L);
+        // Sleeping through the night: the game sets the clock to the next sunrise.
+        long l = world.getDayTime() + 24000L;
+        world.setDayTime(l - l % 24000L);
+        Village.tick(server, t);
+        helper.assertTrue(t.lastDay == before + 1, "sleeping should bring the next day: " + before + " -> " + t.lastDay);
+        helper.assertTrue(t.residents.size() > people, "newcomers should arrive with the new day when there are beds: " + people + " -> " + t.residents.size());
+        helper.assertTrue(t.ledger[Village.LEDGER_ARRIVED] > 0 && t.ledger[Village.LEDGER_DAY] == before + 1, "the new day's ledger is missing");
+        // No beds, no newcomers.
+        while (Village.openBeds(t) > 0) Village.add(t, Resident.random(level.getRandom(), com.realmlord.village.Occupation.FARMER, 0));
+        int full = t.residents.size();
+        l = world.getDayTime() + 24000L;
+        world.setDayTime(l - l % 24000L);
+        Village.tick(server, t);
+        helper.assertTrue(t.residents.size() <= full, "newcomers arrived with no beds for them");
+        rule.set(wasCycle, server);
+        world.setDayTime(wasTime);
+        VillageTests.done(helper, p, t);
+    }
+
     private static int[] column(Building path, int x, int z) {
         for (int i = 0; i + 3 < path.pathCols.length; i += 4)
             if (path.pathCols[i] == x && path.pathCols[i + 2] == z) return java.util.Arrays.copyOfRange(path.pathCols, i, i + 4);

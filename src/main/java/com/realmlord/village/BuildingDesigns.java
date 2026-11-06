@@ -667,7 +667,7 @@ public final class BuildingDesigns {
     }
 
     private static void farm(Canvas c, int w, int d, Building b, ServerLevel level) {
-        double growth = Village.growth(b, GaiaCalendar.day(level.getServer().overworld().getGameTime()));
+        double growth = Village.growth(b, GaiaCalendar.today(level.getServer()));
         int age = (int) Math.round(growth * 7);
         for (int x = 1; x < w - 1; x++)
             for (int z = 1; z < d - 1; z++) {

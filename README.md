@@ -260,7 +260,7 @@ Each has its own look, in a style of stone plinths, red posts, white walls and d
   - **No gaps:** a stretch lower than its neighbours stands taller so the wall never leaves a gap, and trees in the way are felled whole.
   - **Rebuilding:** moving gates, a fence built to the older post-and-rail design, and a village becoming a town all send the builders back to change the wall over, at no cost.
 
-**The day.** Every novel day (24 real minutes by default):
+**The day.** A novel day is one Minecraft day, from sunrise to sunrise (20 real minutes). **Sleeping through the night starts the next day at once**, with everything below happening as you wake. Every day:
 - Loggers cut 10 wood each, quarrymen 5 stone and miners 2 iron ore, more with the right trade and your token's production bonus.
 - Everyone eats 1 food.
 - Taxes come in.
@@ -284,7 +284,7 @@ Villages already at Grade 2 or 3 get their residence the next time the manor is 
 ## Server settings
 `config/realmlord-common.toml`:
 - `lordRestriction` (default **off**): the novel's rule that Lords cannot leave their territory except for war. Other dimensions are exempt.
-- `ticksPerNovelHour` (default 1200, one real minute): construction times and the length of a novel day.
+- `ticksPerNovelHour` (default 1200, one real minute): construction times. (A novel day is always one Minecraft day; with the daylight cycle switched off, days follow the world's running time.)
 - `daysPerMonth` (default 2): the Gaia calendar's month length, which sets how often you can sow and harvest.
 - `visibleResidents` (default 48): how many residents walk around a village at once.
 - `protectTerritories` (default **on**): only a territory's Lord and the players they trust may build, break or open chests there; the Lord's Manor chests are the Lord's alone. Operators are exempt.

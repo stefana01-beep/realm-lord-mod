@@ -93,7 +93,7 @@ public final class Founding {
             Notify.player(player, Component.translatable("realmlord.found.spoils", t.food, t.wood, t.stone, t.ironOre));
         }
         if (t.waitingSettlers > 0) Notify.player(player, Component.translatable("realmlord.found.waiting", t.waitingSettlers));
-        t.lastDay = com.realmlord.village.GaiaCalendar.day(level.getServer().overworld().getGameTime());
+        t.lastDay = com.realmlord.village.GaiaCalendar.today(level.getServer());
 
         int merit = foundingMerit(t.foundedOrder);
         Component ordinal = Component.translatable("realmlord.ordinal", t.foundedOrder);

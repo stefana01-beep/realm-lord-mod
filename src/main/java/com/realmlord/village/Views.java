@@ -54,7 +54,7 @@ public final class Views {
         v.putLong("foodUse", Village.foodUse(t));
         v.putLongArray("output", Village.dailyOutput(t));
         v.putIntArray("indexes", Village.indexes(t));
-        long day = GaiaCalendar.day(level.getServer().overworld().getGameTime());
+        long day = GaiaCalendar.today(level.getServer());
         v.putIntArray("date", new int[]{GaiaCalendar.year(day), GaiaCalendar.month(day), GaiaCalendar.dayOfMonth(day)});
         v.putLong("coins", Coins.count(p));
         v.putInt("cx", t.center.getX());

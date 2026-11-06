@@ -338,8 +338,10 @@ public final class Village {
 
     /** Simulates any novel days that have passed since the territory was last updated. */
     public static void catchUp(ServerLevel level, Territory t) {
-        long today = GaiaCalendar.day(level.getServer().overworld().getGameTime());
-        if (t.lastDay < 0) {
+        long today = GaiaCalendar.today(level.getServer());
+        // A jump the village can't have lived through (the clock set back, or far forward by a
+        // command, or the change to Minecraft days): start counting again from today.
+        if (t.lastDay < 0 || t.lastDay > today || today - t.lastDay > 30) {
             t.lastDay = today;
             return;
         }
@@ -925,7 +927,7 @@ public final class Village {
 
     /** Tells the Lord (if online) and writes it in the village log. */
     public static void tell(ServerLevel level, Territory t, Component msg) {
-        t.addLog(GaiaCalendar.day(level.getServer().overworld().getGameTime()), msg);
+        t.addLog(GaiaCalendar.today(level.getServer()), msg);
         ServerPlayer owner = t.owner == null ? null : level.getServer().getPlayerList().getPlayer(t.owner);
         if (owner != null) Notify.player(owner, msg);
     }
