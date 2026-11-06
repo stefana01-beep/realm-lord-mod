@@ -210,7 +210,48 @@ public final class BuildingDesigns {
             case SHED -> shed(c, w, d, b.type);
             default -> hall(c, w, d, 4, true);
         }
+        if (b.type.style == BuildingType.Style.TOWER && onWall(t, b)) sealTower(c, t, b);
         return c.build();
+    }
+
+    /** True if a tower stands on the fence ring. */
+    public static boolean onWall(Territory t, Building b) {
+        BlockPos mid = b.center();
+        for (Building f : t.buildings) {
+            if (f.type != BuildingType.SIMPLE_FENCE || f.demolishing) continue;
+            int fr = f.fenceRadius > 0 ? f.fenceRadius : t.radius() - 2;
+            double dist = Math.hypot(mid.getX() - t.center.getX(), mid.getZ() - t.center.getZ());
+            if (Math.abs(dist - fr) <= 2.5) return true;
+        }
+        return false;
+    }
+
+    /**
+     * A tower standing in the wall must not be a way through it: below the wall-top its sides are
+     * closed except the one facing into the village (or the next one, if that side holds the ladder).
+     */
+    private static void sealTower(Canvas c, Territory t, Building b) {
+        BlockPos mid = b.center();
+        BlockState solid = b.type == BuildingType.SENTRY_POST ? Blocks.STONE_BRICKS.defaultBlockState() : Blocks.SPRUCE_LOG.defaultBlockState();
+        List<BlockPos> sides = new ArrayList<>();
+        for (Direction d : Direction.Plane.HORIZONTAL) sides.add(mid.relative(d));
+        sides.sort(Comparator.comparingDouble(p -> p.distSqr(new BlockPos(t.center.getX(), p.getY(), t.center.getZ()))));
+        BlockPos open = null;
+        for (BlockPos sd : sides) {
+            BlockState now = c.blocks.get(sd);
+            if (now == null || now.isAir()) {
+                open = sd;
+                break;
+            }
+        }
+        for (BlockPos sd : sides) {
+            if (sd.equals(open)) continue;
+            for (int y = 0; y <= 2; y++) {
+                BlockPos at = sd.above(y);
+                BlockState now = c.blocks.get(at);
+                if (now == null || now.isAir()) c.blocks.put(at, solid);
+            }
+        }
     }
 
     // ------------------------------------------------------------------ halls
