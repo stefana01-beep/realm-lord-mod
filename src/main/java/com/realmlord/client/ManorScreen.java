@@ -110,6 +110,11 @@ public class ManorScreen extends Screen {
                 .bounds(x + 120, y + 150, 70, 14).build();
         wd.active = treasury > 0;
         addRenderableWidget(wd);
+        long purse = com.realmlord.network.ClientProfileData.purse;
+        Button dep = Button.builder(Component.translatable("realmlord.manor.deposit"), b -> send(ManorActionPacket.Action.DEPOSIT, 0, purse))
+                .bounds(x + 120, y + 166, 70, 14).tooltip(Tooltip.create(Component.translatable("realmlord.manor.deposit.tip"))).build();
+        dep.active = purse > 0;
+        addRenderableWidget(dep);
         Button up = Button.builder(Component.translatable("realmlord.manor.upgrade"), b -> send(ManorActionPacket.Action.UPGRADE, 0, 0))
                 .bounds(x + W - 90, y + H - 24, 80, 16).build();
         up.active = v.getBoolean("canUpgrade");
@@ -147,7 +152,8 @@ public class ManorScreen extends Screen {
         }
         yy += 4;
         yy = line(g, lx, yy, Component.translatable("realmlord.manor.treasury", Ui.money(v.getLong("treasury"))));
-        line(g, lx, yy, Component.translatable("realmlord.manor.tax", Ui.money(v.getLong("tax"))));
+        yy = line(g, lx, yy, Component.translatable("realmlord.manor.tax", Ui.money(v.getLong("tax"))));
+        line(g, lx, yy + 4, Component.translatable("realmlord.manor.purse", Ui.money(com.realmlord.network.ClientProfileData.purse)));
 
         // Stores and indexes
         int rx = x + 202, ry = y + 42;

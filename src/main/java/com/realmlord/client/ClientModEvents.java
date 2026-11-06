@@ -12,6 +12,12 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid = RealmLord.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientModEvents {
     @SubscribeEvent
+    public static void setup(net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent event) {
+        event.enqueueWork(() -> net.minecraft.client.gui.screens.MenuScreens.<net.minecraft.world.inventory.ChestMenu, StorehouseScreen>register(
+                com.realmlord.registry.ModMenus.STOREHOUSE.get(), StorehouseScreen::new));
+    }
+
+    @SubscribeEvent
     public static void overlays(RegisterGuiOverlaysEvent event) {
         event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "realm_hud", RealmHud.OVERLAY);
     }

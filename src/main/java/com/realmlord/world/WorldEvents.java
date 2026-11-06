@@ -24,6 +24,21 @@ public final class WorldEvents {
     public static void playerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.END || !(event.player instanceof ServerPlayer sp) || sp.tickCount % 20 != 0) return;
         Dens.tick(sp);
+        // Coins carried go into the purse, off the inventory.
+        if (sp.tickCount % 40 == 0) com.realmlord.village.Coins.pocket(sp);
+    }
+
+    /** Coins picked up go straight into the purse. */
+    @SubscribeEvent
+    public static void pickup(net.minecraftforge.event.entity.player.EntityItemPickupEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer sp)) return;
+        var item = event.getItem();
+        long v = com.realmlord.item.CoinItem.copperValue(item.getItem());
+        if (v <= 0) return;
+        event.setCanceled(true);
+        sp.take(item, item.getItem().getCount());
+        item.discard();
+        com.realmlord.village.Coins.addToPurse(sp, v);
     }
 
     /** No sleeping through a beastwave: the beasts are at the gates. */

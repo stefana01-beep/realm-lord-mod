@@ -33,6 +33,7 @@ public class SyncProfilePacket {
             data.writeVarInt(p.addedStat(s));
         }
         data.writeVarLong(p.getMerit());
+        data.writeVarLong(p.getPurse());
         for (var i : com.realmlord.profile.Innate.values()) data.writeVarInt(p.innate(i));
         data.writeVarLong(p.getReputation());
         data.writeVarInt(p.getTitle().ordinal());
@@ -120,6 +121,7 @@ public class SyncProfilePacket {
         ClientProfileData.base = base;
         ClientProfileData.added = added;
         ClientProfileData.merit = b.readVarLong();
+        ClientProfileData.purse = b.readVarLong();
         int[] innate = new int[4];
         for (int i = 0; i < 4; i++) innate[i] = b.readVarInt();
         ClientProfileData.innate = innate;

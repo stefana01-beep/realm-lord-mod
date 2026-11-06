@@ -32,6 +32,8 @@ public class Profile {
     private final int[] added = new int[Stat.values().length];
     private final int[] innate = new int[Innate.values().length];
     private long merit;
+    /** Coins carried in the purse, in copper: kept off the inventory, as the novel's system bag does. */
+    private long purse;
     private long reputation;
     private int workLevel = 1;
     private long workXp;
@@ -288,6 +290,15 @@ public class Profile {
         markDirty();
     }
 
+    public long getPurse() {
+        return purse;
+    }
+
+    public void setPurse(long copper) {
+        purse = Math.max(0, copper);
+        markDirty();
+    }
+
     public void setMerit(long m) {
         merit = Math.max(0, m);
         markDirty();
@@ -366,6 +377,7 @@ public class Profile {
         t.putIntArray("base", base);
         t.putIntArray("added", added);
         t.putLong("merit", merit);
+        t.putLong("purse", purse);
         t.putIntArray("innate", innate);
         t.putLong("reputation", reputation);
         t.putInt("ver", DATA_VERSION);
@@ -391,6 +403,7 @@ public class Profile {
         copyInto(t.getIntArray("base"), base);
         copyInto(t.getIntArray("added"), added);
         merit = t.getLong("merit");
+        purse = t.getLong("purse");
         copyInto(t.getIntArray("innate"), innate);
         reputation = t.getLong("reputation");
         workLevel = Math.max(1, t.getInt("workLevel"));

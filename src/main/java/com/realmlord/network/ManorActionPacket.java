@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 
 /** Client to server: buttons on the Manor screen. */
 public class ManorActionPacket {
-    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT, DEMOLISH, CREW, BUY_GOOD, SELL_GOOD, SELL_SPECIAL, HAND_IN, SELL_STORAGE, OPEN_STORAGE, TAKE_GOOD, GROUNDS }
+    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT, DEMOLISH, CREW, BUY_GOOD, SELL_GOOD, SELL_SPECIAL, HAND_IN, SELL_STORAGE, OPEN_STORAGE, TAKE_GOOD, GROUNDS, DEPOSIT }
 
     private final Action action;
     private final int a;
@@ -116,15 +116,27 @@ public class ManorActionPacket {
                 Notify.player(p, Component.translatable("realmlord.storage.sold", com.realmlord.village.Coins.format(got)));
             }
             case OPEN_STORAGE -> {
-                p.openMenu(new net.minecraft.world.SimpleMenuProvider(
-                        (win, inv, pl) -> net.minecraft.world.inventory.ChestMenu.sixRows(win, inv, t.storage),
-                        Component.translatable("realmlord.storage.title", t.name)));
+                // The storehouse keeps itself in order: it is tidied each time it is opened.
+                com.realmlord.menu.Sorting.sort(t.storage, 0, t.storage.getContainerSize());
+                int pages = t.storage.getContainerSize() / com.realmlord.menu.StorehouseMenu.PAGE;
+                net.minecraftforge.network.NetworkHooks.openScreen(p, new net.minecraft.world.SimpleMenuProvider(
+                        (win, inv, pl) -> new com.realmlord.menu.StorehouseMenu(win, inv, t.storage, data::touch),
+                        Component.translatable("realmlord.storage.title", t.name)), buf -> buf.writeVarInt(pages));
                 data.touch();
                 return;
             }
             case BUY_BLUEPRINT -> {
                 BuildingType type = BuildingType.byOrdinal(a);
                 if (type == null || !Village.buyBlueprint(p, type)) Notify.player(p, "realmlord.market.cannot_afford");
+            }
+            case DEPOSIT -> {
+                // From the purse (and any coins carried) into the manor's treasury, for the market later.
+                Coins.pocket(p);
+                long amount = Math.max(0, Math.min(Coins.purse(p), b));
+                if (amount > 0 && Coins.pay(p, amount)) {
+                    t.treasury += amount;
+                    Notify.player(p, Component.translatable("realmlord.manor.deposited", Coins.format(amount)));
+                }
             }
             case WITHDRAW -> {
                 long amount = Math.max(0, Math.min(t.treasury, b));

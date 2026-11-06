@@ -343,14 +343,15 @@ public final class Sites {
     }
 
     /**
-     * What clearing a site turns up goes straight to the village's stores: timber, stone, ore,
-     * sand, clay and earth as stock, saplings to the storehouse for replanting. The rest is left.
+     * What clearing a site turns up goes straight to the village's stores: timber, stone, iron
+     * ore, sand, clay and earth as stock; everything else (coal, copper, gold, gems, flint,
+     * saplings, seeds and the rest) into the manor storehouse.
      */
     public static void toStores(Territory t, ItemStack drop) {
         Goods.Unit u = Goods.of(drop);
         if (u != null) {
             u.good().add(t, (long) u.units() * drop.getCount());
-        } else if (drop.is(net.minecraft.tags.ItemTags.SAPLINGS)) {
+        } else if (!drop.isEmpty()) {
             t.storage.addItem(drop);
         }
     }

@@ -304,7 +304,7 @@ public class SettlerEntity extends PathfinderMob {
     // ------------------------------------------------------------------ fighting
 
     /** What the village's fighters go for: monsters, bandits and the wild beasts (not the grazing ox). */
-    public static boolean hostile(LivingEntity e) {
+    public static boolean hostile(net.minecraft.world.entity.LivingEntity e) {
         if (e instanceof SettlerEntity || !e.isAlive()) return false;
         if (e instanceof com.realmlord.entity.beast.WildOxEntity ox) return ox.getTarget() != null;
         return e instanceof net.minecraft.world.entity.monster.Enemy || e instanceof BanditEntity

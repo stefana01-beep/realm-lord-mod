@@ -105,6 +105,11 @@ public class ModNetwork {
                 .decoder(FoundVillagePacket::new)
                 .consumerMainThread(FoundVillagePacket::handle)
                 .add();
+        CHANNEL.messageBuilder(ChestActionPacket.class, 20, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ChestActionPacket::encode)
+                .decoder(ChestActionPacket::new)
+                .consumerMainThread(ChestActionPacket::handle)
+                .add();
         CHANNEL.messageBuilder(ClearAreaPacket.class, 19, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(ClearAreaPacket::encode)
                 .decoder(ClearAreaPacket::new)

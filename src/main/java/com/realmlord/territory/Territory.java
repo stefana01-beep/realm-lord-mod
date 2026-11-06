@@ -32,7 +32,9 @@ public class Territory {
     public final long[] goods = new long[com.realmlord.village.Goods.values().length];
     public final double[] goodsCarry = new double[com.realmlord.village.Goods.values().length];
     /** The Lord's Manor storehouse: anything else the Lord keeps for later. */
-    public final net.minecraft.world.SimpleContainer storage = new net.minecraft.world.SimpleContainer(54);
+    public final net.minecraft.world.SimpleContainer storage = new net.minecraft.world.SimpleContainer(STORAGE_PAGES * 54);
+    /** Pages of a double chest's worth in the storehouse. */
+    public static final int STORAGE_PAGES = 10;
     /** Building blueprints the village has learned (building ids): built as often as wanted. */
     public final java.util.Set<String> blueprints = new java.util.LinkedHashSet<>();
     /** People's Thoughts and Security (the novel's "Law and Order"), 0-100. */

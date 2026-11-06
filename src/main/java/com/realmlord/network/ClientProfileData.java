@@ -5,6 +5,9 @@ package com.realmlord.network;
  * with no client-only types, so it is safe to load on a dedicated server.
  */
 public final class ClientProfileData {
+    /** Coins in the purse, in copper. */
+    public static long purse;
+
     private ClientProfileData() {}
 
     public static boolean synced;

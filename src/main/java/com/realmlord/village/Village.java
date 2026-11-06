@@ -1320,7 +1320,7 @@ public final class Village {
 
     public static boolean buy(ServerPlayer p, Territory t, int resource, long units) {
         if (resource < 0 || resource > 3 || units <= 0) return false;
-        if (!Coins.pay(p, Market.buyCost(resource, units))) return false;
+        if (!Coins.payWithTreasury(p, Market.buyCost(resource, units))) return false;
         add(t, resource, units);
         return true;
     }
@@ -1334,7 +1334,7 @@ public final class Village {
 
     /** Buys goods for the village at the market. */
     public static boolean buyGood(ServerPlayer p, Territory t, Goods g, long units) {
-        if (g == null || units <= 0 || !Coins.pay(p, g.buyCost(units))) return false;
+        if (g == null || units <= 0 || !Coins.payWithTreasury(p, g.buyCost(units))) return false;
         g.add(t, units);
         return true;
     }
@@ -1406,7 +1406,7 @@ public final class Village {
 
     /** Buys a blueprint: the item, to learn by right-clicking it (or to keep, give or sell). */
     public static boolean buyBlueprint(ServerPlayer p, BuildingType type) {
-        if (!type.blueprint || !Coins.pay(p, type.blueprintPrice())) return false;
+        if (!type.blueprint || !Coins.payWithTreasury(p, type.blueprintPrice())) return false;
         com.realmlord.item.ResourcesBagItem.give(p, Blueprints.of(type.id()), 1);
         return true;
     }
@@ -1463,7 +1463,7 @@ public final class Village {
         boolean owner = p.getUUID().equals(t.owner);
         if (o.sell()) {
             if (o.needsWorkshop() && !hasWorkshop(t, r)) return "realmlord.trade.no_workshop";
-            if (!Coins.pay(p, o.price())) return "realmlord.market.cannot_afford";
+            if (!Coins.payWithTreasury(p, o.price())) return "realmlord.market.cannot_afford";
             if (!owner) t.treasury += o.price();
             com.realmlord.item.ResourcesBagItem.give(p, o.stack(), o.count());
             p.displayClientMessage(Component.translatable("realmlord.trade.bought", o.count(), o.stack().getHoverName(), Coins.format(o.price())), true);
