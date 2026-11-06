@@ -234,6 +234,8 @@ Press **M** anywhere to open the world map. Scroll to zoom, drag to move around,
 
 **People.** The People tab's talent list can be **sorted** (grade, trade, work or name; figures and the best grades come first by default) and **filtered** (everyone, figures, soldiers or specialists), and every list scrolls with the mouse wheel. Anyone with a job but nowhere to do it shows *Has no place to work* on their card. A worker who can't find a way to their work turns up there all the same.
 
+**Safe footing.** Residents only ever appear or move onto land that is loaded and running. One who falls out of the world anyway (land loading in under them, say) is caught before the void and set down at the manor; if no safe ground is loaded, they step out of the world for a moment and come back when the village is next shown, never lost.
+
 **Panels.** If a panel doesn't fit the window (out of full screen, say), it's drawn smaller so that all of it shows. Closing a resident's card, the territory map, a building's window or the storehouse returns you to the manor panel.
 
 **Testing.** In creative mode, the manor's Overview has a **Speed** button that runs the days and the village's work 5, 20 or 60 times as fast. Operators can use `/realm speed <n>`.

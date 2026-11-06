@@ -58,6 +58,12 @@ public final class Residents {
             net.minecraft.server.level.ServerPlayer lord = t.owner == null ? null : level.getServer().getPlayerList().getPlayer(t.owner);
             if (r.follows && lord != null && lord.level() == level) base = lord.blockPosition();
             BlockPos at = SettlerEntity.groundNear(level, base, level.getRandom(), 3);
+            // Only onto loaded, running ground: otherwise they wait until it is.
+            if (at == null) at = SettlerEntity.groundNear(level, manorSpot(t, r), level.getRandom(), 3);
+            if (at == null) {
+                s.discard();
+                continue;
+            }
             s.moveTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, level.getRandom().nextFloat() * 360F, 0F);
             s.finalizeSpawn(level, level.getCurrentDifficultyAt(at), MobSpawnType.EVENT, null, null);
             s.link(t, r);

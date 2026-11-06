@@ -195,4 +195,29 @@ public class TownTests {
         helper.assertTrue(lands != null, "the Bandit Lands dimension is missing");
         VillageTests.done(helper, p, t);
     }
+
+    @GameTest(template = "empty", timeoutTicks = 200, batch = "town_void")
+    public static void residentsNeverFallOutOfTheWorld(GameTestHelper helper) {
+        ServerPlayer p = RealmTests.lord(helper, CombatClass.GENERAL);
+        Territory t = VillageTests.village(helper, p, 15200);
+        ServerLevel level = helper.getLevel();
+        // Land that isn't loaded is never trusted as ground.
+        helper.assertTrue(SettlerEntity.safeGround(level, t.center.getX() + 200_000, t.center.getZ()) == null, "unloaded land was taken for ground");
+        helper.assertTrue(SettlerEntity.safeGround(level, t.center.getX(), t.center.getZ()) != null, "the manor's own ground was not found");
+        // A resident dropped below the world is caught and brought back alive.
+        Resident r = t.residents.get(0);
+        SettlerEntity s = ModEntities.SETTLER.get().create(level);
+        s.moveTo(t.center.getX() + 0.5, level.getMinBuildHeight() - 10, t.center.getZ() + 0.5);
+        s.link(t, r);
+        r.entity = s.getUUID();
+        level.addFreshEntity(s);
+        s.routine(t, r);
+        helper.runAfterDelay(10, () -> {
+            helper.assertTrue(s.isAlive() || s.isRemoved() && !s.isDeadOrDying(), "the resident died in the void");
+            helper.assertTrue(!s.isAlive() || s.getY() > level.getMinBuildHeight() + 2, "the resident was left in the void at y " + s.getY());
+            helper.assertTrue(t.residents.contains(r), "the resident was lost from the village");
+            s.discard();
+            VillageTests.done(helper, p, t);
+        });
+    }
 }

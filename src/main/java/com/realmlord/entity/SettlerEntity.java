@@ -644,8 +644,8 @@ public class SettlerEntity extends PathfinderMob {
             } else if (++noProgress >= 8) {
                 // Stuck on the way: find a way round, as villagers in the novel always seem to; stuck
                 // again and again, they turn up at their work all the same.
-                if (++hops >= 3 && level() instanceof ServerLevel sl && level().isLoaded(target)) {
-                    BlockPos at = groundNear(sl, target, random, (int) Math.max(1, Math.min(4, reach)));
+                BlockPos at = ++hops >= 3 && level() instanceof ServerLevel sl ? groundNear(sl, target, random, (int) Math.max(1, Math.min(4, reach))) : null;
+                if (at != null) {
                     getNavigation().stop();
                     teleportTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5);
                     hops = 0;
@@ -661,9 +661,9 @@ public class SettlerEntity extends PathfinderMob {
     private void hop(BlockPos target) {
         for (int i = 0; i < 12; i++) {
             int x = target.getX() + random.nextInt(7) - 3, z = target.getZ() + random.nextInt(7) - 3;
-            if (!level().isLoaded(new BlockPos(x, 64, z))) continue;
-            int y = level().getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
-            BlockPos at = new BlockPos(x, y, z);
+            BlockPos at = level() instanceof ServerLevel sl ? safeGround(sl, x, z) : null;
+            if (at == null) continue;
+            int y = at.getY();
             if (!level().getBlockState(at.below()).getFluidState().isEmpty()) continue;
             if (!level().getBlockState(at).isAir() || !level().getBlockState(at.above()).isAir()) continue;
             getNavigation().stop();
@@ -905,9 +905,9 @@ public class SettlerEntity extends PathfinderMob {
     protected void customServerAiStep() {
         super.customServerAiStep();
         // Never stuck inside a wall going up around them.
-        if (tickCount % 10 == 0 && isInWall()) {
-            int y = level().getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, getBlockX(), getBlockZ());
-            teleportTo(getX(), y, getZ());
+        if (tickCount % 10 == 0 && isInWall() && level() instanceof ServerLevel sl) {
+            BlockPos at = safeGround(sl, getBlockX(), getBlockZ());
+            if (at != null && at.getY() > getY()) teleportTo(getX(), at.getY(), getZ());
         }
     }
 
@@ -975,6 +975,11 @@ public class SettlerEntity extends PathfinderMob {
     public boolean hurt(DamageSource source, float amount) {
         if (isCaptive() && !source.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY)) return false;
         if (source.is(net.minecraft.world.damagesource.DamageTypes.IN_WALL)) return false;
+        // Never lost to the void: brought back instead.
+        if (source.is(net.minecraft.world.damagesource.DamageTypes.FELL_OUT_OF_WORLD) && residentId >= 0) {
+            rescue();
+            return false;
+        }
         if (isSleeping()) wake();
         // A figure from history is not lost in a skirmish: struck down, they are carried home to recover.
         if (res != null && res.isFigure() && amount >= getHealth() && !source.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY)
@@ -983,9 +988,8 @@ public class SettlerEntity extends PathfinderMob {
             res.woundedUntil = com.realmlord.village.GaiaCalendar.today(sl.getServer()) + 1;
             setHealth(getMaxHealth() / 2);
             setTarget(null);
-            BlockPos home = com.realmlord.village.Residents.home(terr, res);
-            int y = sl.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, home.getX(), home.getZ());
-            teleportTo(home.getX() + 0.5, y, home.getZ() + 0.5);
+            BlockPos home = groundNear(sl, com.realmlord.village.Residents.home(terr, res), random, 3);
+            if (home != null) teleportTo(home.getX() + 0.5, home.getY(), home.getZ() + 0.5);
             com.realmlord.village.Village.tell(sl, terr, Component.translatable("realmlord.companion.wounded", res.name));
             return false;
         }
@@ -1008,6 +1012,9 @@ public class SettlerEntity extends PathfinderMob {
     @Override
     public void tick() {
         super.tick();
+        // Dropping through the world (the ground under them not there yet): caught before the void.
+        if (!level().isClientSide && residentId >= 0 && (getY() < level().getMinBuildHeight() + 2
+                || fallDistance > 24 && getDeltaMovement().y < -1.5)) rescue();
         if (tickCount % 100 != 7 || !(level() instanceof ServerLevel sl) || isCaptive()) return;
         if (territoryId >= 0) {
             // A resident's body leaves when its record is gone or another body has replaced it.
@@ -1028,9 +1035,53 @@ public class SettlerEntity extends PathfinderMob {
 
     /** A spot on the ground near a centre, for spawning settlers. */
     public static BlockPos groundNear(ServerLevel level, BlockPos center, RandomSource r, int spread) {
-        int x = center.getX() + r.nextInt(spread * 2 + 1) - spread;
-        int z = center.getZ() + r.nextInt(spread * 2 + 1) - spread;
-        return new BlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z), z);
+        for (int i = 0; i < 10; i++) {
+            int x = center.getX() + (i == 0 ? 0 : r.nextInt(spread * 2 + 1) - spread);
+            int z = center.getZ() + (i == 0 ? 0 : r.nextInt(spread * 2 + 1) - spread);
+            BlockPos at = safeGround(level, x, z);
+            if (at != null) return at;
+        }
+        return null;
+    }
+
+    /**
+     * Solid ground to stand on at a column, or null if it can't be trusted: land not loaded (or
+     * not yet running), where the height reads as the bottom of the world, or nothing but air
+     * or the void beneath. Every move and every appearance goes through here, so nobody is ever
+     * put down where they would fall out of the world.
+     */
+    public static BlockPos safeGround(ServerLevel level, int x, int z) {
+        BlockPos probe = new BlockPos(x, level.getMinBuildHeight() + 1, z);
+        if (!level.hasChunk(x >> 4, z >> 4) || !level.isPositionEntityTicking(probe)) return null;
+        int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+        if (y <= level.getMinBuildHeight() + 1) return null;
+        BlockPos at = new BlockPos(x, y, z);
+        if (level.getBlockState(at.below()).isAir()) return null;
+        return at;
+    }
+
+    /**
+     * Fallen out of the world, or about to be (a chunk loaded before the ground under it, a
+     * bad move): put back safely at the manor or their work, or, if no safe ground is loaded,
+     * taken out of the world for now. Their record is untouched, and they reappear in the
+     * village when it is next shown.
+     */
+    private void rescue() {
+        if (!(level() instanceof ServerLevel sl)) return;
+        setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
+        fallDistance = 0;
+        BlockPos at = null;
+        if (terr != null && res != null) {
+            at = groundNear(sl, com.realmlord.village.Residents.manorSpot(terr, res), random, 3);
+            if (at == null) at = groundNear(sl, terr.center, random, 4);
+        } else if (home != null) at = groundNear(sl, home, random, 3);
+        if (at != null) {
+            getNavigation().stop();
+            teleportTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5);
+        } else if (residentId >= 0) {
+            if (res != null && getUUID().equals(res.entity)) res.entity = null;
+            discard();
+        }
     }
 
     // ------------------------------------------------------------------ saving
