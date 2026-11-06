@@ -217,6 +217,7 @@ public final class Grounds {
     /** Ground that can be built on: solid, and not something that grew there (a buried log, leaves, a mushroom). */
     static boolean firm(BlockState s) {
         return Sites.solid(s) && !s.is(BlockTags.LOGS) && !s.is(BlockTags.LEAVES) && !Village.growth(s)
+                && !(s.getBlock() instanceof net.minecraft.world.level.block.BushBlock) && !s.is(BlockTags.FLOWERS) && !s.is(BlockTags.SAPLINGS)
                 && !s.is(Blocks.BROWN_MUSHROOM_BLOCK) && !s.is(Blocks.RED_MUSHROOM_BLOCK) && !s.is(Blocks.MUSHROOM_STEM);
     }
 

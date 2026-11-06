@@ -439,7 +439,8 @@ public class SettlerEntity extends PathfinderMob {
         // Danger near and no way to fight: run for the manor. And until the fence stands, everyone
         // spends the night inside it rather than out where the beasts roam.
         boolean danger = !canFight() && !level().getEntitiesOfClass(net.minecraft.world.entity.Mob.class, getBoundingBox().inflate(12),
-                SettlerEntity::hostile).isEmpty();
+                m -> hostile(m) && (m.getTarget() instanceof SettlerEntity || m.getTarget() instanceof net.minecraft.world.entity.player.Player
+                        || m.distanceToSqr(this) < 5 * 5)).isEmpty();
         if (danger || !walled && !level().isDay() && !watch) {
             BlockPos own = !danger && level() instanceof ServerLevel sl ? com.realmlord.village.Residents.bedOf(sl, t, r) : null;
             boolean inManor = own != null && own.distSqr(t.center) <= 8 * 8;

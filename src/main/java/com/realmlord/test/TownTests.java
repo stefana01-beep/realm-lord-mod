@@ -136,6 +136,9 @@ public class TownTests {
         // A beast near a villager goes for them, beastwave or not.
         SettlerEntity v = ModEntities.SETTLER.get().create(level);
         v.moveTo(at.getX() + 3.5, at.getY(), at.getZ() + 0.5);
+        Resident vr = t.residents.get(t.residents.size() - 1);
+        v.link(t, vr);
+        vr.entity = v.getUUID();
         level.addFreshEntity(v);
         GreyWolfEntity w2 = ModEntities.GREY_WOLF.get().create(level);
         w2.moveTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5);
@@ -143,7 +146,7 @@ public class TownTests {
         // An early beastwave is young beasts, not kings forty levels up.
         helper.assertTrue(Beastwave.waveLevel(level, t, 1, false, level.getRandom()) <= 12
                 && Beastwave.waveLevel(level, t, 3, true, level.getRandom()) <= 20, "the first beastwave is too strong");
-        helper.runAfterDelay(25, () -> {
+        helper.runAfterDelay(2, () -> {
             w2.setTarget(null);
             w2.tickCount = 40;
             com.realmlord.entity.beast.Beasts.think(w2);
@@ -161,8 +164,8 @@ public class TownTests {
         ServerLevel level = helper.getLevel();
         BlockPos a = t.center.offset(20, 0, 20);
         // A rise of three blocks along the way.
-        for (int x = 0; x < 12; x++)
-            for (int z = -2; z <= 2; z++) {
+        for (int x = 0; x < 18; x++)
+            for (int z = -5; z <= 5; z++) {
                 int h = Math.min(3, Math.max(0, x - 4));
                 for (int y = 0; y < h; y++) level.setBlock(a.offset(x, y, z), Blocks.DIRT.defaultBlockState(), 2);
                 for (int y = h; y < h + 4; y++) level.setBlock(a.offset(x, y, z), Blocks.AIR.defaultBlockState(), 2);
