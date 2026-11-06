@@ -213,6 +213,8 @@ Press **M** anywhere to open the world map. Scroll to zoom, drag to move around,
 
 The cost is paid when you lay it out. Builders lay the path like any other site, keeping the way even: a ditch is bridged with earth and a hump is cut down. Paths go around buildings and the manor and stop short of the fence. Click a path on the map to select it; **Demolish** turns it back to grass. Paths don't speed up walking yet.
 
+**Clearing and levelling ground.** On the territory map, click **Clear & level ground**, then click two opposite corners (up to 48 × 48 blocks; right-click starts again). The level starts at the usual ground height there; **Lower** and **Raise** move it up to 8 blocks either way. Builders fell the trees, cut away everything above the level and fill dips below it with earth, and everything useful goes to the stores. A clearing can't cover buildings, sites or the manor yard, and must stay inside the fence, and nothing can be built on it until it's done. When the ground is level, the clearing disappears from the map; select one and **Demolish** to call it off (what's done stays done).
+
 **Buildings.** Every Village Grade 1–3 building from the novel:
 - **Grade 1:** Simple Fence, Dining Hall, Bathroom, Small Residential Courtyard (17 × 15, straw beds for 20), Blacksmith Workshop, Grocery Shop, Logging Field, Quarry, Farmland and Military Camp.
 - **Grade 2:** Ancestral Hall, Clinic, Private School, Martial Arts Dojo, Granary, Tailor Workshop, Mining Field, Arrow Tower and Stone Outpost.
@@ -222,7 +224,7 @@ Each has its own look, in a style of stone plinths, red posts, white walls and d
 
 **Residents.** Your village begins as the novel's did, with ten refugees: a village chief (a Bronze civil servant), two fruit farmers, a carpenter, a mason and five farmers. Settlers you freed from the bandits join them as beds allow.
 - **Wandering refugees** roam the wilds in ones and twos. Any who come within 48 blocks of a village's border settle there if it has a free bed; if not, they move on and are gone after two days.
-- **Immigrants:** about 10 a day (more with a better token and happier people), but only into free housing (the manor holds 10, each courtyard 20) and up to your grade's limit (200, 500, 1,000).
+- **Immigrants:** about 10 a day (more with a better token and happier people), but only into free housing (the manor holds 10 at Grade 1 only, each courtyard 20) and up to your grade's limit (200, 500, 1,000).
 - **Talents:** some immigrants are special talents (blacksmiths, grocers, tailors, doctors, scholars, martial artists, potters, winemakers, cooks, hunters, fishermen, miners, stablemen, civil servants and officers). They're graded Bronze, Black Iron or Silver, with better stats and a specialty.
 - **Their card:** right-click a resident to open it. **Card** shows their grade, occupation and rank, loyalty, Command, Force, Intelligence, Politics, specialty and an evaluation. **Work** (Lord only) sets their job or the workshop they run. **Trade** lets anyone buy and sell with them, priced in copper. Craftsmen sell their best goods only while they work in their workshop; a visitor's purchases go into the village treasury.
 - **Who you see:** up to 24 residents walk around the village at once (talents first). The rest live on in the records.
@@ -256,6 +258,13 @@ Each has its own look, in a style of stone plinths, red posts, white walls and d
 - **Village Grade 3** needs 500 people, a First Class Baron and every Grade 2 building.
 
 Each upgrade pays merit by world order (1,100 for the first), widens your border, and offers three random buildings of the new grade, one of which you get free.
+
+**The Lord's residence.** At Grade 1 the Lord's Manor is the refugees' hall, with ten straw beds. At **Village Grade 2** it is rebuilt as the Lord's own two-storey residence on the same spot, and residents no longer sleep there; they live in the residential courtyards, and anyone without a bed waits outside the manor's yard. Anything kept in the old manor goes to the storehouse, and anyone inside is moved out of the door.
+- **Ground floor:** a hall with the manor seal and the Lord's seat, a storeroom of chests and barrels, and a study with bookshelves, a lectern and a map table.
+- **Upstairs:** the Lord's bedchamber with a wide red bed and wardrobes, two guest beds and a reading corner.
+- **Grade 3 and above** add more: double rows of chests, an armoury corner (anvil, smithing table, grindstone), an enchanting table and brewing stand in the study, four guest beds, a balcony over the door, banners, eave lanterns and a higher roof.
+
+Villages already at Grade 2 or 3 get their residence the next time the manor is loaded.
 
 ## Server settings
 `config/realmlord-common.toml`:
