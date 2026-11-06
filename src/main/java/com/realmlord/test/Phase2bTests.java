@@ -187,6 +187,14 @@ public class Phase2bTests {
         for (int x = -8; x <= 8; x++)
             for (int z = -8; z <= 8; z++) level.setChunkForced((cx >> 4) + x, (cz >> 4) + z, true);
         helper.runAfterDelay(40, () -> {
+            // Dry ground all round the ring.
+            for (int x = -100; x <= 100; x++)
+                for (int z = -100; z <= 100; z++) {
+                    double d = Math.sqrt(x * x + z * z);
+                    if (d < t.radius() + 12 || d > t.radius() + 32) continue;
+                    level.setBlock(new BlockPos(cx + x, gy, cz + z), Blocks.GRASS_BLOCK.defaultBlockState(), 2);
+                    for (int y = 1; y < 6; y++) level.setBlock(new BlockPos(cx + x, gy + y, cz + z), Blocks.AIR.defaultBlockState(), 2);
+                }
             w.waveDay = GaiaCalendar.today(level.getServer());
             int n = Beastwave.spawnWave(level, t, 1);
             var wave = level.getEntitiesOfClass(Mob.class, new AABB(t.center).inflate(t.radius() + 40), e -> e.getTags().contains(Beasts.WAVE_TAG));

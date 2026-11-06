@@ -133,12 +133,18 @@ public final class Beastwave {
         for (int i = 0; i < n; i++) {
             EntityType<? extends Mob> kind = kinds.get(r.nextInt(kinds.size()));
             if (wave == WAVES && i == 0 && t.level.ordinal() >= TerritoryLevel.VILLAGE_2.ordinal()) kind = ModEntities.BOAR_KING.get();
-            double a = a0 + (r.nextDouble() - 0.5) * 1.6;
-            int d = t.radius() + 16 + r.nextInt(12);
-            int x = t.center.getX() + (int) (Math.cos(a) * d), z = t.center.getZ() + (int) (Math.sin(a) * d);
-            if (!level.isLoaded(new BlockPos(x, 64, z))) continue;
-            int y = Village.groundAt(level, x, z);
-            if (!level.getFluidState(new BlockPos(x, y - 1, z)).isEmpty()) continue;
+            // Mostly from one side, but anywhere on dry land around the village will do.
+            BlockPos at = null;
+            for (int tries = 0; tries < 8 && at == null; tries++) {
+                double a = tries < 3 ? a0 + (r.nextDouble() - 0.5) * 1.6 : r.nextDouble() * Math.PI * 2;
+                int d = t.radius() + 16 + r.nextInt(12);
+                int x = t.center.getX() + (int) (Math.cos(a) * d), z = t.center.getZ() + (int) (Math.sin(a) * d);
+                if (!level.isLoaded(new BlockPos(x, 64, z))) continue;
+                int y = Village.groundAt(level, x, z);
+                if (level.getFluidState(new BlockPos(x, y - 1, z)).isEmpty()) at = new BlockPos(x, y, z);
+            }
+            if (at == null) continue;
+            int x = at.getX(), y = at.getY(), z = at.getZ();
             Mob m = kind.create(level);
             if (m == null) continue;
             m.moveTo(x + 0.5, y, z + 0.5, r.nextFloat() * 360F, 0F);
