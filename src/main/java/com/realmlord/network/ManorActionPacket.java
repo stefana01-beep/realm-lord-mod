@@ -100,7 +100,7 @@ public class ManorActionPacket {
             }
             case OPEN_STORAGE -> {
                 p.openMenu(new net.minecraft.world.SimpleMenuProvider(
-                        (id, inv, pl) -> net.minecraft.world.inventory.ChestMenu.sixRows(id, inv, t.storage),
+                        (win, inv, pl) -> net.minecraft.world.inventory.ChestMenu.sixRows(win, inv, t.storage),
                         Component.translatable("realmlord.storage.title", t.name)));
                 data.touch();
                 return;
