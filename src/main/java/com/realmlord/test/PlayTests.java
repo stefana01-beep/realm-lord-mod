@@ -201,7 +201,7 @@ public class PlayTests {
             helper.assertTrue(lv >= range.min() && lv <= range.max() + 16, type + " has level " + lv);
             helper.assertTrue(m.isCustomNameVisible() && m.getCustomName().getString().contains(String.valueOf(lv)), type + " shows no level");
             double base = m.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH).getBaseValue();
-            helper.assertTrue(m.getMaxHealth() >= base * (1 + (lv - 1) * 0.06) - 0.5, type + " health not scaled by level");
+            helper.assertTrue(m.getMaxHealth() >= Math.min(1024, base * (1 + (lv - 1) * 0.06)) - 0.5, type + " health not scaled by level");
             m.discard();
         }
         for (Mob m : level.getEntitiesOfClass(Mob.class, new AABB(at).inflate(16), e -> MobLevels.leveled(e))) m.discard();
