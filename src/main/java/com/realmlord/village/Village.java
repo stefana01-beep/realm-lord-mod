@@ -41,6 +41,8 @@ public final class Village {
     public static final int NOMINAL_BUILDERS = 5;
     /** Half-width of the Lord's Manor yard, which nothing may be built on. */
     public static final int MANOR_YARD = 8;
+    /** Clear blocks kept between buildings: room for a three-block path. */
+    public static final int BUILDING_GAP = 3;
     /**
      * Time sped up for testing (1 = normal): the sun runs this many times as fast and the
      * village's work keeps pace. Set with /realm speed or the manor's Speed button in creative.
@@ -635,14 +637,20 @@ public final class Village {
         for (int[] c : corners) {
             BlockPos at = origin.offset(c[0], 0, c[1]);
             // Arrow towers, sentry posts and outposts may stand on a wall that lies beyond the border.
-            if (defence ? t.distanceTo(at) > reach(t) : !t.contains(level.dimension(), at)) return "realmlord.build.err.border";
+            if (defence ? t.distanceTo(at) > reach(t) && !nearRoad(t, at, ROADSIDE) : !t.contains(level.dimension(), at)) return "realmlord.build.err.border";
         }
         BlockPos m = t.center;
         if (origin.getX() - 1 < m.getX() + MANOR_YARD && m.getX() - MANOR_YARD < origin.getX() + sx + 1
                 && origin.getZ() - 1 < m.getZ() + MANOR_YARD && m.getZ() - MANOR_YARD < origin.getZ() + sz + 1) {
             return "realmlord.build.err.manor";
         }
-        for (Building b : t.buildings) if (b.footprint() && b.overlaps(origin.getX(), origin.getZ(), sx, sz, 1)) return "realmlord.build.err.overlap";
+        // A lane of three blocks between buildings (one for towers and outposts), for a path to run.
+        int gap = defence ? 1 : BUILDING_GAP;
+        for (Building b : t.buildings) {
+            if (!b.footprint()) continue;
+            int g = b.type == BuildingType.CLEARING ? 1 : defence(b.type) ? 1 : gap;
+            if (b.overlaps(origin.getX(), origin.getZ(), sx, sz, g)) return b.overlaps(origin.getX(), origin.getZ(), sx, sz, 1) ? "realmlord.build.err.overlap" : "realmlord.build.err.lane";
+        }
         // Nothing may block a gateway; only towers may stand on the fence.
         for (Building f : t.buildings) {
             if (f.type != BuildingType.SIMPLE_FENCE || f.demolishing) continue;
@@ -789,7 +797,23 @@ public final class Village {
         return null;
     }
 
-    /** Defences: as many as the Lord likes, and they may stand out on the wall. */
+    /** How far from one of the village's roads an outpost or tower may stand, out in the wilds. */
+    public static final int ROADSIDE = 16;
+
+    /** True if a spot lies within some blocks of a path or road the village has laid. */
+    public static boolean nearRoad(Territory t, BlockPos at, int within) {
+        long w2 = (long) within * within;
+        for (Building b : t.buildings) {
+            if (b.type != BuildingType.PATH || b.pathCols == null) continue;
+            for (int i = 0; i + 3 < b.pathCols.length; i += 4) {
+                long dx = b.pathCols[i] - at.getX(), dz = b.pathCols[i + 2] - at.getZ();
+                if (dx * dx + dz * dz <= w2) return true;
+            }
+        }
+        return false;
+    }
+
+    /** Defences: as many as the Lord likes, and they may stand out on the wall, or along the village's roads. */
     public static boolean defence(BuildingType type) {
         return type.style == BuildingType.Style.TOWER || type.style == BuildingType.Style.OUTPOST;
     }

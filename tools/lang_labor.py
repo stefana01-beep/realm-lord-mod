@@ -504,4 +504,13 @@ ROUND_TOWN = {
     "realmlord.lands.cleared": "The camp is yours. The freed captives will join you when you found your village. %s",
     "realmlord.lands.not_now": "There is no bandit camp to travel to now.",
     "realmlord.lands.not_there": "You are not in the Bandit Lands.",
+    "realmlord.map.range.0": "Map: village",
+    "realmlord.map.range.1": "Map: country",
+    "realmlord.map.range.2": "Map: region",
+    "realmlord.map.range.tip": "How far the map reaches: the village and its grounds, the country 512 blocks around, or the region 1,536 blocks around for laying roads. Land you have not visited shows dark.",
+    "realmlord.path.area_on": "Shape: paved area",
+    "realmlord.path.area_off": "Shape: path",
+    "realmlord.path.area.tip": "Paved area: click two opposite corners (up to %1$s x %1$s blocks) to pave a square, a market place or a yard. Path: click points along the way.",
+    "realmlord.path.err.area": "A paved area can be at most 48 x 48 blocks.",
+    "realmlord.build.err.lane": "Leave a lane of three blocks between buildings, for a path.",
 }

@@ -207,18 +207,66 @@ public final class ChinaMap {
         return t * t * (3 - 2 * t);
     }
 
+    /**
+     * How far a block is from the nearest river's centre line, in blocks. The map stores that
+     * distance at every 64-block pixel; blending those smoothly loses a narrow river between
+     * pixels (the channel shows only here and there), so instead each nearby pixel's distance is
+     * taken as a circle the river must touch, and the block's distance is the tightest of
+     * those bounds over the pixels around it. On a river's line this comes to within a block or
+     * two of the truth, so every river runs unbroken.
+     */
+    public static double riverDist(double bx, double bz) {
+        load();
+        if (!loaded) return 1e9;
+        double fx = (bx - x0) / px - 0.5, fz = (bz - z0) / px - 0.5;
+        int ix = (int) Math.round(fx), iz = (int) Math.round(fz);
+        double near = at(RIVER_DIST, ix, iz);
+        if (near >= 1000) return 1e9;
+        double best = 0;
+        for (int dz = -3; dz <= 3; dz++)
+            for (int dx = -3; dx <= 3; dx++) {
+                double d = at(RIVER_DIST, ix + dx, iz + dz);
+                if (d >= 1000) continue;
+                double cx = x0 + (ix + dx + 0.5) * px, cz = z0 + (iz + dz + 0.5) * px;
+                double bound = d - Math.hypot(bx - cx, bz - cz);
+                if (bound > best) best = bound;
+            }
+        return best;
+    }
+
+    /** The size of the river nearest a block (0 to 1), from the pixel nearest it that lies on the river. */
+    public static double riverStr(double bx, double bz) {
+        load();
+        if (!loaded) return 0;
+        double fx = (bx - x0) / px - 0.5, fz = (bz - z0) / px - 0.5;
+        int ix = (int) Math.round(fx), iz = (int) Math.round(fz);
+        double s = 0, bestD = 1e9;
+        for (int dz = -1; dz <= 1; dz++)
+            for (int dx = -1; dx <= 1; dx++) {
+                double d = at(RIVER_DIST, ix + dx, iz + dz);
+                if (d < bestD) {
+                    bestD = d;
+                    s = at(RIVER_STR, ix + dx, iz + dz);
+                }
+            }
+        return s;
+    }
+
     /** How much a block lies in a river: 1 in the channel, falling to 0 across its banks. */
     public static double riverAt(double bx, double bz) {
-        double d = sample(RIVER_DIST, bx, bz);
+        double d = riverDist(bx, bz);
         if (d >= 1000) return 0;
-        double s = sample(RIVER_STR, bx, bz);
+        double s = riverStr(bx, bz);
         double half = halfWidth(s);
         return smooth(half + 8 + 16 * s, half, d);
     }
 
-    /** Half the width of a river of a given size, in blocks (the Yangtze is about 50 across). */
+    /**
+     * Half the width of a river of a given size, in blocks: wide enough to sail. The Yangtze and
+     * the Yellow River run some 70 blocks across, a middling river 20 to 30, the least about 8.
+     */
     public static double halfWidth(double strength) {
-        return 2 + 22 * strength;
+        return 4 + 32 * strength;
     }
 
     /** The ground height with rivers cut in: lowland rivers down to the sea's level, upland ones a few blocks. */
@@ -226,9 +274,10 @@ public final class ChinaMap {
         double y = surfaceY(bx, bz);
         double t = riverAt(bx, bz);
         if (t <= 0) return y;
-        double s = sample(RIVER_STR, bx, bz);
+        double s = riverStr(bx, bz);
         double bed;
-        if (y <= 80) bed = 57;
+        // Lowland rivers run deep enough for ships (the sea stands at 63).
+        if (y <= 80) bed = 55 - 4 * s;
         else if (y <= 100) bed = 57 + (y - 5 - 57) * (y - 80) / 20.0;
         else bed = y - (3 + 4 * s);
         return y + (Math.min(bed, y) - y) * t;

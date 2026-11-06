@@ -36,6 +36,7 @@ public class TerritoryData extends SavedData {
     }
 
     public static TerritoryData get(MinecraftServer server) {
+        com.realmlord.village.Paths.ALL = () -> server.overworld().getDataStorage().computeIfAbsent(TerritoryData::load, TerritoryData::new, NAME).all();
         return server.overworld().getDataStorage().computeIfAbsent(TerritoryData::load, TerritoryData::new, NAME);
     }
 

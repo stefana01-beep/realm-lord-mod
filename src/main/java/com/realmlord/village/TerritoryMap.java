@@ -24,7 +24,15 @@ public final class TerritoryMap {
     }
 
     public static Map draw(ServerLevel level, Territory t) {
-        int r = Math.max(t.radius(), Grounds.radius()) + 8;
+        return draw(level, t, rangeRadius(t, 0));
+    }
+
+    /** How far the map reaches: the village and its grounds, the country around (512), or the region (1,536) for roads. */
+    public static int rangeRadius(Territory t, int range) {
+        return range >= 2 ? 1536 : range == 1 ? 512 : Math.max(t.radius(), Grounds.radius()) + 8;
+    }
+
+    public static Map draw(ServerLevel level, Territory t, int r) {
         int step = stepFor(r);
         int size = (2 * r) / step + 1;
         int x0 = t.center.getX() - r, z0 = t.center.getZ() - r;

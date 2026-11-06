@@ -16,6 +16,8 @@ import java.util.function.Supplier;
 public class PlacePathPacket {
     private final int surface, width;
     private final boolean stairs;
+    /** A paved area between the first two points (opposite corners). */
+    private final boolean area;
     private final int[] pts;
 
     public PlacePathPacket(int surface, int width, int[] pts) {
@@ -24,6 +26,11 @@ public class PlacePathPacket {
 
     /** stairs: the path follows the lie of the land, with steps where it climbs. */
     public PlacePathPacket(int surface, int width, int[] pts, boolean stairs) {
+        this(surface, width, pts, stairs, false);
+    }
+
+    public PlacePathPacket(int surface, int width, int[] pts, boolean stairs, boolean area) {
+        this.area = area;
         this.surface = surface;
         this.width = width;
         this.pts = pts;
@@ -34,6 +41,7 @@ public class PlacePathPacket {
         surface = buf.readVarInt();
         width = buf.readVarInt();
         stairs = buf.readBoolean();
+        area = buf.readBoolean();
         int n = Math.min(Paths.MAX_POINTS * 2, buf.readVarInt());
         pts = new int[n];
         for (int i = 0; i < n; i++) pts[i] = buf.readInt();
@@ -43,6 +51,7 @@ public class PlacePathPacket {
         buf.writeVarInt(surface);
         buf.writeVarInt(width);
         buf.writeBoolean(stairs);
+        buf.writeBoolean(area);
         buf.writeVarInt(pts.length);
         for (int v : pts) buf.writeInt(v);
     }
@@ -55,7 +64,7 @@ public class PlacePathPacket {
         Territory t = id >= 0 ? data.byId(id) : null;
         if (t == null || !p.getUUID().equals(t.owner)) return;
         Paths.Surface s = Paths.Surface.byOrdinal(surface);
-        String err = Paths.start(p, t, s, width, pts, stairs);
+        String err = Paths.start(p, t, s, width, pts, stairs, area);
         if (err != null) Notify.player(p, err);
         else Notify.player(p, Component.translatable("realmlord.path.started", Component.translatable(s.key()), width));
         data.touch();

@@ -34,20 +34,32 @@ public class RiverWaterFeature extends Feature<NoneFeatureConfiguration> {
             for (int dz = 0; dz < 16; dz++) {
                 int x = cx + dx, z = cz + dz;
                 if (ChinaMap.inside(x, z) <= 0) continue;
-                double d = ChinaMap.sample(ChinaMap.RIVER_DIST, x, z);
+                double d = ChinaMap.riverDist(x, z);
                 if (d >= 1000) continue;
-                double s = ChinaMap.sample(ChinaMap.RIVER_STR, x, z);
+                double s = ChinaMap.riverStr(x, z);
                 if (d > ChinaMap.halfWidth(s) * 0.85) continue;
                 int top = level.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, x, z);
                 if (top <= 64) continue;
-                p.set(x, top - 1, z);
-                BlockState bed = level.getBlockState(p);
-                if (!bed.getFluidState().isEmpty() || bed.isAir()) continue;
-                // The bed becomes water, with the banks on either side holding it in.
-                level.setBlock(p, water, 2);
-                p.move(0, -1, 0);
+                // Water as deep as the banks allow (up to four blocks): the lowest ground a few
+                // blocks out on either side holds it in.
+                int bank = Integer.MAX_VALUE;
+                for (int[] o : new int[][]{{3, 0}, {-3, 0}, {0, 3}, {0, -3}}) {
+                    int bx = x + o[0], bz = z + o[1];
+                    if (ChinaMap.riverDist(bx, bz) <= ChinaMap.halfWidth(s) * 0.85) continue;
+                    bank = Math.min(bank, level.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, bx, bz));
+                }
+                int surface = bank == Integer.MAX_VALUE ? top + 1 : Math.min(top + 3, bank - 1);
+                surface = Math.max(top, surface);
+                for (int y = top - 1; y < surface; y++) {
+                    p.set(x, y, z);
+                    BlockState here = level.getBlockState(p);
+                    if (y == top - 1 && (!here.getFluidState().isEmpty() || here.isAir())) break;
+                    if (y >= top && !here.isAir()) continue;
+                    level.setBlock(p, water, 2);
+                    any = true;
+                }
+                p.set(x, top - 2, z);
                 if (level.getBlockState(p).isAir()) level.setBlock(p, Blocks.DIRT.defaultBlockState(), 2);
-                any = true;
             }
         return any;
     }

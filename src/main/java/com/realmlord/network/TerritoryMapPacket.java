@@ -45,10 +45,18 @@ public class TerritoryMapPacket {
     }
 
     public static void send(ServerPlayer p, Territory t, boolean open) {
+        send(p, t, open, RANGE.getOrDefault(p.getUUID(), 0));
+    }
+
+    /** Each player's chosen map range (0 the village, 1 the country around, 2 the region), kept while the server runs. */
+    private static final java.util.Map<java.util.UUID, Integer> RANGE = new java.util.HashMap<>();
+
+    public static void send(ServerPlayer p, Territory t, boolean open, int range) {
         ServerLevel level = p.server.getLevel(t.dimension);
         if (level == null) return;
+        RANGE.put(p.getUUID(), range);
         ManorViewPacket.send(p, t, false);
-        ModNetwork.send(p, new TerritoryMapPacket(TerritoryMap.draw(level, t), open));
+        ModNetwork.send(p, new TerritoryMapPacket(TerritoryMap.draw(level, t, TerritoryMap.rangeRadius(t, range)), open));
     }
 
     public void handle(Supplier<NetworkEvent.Context> ctx) {

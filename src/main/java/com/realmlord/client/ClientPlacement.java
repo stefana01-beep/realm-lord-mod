@@ -77,6 +77,7 @@ public final class ClientPlacement {
         int[][] corners = {{0, 0}, {sx - 1, 0}, {0, sz - 1}, {sx - 1, sz - 1}};
         // Defences may stand out on a wall beyond the border.
         if (Village.defence(type) && v.contains("reach")) r = Math.max(r, v.getInt("reach"));
+        if (Village.defence(type) && nearRoad(v, o.getX(), o.getZ())) r = Integer.MAX_VALUE / 4;
         for (int[] c : corners) {
             long dx = o.getX() + c[0] - cx, dz = o.getZ() + c[1] - cz;
             if (dx * dx + dz * dz > (long) r * r) return false;
@@ -89,7 +90,8 @@ public final class ClientPlacement {
             BuildingType bt = BuildingType.byOrdinal(b.getInt("type"));
             if (bt == null || !bt.placed()) continue;
             int bx = b.getInt("x"), bz = b.getInt("z"), bsx = b.getInt("sx"), bsz = b.getInt("sz");
-            if (o.getX() - 1 < bx + bsx && bx < o.getX() + sx + 1 && o.getZ() - 1 < bz + bsz && bz < o.getZ() + sz + 1) return false;
+            int g = Village.defence(type) || Village.defence(bt) ? 1 : Village.BUILDING_GAP;
+            if (o.getX() - g < bx + bsx && bx < o.getX() + sx + g && o.getZ() - g < bz + bsz && bz < o.getZ() + sz + g) return false;
         }
         return true;
     }
@@ -143,5 +145,21 @@ public final class ClientPlacement {
         if (o == null) return;
         ModNetwork.toServer(new PlaceBuildingPacket(active.ordinal(), o, rotation));
         stop();
+    }
+
+    /** Near one of the village's paths or roads (an outpost may stand by a road out in the wilds). */
+    private static boolean nearRoad(CompoundTag v, int x, int z) {
+        ListTag bs = v.getList("buildings", Tag.TAG_COMPOUND);
+        for (int i = 0; i < bs.size(); i++) {
+            CompoundTag b = bs.getCompound(i);
+            if (b.getInt("type") != BuildingType.PATH.ordinal()) continue;
+            int[] p = b.getIntArray("pts");
+            for (int s = 0; s + 3 < p.length; s += 2) {
+                double ax = p[s], az = p[s + 1], dx = p[s + 2] - ax, dz = p[s + 3] - az, l = dx * dx + dz * dz;
+                double f = l == 0 ? 0 : Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / l));
+                if (Math.hypot(x - (ax + f * dx), z - (az + f * dz)) <= Village.ROADSIDE) return true;
+            }
+        }
+        return false;
     }
 }

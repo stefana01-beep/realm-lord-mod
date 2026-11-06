@@ -73,7 +73,7 @@ Lords earn **merit**, and titles rise automatically: Baron, Viscount, Earl and M
 ## The Village Creation quest (Lords only)
 You have **10 days** (Minecraft days, 20 real minutes each). The bandits are strong, so get iron armour first.
 1. **Gather supplies:** 64 logs, 64 stone and 32 food, handed over in the Quest tab.
-2. **Free the settlers:** bandits hold them captive in a camp 150–220 blocks away, always on dry, fairly level ground (never on the sea, a lake, a river, a beach or a swamp): four swordsmen, two archers and their chief, all looking like players. Defeat them all.
+2. **Free the settlers:** bandits hold them captive in a camp in the **Bandit Lands**, a wild country of its own (each Lord's band has its own stretch of it). Go when you're ready: click **Travel to the bandit camp** in chat or in the Quest tab (or `/realm camp travel`), and you arrive 50 blocks from the camp. The band is four swordsmen, two archers and their chief, all looking like players. Defeat them all, then click **Return home** (or `/realm camp return`) to go back to where you set out from. The freed captives don't need leading anywhere: they join you when you found your village.
 3. **Claim your reward** in the Quest tab.
 
 While you hunt the bandits, the ones from your camp within 128 blocks **glow with an outline** that only you can see, so they can't hide in jungle or tall grass. If you already rule a village, the quest is not needed and can't be started.
@@ -122,8 +122,8 @@ The village's workshops make them every day; the grocer sells salt and fire oil,
 Use the token on the ground and **name your village** in the box that opens (an anvil name on the token fills it in). A Lord's Manor is raised there, and your territory begins as a **Grade 1 Village** with an 88-block border (104 at Grade 2, 120 at Grade 3, up to 384 for a capital). As in the novel, the territory reaches past the village wall: each grade's wall stands 26 blocks inside its border (62 blocks out at Grade 1, 78 at Grade 2 and 94 at Grade 3), so fields and approaches outside the wall are still yours.
 
 **Levelling the grounds.** As soon as the village is founded, your builders start bringing the whole site to the level of the Lord's Manor floor, out to **104 blocks**: ten past where the Grade 3 wall will stand, even where that lies beyond your border.
-- **How:** they work outwards from the manor, ring by ring. Hills, rock and trees above the floor are cut away, and everything cut goes into the stores. Hollows, ponds and ravines below it are filled with the land's own earth: dirt with grass on top in most places, sandstone with sand on top in deserts, beaches and seas, red sandstone and red sand in badlands. However large the difference, the result is one level.
-- **What is spared:** buildings and sites (with a block around them), paths, the manor yard, a wall already rising, and any column holding something that isn't natural ground (planks, cobblestone, a chest), so nothing you have built is cut away.
+- **How:** they work outwards from the manor, ring by ring. Hills, rock and trees above the floor are cut away, and everything cut goes into the stores. Hollows, ponds and ravines below it are filled with the land's own earth: dirt with grass on top in most places, sandstone with sand on top in deserts, beaches and seas, red sandstone and red sand in badlands. Buried trunks, leaves, flowers and water below the floor are replaced with earth too, so the floor is earth all the way down to rock (hollows up to 64 blocks deep). However large the difference, the result is one level, right up to the manor hall.
+- **What is spared:** buildings and sites (with a block around them), paths, the manor hall, a wall already rising, and any column holding something that isn't natural ground (planks, cobblestone, a chest), so nothing you have built is cut away.
 - **Speed:** every builder adds to it, so more builders level faster. Buildings placed on the grounds while it goes on are set at the manor's height, and a wall not yet begun waits until the ground is level.
 - **Stopping and starting:** the territory map's **Stop levelling** button calls it off (what's done stays done), and **Level the grounds** starts it again, for example for a village founded before this existed. `levelOnFounding` in the config turns off the automatic start. The first village founded in the world earns 1,100 merit, the second 1,000 and so on down to 100; the first ten are announced to everyone. The territory keeps its token grade forever. Use the manor seal to open your territory panel.
 
@@ -153,9 +153,11 @@ When you create a world, set **World Type** to **Earth Online: China** (More Wor
   - The Loess Plateau and Yunnan rise past y 200.
   - The Tibetan Plateau stands near y 370, and the Himalaya climb above y 440.
 - **Rivers and lakes are real:** they come from Natural Earth and are cut into the land.
-  - Lowland rivers (the lower Yangtze, the Pearl, the Huai) fill from the sea.
-  - Upland rivers and lakes (the Yellow River at Lanzhou, Qinghai Lake) get still water laid in their beds.
-  - The Yangtze is about 50 blocks wide.
+  - Every river runs unbroken along its real course, traced to within a block or two of its line.
+  - Lowland rivers (the lower Yangtze, the Pearl, the Huai) fill from the sea and run 8 to 12 blocks deep, deep enough for ships.
+  - Upland rivers and lakes (the Yellow River at Lanzhou, Qinghai Lake) get still water laid in their beds, as deep as their banks allow (up to four blocks).
+  - Widths follow each river's size: the Yangtze and the Yellow River run about 70 blocks across, middling rivers 20 to 30, and the least about 8.
+  - The river changes apply to land generated from now on; land already explored keeps its old rivers.
 - **Climate:** follows latitude, altitude and distance from the sea. The Taklamakan and Gobi are desert, the plateau is snow, the north-east is forest and steppe, and the far south is jungle and mangrove.
 
 ### The scale
@@ -208,9 +210,35 @@ Press **M** anywhere to open the world map. Scroll to zoom, drag to move around,
     - Grocery Shop: 20 salt.
   - **Special Items Trading Platform:** sell the graded gear and blueprints you carry (Bronze 20 silver, Black Iron 1 gold, Silver 5 gold, Gold 20 gold; blueprints at half price), and buy the building blueprints your village can use (2, 5 or 10 gold by grade).
   - **Auction** and **Negotiation** are shown but locked, as in the novel's early market.
-  - **The storehouse:** the Lord's Manor keeps a 54-slot storehouse for anything you want to keep, such as salvaged camp materials, tools and loot. **Hand in from pack** puts every trade good you carry into the village stores (logs count 2 wood, planks and stone 1, crops 1 grain, and so on). **Sell storehouse goods** sells the trade goods in the storehouse.
+  - **The storehouse:** the Lord's Manor keeps a storehouse of **ten pages of a double chest** (540 slots) for anything you want to keep, such as salvaged camp materials, tools, loot, and everything the builders dig up that isn't wood, stone, iron ore, sand, clay or earth (coal, copper, gold, gems, flint, saplings and so on). It **sorts itself** every time you open it (part stacks merged, like kept with like). At the top: **<** and **>** turn the page, **Sort** tidies it, **Take all** fills your inventory from the page, and **Store all** empties your inventory (not your hotbar) into it. Closing it takes you back to the manor panel. **Hand in from pack** puts every trade good you carry into the village stores (logs count 2 wood, planks and stone 1, crops 1 grain, and so on). **Sell storehouse goods** sells the trade goods in the storehouse.
 
 - **Map:** a top-down map of your territory, drawn like a vanilla map, showing your border, the Lord's Manor, every building and site, the ground being levelled (with how far the work has reached), and you. **Scroll** (or the **+** and **-** buttons, or the + and - keys) to zoom in up to eight times, and drag the map to move about when zoomed in (or drag with the middle button while placing something). Point at a building to see what it is, or click it to select it and **Demolish** it. **Fence gates** lets you move the fence's gates at any time; the posts change over at once. Choosing **Place** in Construction opens this map with the building's footprint following your mouse: green where it fits, red where it doesn't, with the door side marked. Click to place, right-click to turn, or switch to placing it in the world. You can also open the map anywhere from the **Territory map** button on your character panel (J).
+
+**Coins.** Coins no longer take up inventory space: coins you pick up or carry go into your **purse**, shown on your character panel and the manor's Overview. Everything you buy is paid from the purse. In the manor's Overview, **Deposit** puts your purse into the manor's **treasury** (where taxes collect too), and **Withdraw** takes it back. When your purse runs short at your own village's market, the treasury makes up the difference.
+
+**Chests.** Every chest, barrel and shulker box has **Sort**, **Take all** and **Store all** buttons above it.
+
+**Workshops, schools and halls.** Click **Workshops & schools...** in the People tab (or select a finished building on the map and click **Manage**) to open a building's own window. It shows the building's master, and:
+- **What it makes,** where there's a choice:
+  - **Blacksmith:** tools for the market, or graded iron arms and armour (12 iron ore each).
+  - **Weapons workshop:** weapons stock, or fine graded blades and bows.
+  - **Tailor:** linen, or leather armour.
+  - **Clinic:** herbs, or healing draughts.
+
+  Made items go into the storehouse. The master's skill sets their grade: a Junior makes Bronze, an Intermediate Black Iron, an Advanced master Silver and now and then Gold.
+- **Training:** the Private School takes up to ten students and the Martial Arts Dojo ten pupils; every other workshop with a master takes three apprentices. Send people from the **Could learn** list, and call them back with **x**. Learners spend their days at lessons instead of other work.
+  - **Students** grow in Intelligence and Politics and become scholars in 20 days.
+  - **Pupils** grow in Force and as soldiers, and become martial artists in 20 days.
+  - **Apprentices** learn the master's trade in 15 days. Someone already of that trade rises a rank in 30 days.
+  - A better master (and a historical figure) teaches faster. The master must be at work.
+
+**People.** The People tab's talent list can be **sorted** (grade, trade, work or name; figures and the best grades come first by default) and **filtered** (everyone, figures, soldiers or specialists), and every list scrolls with the mouse wheel. Anyone with a job but nowhere to do it shows *Has no place to work* on their card. A worker who can't find a way to their work turns up there all the same.
+
+**Panels.** If a panel doesn't fit the window (out of full screen, say), it's drawn smaller so that all of it shows. Closing a resident's card, the territory map, a building's window or the storehouse returns you to the manor panel.
+
+**Testing.** In creative mode, the manor's Overview has a **Speed** button that runs the days and the village's work 5, 20 or 60 times as fast. Operators can use `/realm speed <n>`.
+
+**Room between buildings.** Buildings keep a lane of three clear blocks between them, room for a path. Towers and outposts need only one.
 
 **Construction.** Starting a building takes its wood and stone from your stores, needs its blueprint to be known to your village, and needs a resident of the right trade where the novel requires one (a blacksmith for the Blacksmith Workshop, an officer for the Military Camp, and so on). Your builders walk to the site and work it by hand in three stages. First they **clear** it, felling trees and breaking whatever stands on the footprint. Everything useful goes **straight into the village's stores**: logs and planks as wood, stone, gravel and cobblestone as stone, iron ore, and sand, clay and earth as goods of their own; saplings go to the storehouse. The earth is used again to fill holes on other sites. Then they **level** it, filling holes and dips beneath it with earth. Then they **build** it block by block, each one in a builder's hands as it goes up, never skipping a block whose ground isn't loaded. Before a building counts as finished, they go over the whole design once more and put right anything missing or knocked out of place. If no builder is nearby (say you are away and your village is still loaded), or they are stuck for 30 seconds, the village carries on without them. Five builders take the novel's listed time (12 hours for a Dining Hall, one real minute per hour by default). There is **no limit on builders**: each one adds work, so ten builders finish twice as fast as five. Carpenters, masons and Master Builders work faster.
 - **Blueprints are learned, not used up:** right-click a blueprint to teach it to your village for good, then build that kind of building as often as you like. A blueprint you carry but haven't learned is learned the first time you build with it. Spare copies can be given away or sold on the Special Items platform. The Construction tab shows **Learned**, and the market marks blueprints you already know.
@@ -226,7 +254,12 @@ Press **M** anywhere to open the world map. Scroll to zoom, drag to move around,
 
 **Towers in the wall.** Build **as many** Arrow Towers, Sentry Posts and Stone Outposts as you like; there's no limit. They may stand anywhere in your territory, and also out on a wall beyond your border (up to ten blocks past the Grade 3 wall). An Arrow Tower or Sentry Post placed near the fence on the map snaps onto it, and the wall makes room for it; below the wall-top its sides are closed except the one facing into the village, so it's never a way through the wall, and above that its open sides join the wall-walk in towns. Taking the tower down closes the gap again. Nothing else may stand on the fence, and nothing may block a gateway.
 
-**Paths.** On the territory map, click **Lay a path**, then click points along the way (up to 32; right-click removes the last). Choose a surface and a width of 1 to 3 blocks:
+**Paths.** On the territory map, click **Lay a path**, then click points along the way (up to 32; right-click removes the last). Choose a surface and a width of 1 to 7 blocks, and whether the way is **evened out** (ditches bridged, humps cut down) or **follows the land with steps** (it climbs or drops a block at a time, with a stair facing up the slope at each step, and steeper bits are cut back or banked up). - **Paved areas:** switch **Shape** to *paved area* and click two opposite corners (up to 48 × 48) to pave a square, a market place or a yard.
+- **Roads:** a path can run on past your grounds into the wilds as a road, up to 2,048 blocks from the manor, so long as it keeps out of other Lords' lands. Use the map's range button (**Map: village / country / region**) to see 512 or 1,536 blocks around for laying long roads. Builders lay a road as the land along it is loaded, so it grows as you travel along it.
+- **Bridges:** wherever a path or road crosses water two or more blocks deep, it becomes a bridge, inside the village or out: a deck just above the water, piers down to the bed under every fourth block of its sides, and rails along the sides of a bridge three or more blocks wide. Dirt, gravel and plank ways get a timber bridge, cobble and stone ways a stone one.
+- **Outposts along the roads:** Stone Outposts, Arrow Towers and Sentry Posts may stand within 16 blocks of any of your paths or roads, however far out.
+
+Surfaces:
 
 | Surface | Cost per block |
 |---|---|
@@ -238,7 +271,7 @@ Press **M** anywhere to open the world map. Scroll to zoom, drag to move around,
 
 The cost is paid when you lay it out. Builders lay the path like any other site, keeping the way even: a ditch is bridged with earth and a hump is cut down. Paths go around buildings and the manor and stop short of the fence. Click a path on the map to select it; **Demolish** turns it back to grass. Paths don't speed up walking yet.
 
-**Clearing and levelling ground.** On the territory map, click **Clear & level ground**, then click two opposite corners (up to 48 × 48 blocks; right-click starts again). The level starts at the usual ground height there; **Lower** and **Raise** move it up to 8 blocks either way. Builders fell the trees, cut away everything above the level and fill dips below it with earth, and everything useful goes to the stores.
+**Clearing and levelling ground.** On the territory map, click **Clear & level ground**, then click two opposite corners (up to 48 × 48 blocks; right-click starts again). The level starts at the usual ground height there; **Lower** and **Raise** move it up to 8 blocks either way. **Grade: slope** instead shapes an even ramp from the ground at the first corner to the ground at the second, for a way up onto raised ground. Builders fell the trees, cut away everything above the level and fill dips below it with earth, and everything useful goes to the stores.
 - **No cliffs:** for up to 8 blocks beyond the edges, the ground is cut back and banked up in a slope, one block per block.
 - **Finished work is spared:** completed buildings (and a block around them), paths, the fence and the manor yard inside the area are left exactly as they are. Only a site still being built gets in the way.
 - Nothing can be built on a clearing until it's done. When the ground is level, the clearing disappears from the map; select one and **Demolish** to call it off (what's done stays done).
@@ -327,6 +360,11 @@ Also on the **Duties** tab, appoint residents to the Lord's offices: the secreta
 
 Scholars, especially historical ones, also raise the Cultural index.
 
+### Defending the village
+Beasts and bandits now go for villagers as well as players. Someone set upon calls for help: soldiers and historical figures within 24 blocks turn on the attacker, a soldier or figure fights back even off duty, and everyone else runs. Anyone who can't fight runs for the manor when a beast comes near.
+- **Sheltering until the fence stands:** until the village's fence is finished, everyone spends the night inside the Lord's Manor (those with a bed there sleep in it) instead of out where the beasts roam. Once the fence stands, they go home to their own beds.
+- **Soldiers' levels:** every soldier has a level, shown in the People tab. A day at the drill and every kill bring experience; each level adds health, harder blows and a point of Force. A soldier's kill also gives the Lord half its experience.
+
 ### The militia and hunters
 - **Militia:** enlist residents from the **Duties** tab. A Military Camp holds 10, each **Barracks** (Grade 2) 50, and a Military Officer adds more.
   - **By day,** half drill at the camp and half walk the fence. **At night,** half keep watch.
@@ -353,14 +391,18 @@ What you can do with the drops:
 - **Selling:** tiger bone sells as herbs, and bear paw as meat.
 
 ### Beast dens
-Now and then a **Boar King's den** appears in the wilds 120 to 220 blocks from a player, at most one in each stretch of country. It's a burrow under a mound of earth and roots, guarded by the king and four to six boars.
+Now and then a **beast den** appears in the wilds 120 to 220 blocks from a player, at most one in each stretch of country, and never within 250 blocks of the world's spawn. It's a burrow under a mound of earth and roots, and whose lair it is depends on the country:
+- **Boar King** with four to six boars: anywhere.
+- **Wolf King** with his pack: in snow, taiga and mountains, 600 blocks or more from spawn.
+- **White Tiger King** with his leopards: in jungle and mountains, 1,500 blocks or more from spawn.
 - **Finding one:** you're told its coordinates when you first come near.
-- **The king:** a boss with a health bar. Slaying him clears the den and earns merit. He returns six days later.
+- **The king:** a boss with a health bar. Slaying him clears the den and earns merit (100, 200 or 400). He returns six days later.
 
 ### The beastwave
 On every other lunar new year (Gaia years 3, 5, 7 and so on), the beasts come against every village at once, in three waves through the night.
 - **Warnings:** three days before, one day before, and on the day.
-- **The night:** beasts gather beyond the border and drive on the manor. Bigger villages draw more, and from Grade 2 a Boar King leads the last wave. A finished fence keeps them out while defenders fight from the walls and gates.
+- **The night:** beasts gather beyond the border and drive on the manor. Bigger villages draw more, and from Grade 2 a Boar King leads the last wave.
+- **Their strength:** the first beastwaves are young beasts a new village can hold off (around levels 1 to 6, the king a few levels above them). Each wave of the night is a little stronger, and each beastwave, and each village grade, adds a few levels more. A finished fence keeps them out while defenders fight from the walls and gates.
 - **No sleeping:** you can't sleep through a beastwave.
 - **Villages no one is near** fight it unseen: a fence and enough militia keep them safe; otherwise they lose food and some residents.
 - **Rewards:** at dawn the best defenders get 10, 6 and 4 gold coins, plus merit for every kill. Anyone else with five kills gets 1 gold. Militia kills count for their Lord.
@@ -374,21 +416,24 @@ Some of the novel's buildings stay out of every list until a village earns them.
 Minecraft's monsters no longer appear in the overworld: no zombies, skeletons, creepers, spiders, endermen, witches, phantoms, slimes, drowned or raiders. Dungeons with monster spawners are gone too. The wilds belong to the novel's beasts and to bandits, who now roam the open land everywhere (one in twenty bandits is a chief). The Nether and the End keep their own creatures. Turn this off with `novelMobsOnly = false`.
 
 ### Levels over every head
-Every beast and bandit shows its level above its head, for example **Lv.12 Grey Wolf**. Each level adds 6% health and 4% damage, and higher-level beasts grow bigger. The farther from the world's centre, the higher the levels: +1 per 1,000 blocks, up to +8.
+Every beast and bandit shows its level above its head, for example **Lv.4 Grey Wolf**. Each level adds 6% health and 4% damage, and higher-level beasts grow bigger. As in the novel, the wilds near where players start are gentle: levels rise slowly with distance from the world's spawn (+1 per 1,500 blocks, up to +10).
+- **Fewer of them:** a few beasts about at a time (two by day and three by night within 64 blocks), in small groups, and thinner still near the world's spawn (a third as many within 500 blocks, two thirds within 1,500).
+- **Kings keep to their lairs:** beast kings never wander the wilds. They are found only in dens (see below).
+- **Experience:** every kill of a beast or bandit gives character experience, more for higher levels and for foes above your own level, less for ones far below it.
 
 | Creature | Level | Where | Drops |
 |---|---|---|---|
-| Wild Boar | 1–8 | forests, taiga, jungle, savanna | porkchops, Boar Hide, sometimes a Boar Tusk |
-| Wild Ox (fights back if attacked) | 3–10 | plains, savanna, meadows | beef, leather, sometimes an Ox Horn |
-| Grey Wolf (packs) | 3–12 | taiga, forests, snow, mountains | Wolf Pelt, bones |
-| Bandit (chief +8) | 5–15 | everywhere | coins, gear |
-| Leopard | 8–16 | jungle, savanna, forests, mountains | Leopard Pelt |
-| Black Bear | 10–18 | forests, taiga | Bear Paw, beef, leather |
-| Snow Bear | 12–22 | snow, taiga, mountains | Bear Paw, beef, leather |
-| Mountain Tiger | 14–26 | jungle, forests, mountains | Tiger Pelt, often a Tiger Bone |
-| **Wolf King** (rare boss) | 24–32 | snow, taiga | 3 wolf pelts, Wolf King's Fang, a gold coin, sometimes a blueprint. Calls three grey wolves to his side. |
-| **Boar King** (boss) | 28–36 | dens | as before |
-| **White Tiger King** (rare boss) | 36–45 | jungle, mountains | White Tiger Pelt, 3 tiger bones, 5 gold coins, a blueprint |
+| Wild Boar | 1–4 | forests, taiga, jungle, savanna | porkchops, Boar Hide, sometimes a Boar Tusk |
+| Wild Ox (fights back if attacked) | 1–5 | plains, savanna, meadows | beef, leather, sometimes an Ox Horn |
+| Grey Wolf (packs) | 2–6 | taiga, forests, snow, mountains | Wolf Pelt, bones |
+| Bandit (chief +4) | 3–8 | everywhere | coins, gear |
+| Leopard | 4–9 | jungle, savanna, forests, mountains | Leopard Pelt |
+| Black Bear | 5–10 | forests, taiga | Bear Paw, beef, leather |
+| Snow Bear | 6–12 | snow, taiga, mountains | Bear Paw, beef, leather |
+| Mountain Tiger | 8–14 | jungle, forests, mountains | Tiger Pelt, often a Tiger Bone |
+| **Wolf King** (boss) | 14–20 | dens in snow, taiga and mountains, 600+ blocks out | 3 wolf pelts, Wolf King's Fang, a gold coin, sometimes a blueprint. Calls three grey wolves to his side. |
+| **Boar King** (boss) | 10–15 | dens | as before |
+| **White Tiger King** (boss) | 20–30 | dens in jungle and mountains, 1,500+ blocks out | White Tiger Pelt, 3 tiger bones, 5 gold coins, a blueprint |
 
 The bosses have a health bar. New uses for the drops:
 - **Leopard Pelt:** crafts into 3 leather.
@@ -439,7 +484,7 @@ Silver gear found in ruins has a 50% chance of a special effect, and Gold gear a
 - `daysToComplete` (10), `goldWithinDays` (3), `silverWithinDays` (5), `blackIronWithinDays` (7.5), and an experience multiplier.
 
 ## Admin commands (op)
-`/realm` · `/realm info [player]` · `/realm territories` · `/realm capitals` · `/realm role` (anyone) · `/realm spawn` · `/realm reset [player]` · `/realm level <n>` · `/realm worklevel <n>` · `/realm points <n>` · `/realm merit add|set <n>` · `/realm token <grade>` · `/realm quest start|supplies|clear` · `/realm beastwave [start|stop]` (with no argument: when the next one comes) · `/realm den`
+`/realm speed <n>` · `/realm camp travel|return` (anyone on the quest) · `/realm` · `/realm info [player]` · `/realm territories` · `/realm capitals` · `/realm role` (anyone) · `/realm spawn` · `/realm reset [player]` · `/realm level <n>` · `/realm worklevel <n>` · `/realm points <n>` · `/realm merit add|set <n>` · `/realm token <grade>` · `/realm quest start|supplies|clear` · `/realm beastwave [start|stop]` (with no argument: when the next one comes) · `/realm den`
 
 ## Roadmap
 The order follows the novel: Ouyang Shuo summons his first general, sets up the militia and his secretaries, and beats off the beastwave while Shanhai is still a village. The campaign battlefields only open once enough towns stand.
@@ -448,6 +493,7 @@ The order follows the novel: Ouyang Shuo summons his first general, sets up the 
 2. **Village grades 1–3** (done):
    - **2a:** a territory map and the China world type, with every building from the novel and its costs, blueprints and specialists; placement and construction; residents with jobs, talents and trade; resource jobs, the farming calendar, the market and upgrades.
    - **2b:** 171 summonable historical figures, companions, the offices, the militia and Barracks, hunters, the wild beasts and their drops, Boar King dens, the beastwave and the Mazu Temple.
+   - **Running the town:** building windows (what workshops make; schools, the dojo and apprentices), the coin purse and treasury, a ten-page self-sorting storehouse, chest sorting, villagers who shelter and fight back, soldiers' levels, experience from every kill, the gentler wilds and dens of three kings, the Bandit Lands, stepped paths and graded slopes.
    - **The village ground:** the grounds levelled to the manor on founding, walls on the ring of any grade, the territory reaching past the wall, unlimited defences on the wall, and a zoomable territory map.
    - **The wilds:** levels on every beast and bandit, graded horses, novel creatures only, three bosses, and ancient shrines, watchtowers and tombs in place of vanilla structures.
    - **Still to come:** the Auction House and special markets (ship blueprints, graded weapons and armour), more hidden buildings, and more figures.

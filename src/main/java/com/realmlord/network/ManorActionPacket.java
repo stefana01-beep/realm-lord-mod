@@ -181,7 +181,8 @@ public class ManorActionPacket {
                 }
             }
             case MAP -> {
-                TerritoryMapPacket.send(p, t, b == 1);
+                if (a >= 1 && a <= 3) TerritoryMapPacket.send(p, t, b == 1, a - 1);
+                else TerritoryMapPacket.send(p, t, b == 1);
                 return;
             }
             case OPEN_RESIDENT -> {

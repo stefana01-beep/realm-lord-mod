@@ -92,6 +92,7 @@ public final class Views {
                 bt.putIntArray("pts", b.pathPoints);
                 bt.putInt("mat", b.pathSurface);
                 bt.putInt("w", b.pathWidth);
+                bt.putBoolean("area", b.pathArea);
                 bt.putInt("blocks", Paths.blocks(b));
             }
             Resident s = Village.staffOf(t, b);

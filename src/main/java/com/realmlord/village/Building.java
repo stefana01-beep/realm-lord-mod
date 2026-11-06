@@ -39,6 +39,8 @@ public class Building {
     /** A path: its points (x, z pairs), surface, width, and the columns it covers (x, y, z, earth beneath). */
     public int[] pathPoints, pathCols;
     public int pathSurface, pathWidth = 1;
+    /** A paved area (its points are two opposite corners) rather than a line. */
+    public boolean pathArea;
     /** A clearing: how high above its level the builders cut away; the layer they have reached (not saved). */
     public int clearHeight;
     /**
@@ -155,6 +157,7 @@ public class Building {
             t.putIntArray("pathCols", pathCols);
             t.putInt("pathSurface", pathSurface);
             t.putInt("pathWidth", pathWidth);
+            t.putBoolean("pathArea", pathArea);
         }
         if (fenceFill != null) t.putIntArray("fenceFill", fenceFill);
         t.putIntArray("gates", gates);
@@ -208,6 +211,7 @@ public class Building {
             b.pathCols = t.getIntArray("pathCols");
             b.pathSurface = t.getInt("pathSurface");
             b.pathWidth = Math.max(1, t.getInt("pathWidth"));
+            b.pathArea = t.getBoolean("pathArea");
         }
         b.fenceFill = t.contains("fenceFill") ? t.getIntArray("fenceFill") : null;
         b.gates = t.contains("gates") ? t.getIntArray("gates") : new int[]{0, 90, 180, 270};

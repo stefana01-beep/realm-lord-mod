@@ -50,7 +50,45 @@ public final class Paths {
         }
     }
 
-    public static final int MAX_POINTS = 32, MAX_WIDTH = 3;
+    public static final int MAX_POINTS = 32, MAX_WIDTH = 7;
+    /** How far from the manor a road may run. */
+    public static final int MAX_ROAD = 2048;
+    /** Every territory, for keeping roads out of other Lords' lands (set by the server). */
+    public static java.util.function.Supplier<java.util.Collection<Territory>> ALL = java.util.List::of;
+    /** Largest paved area, a side. */
+    public static final int MAX_AREA = 48;
+
+    /**
+     * A paved area (a square, a market place, a yard) between two corners: every block of it laid
+     * with the surface, the ground evened out the way a path's is.
+     */
+    public static List<int[]> areaColumns(ServerLevel level, Territory t, int x0, int z0, int x1, int z1) {
+        List<int[]> out = new ArrayList<>();
+        int ax = Math.min(x0, x1), az = Math.min(z0, z1), bx = Math.max(x0, x1), bz = Math.max(z0, z1);
+        if (bx - ax + 1 > MAX_AREA || bz - az + 1 > MAX_AREA) return out;
+        for (int x = ax; x <= bx; x++)
+            for (int z = az; z <= bz; z++) {
+                if (!allowed(t, x, z)) continue;
+                int y = height(level, x, z);
+                if (level.isLoaded(new BlockPos(x, 64, z)) && fenced(level, x, y, z)) continue;
+                out.add(new int[]{x, y, z, 0});
+            }
+        java.util.Map<Long, Integer> raw = new java.util.HashMap<>();
+        for (int[] c : out) raw.put(key(c[0], c[2]), c[1]);
+        for (int[] c : out) {
+            List<Integer> hs = new ArrayList<>();
+            for (int dx = -2; dx <= 2; dx++)
+                for (int dz = -2; dz <= 2; dz++) {
+                    Integer h = raw.get(key(c[0] + dx, c[2] + dz));
+                    if (h != null) hs.add(h);
+                }
+            java.util.Collections.sort(hs);
+            int y = hs.get(hs.size() / 2);
+            c[1] = y;
+            c[3] = needsEarth(level, c[0], y, c[2]) ? EARTH : 0;
+        }
+        return out;
+    }
     /** Work per block laid (five builders lay about two blocks a second). */
     public static final int WORK_PER_BLOCK = 50;
 
@@ -96,9 +134,8 @@ public final class Paths {
                     int x = (int) Math.floor(cx + px * o), z = (int) Math.floor(cz + pz * o);
                     if (!seen.add(key(x, z))) continue;
                     if (!allowed(t, x, z)) continue;
-                    if (!level.isLoaded(new BlockPos(x, 64, z))) return null;
-                    int y = Village.groundAt(level, x, z);
-                    if (fenced(level, x, y, z)) continue;
+                    int y = height(level, x, z);
+                    if (level.isLoaded(new BlockPos(x, 64, z)) && fenced(level, x, y, z)) continue;
                     out.add(new int[]{x, y, z, 0});
                 }
             }
@@ -108,6 +145,13 @@ public final class Paths {
         java.util.Map<Long, Integer> raw = new java.util.HashMap<>();
         for (int[] c : out) raw.put(key(c[0], c[2]), c[1]);
         for (int[] c : out) {
+            int depth = waterDepth(level, c[0], raw.get(key(c[0], c[2])), c[2]);
+            if (depth >= 2) {
+                // Over a river or a lake: a bridge, its deck just above the water.
+                c[1] = raw.get(key(c[0], c[2]));
+                c[3] = BRIDGE | (Math.min(255, depth) << 5);
+                continue;
+            }
             List<Integer> hs = new ArrayList<>();
             for (int dx = -2; dx <= 2; dx++)
                 for (int dz = -2; dz <= 2; dz++) {
@@ -116,11 +160,42 @@ public final class Paths {
                 }
             java.util.Collections.sort(hs);
             int y = hs.get(hs.size() / 2);
-            BlockState below = level.getBlockState(new BlockPos(c[0], y - 2, c[2]));
             c[1] = y;
-            c[3] = below.isAir() || !below.getFluidState().isEmpty() || below.canBeReplaced() ? 1 : 0;
+            c[3] = needsEarth(level, c[0], y, c[2]) ? EARTH : 0;
         }
         return out;
+    }
+
+    /** A bridge column, and how deep the water under it is (bits 5 and up). */
+    public static final int BRIDGE = 16;
+
+    public static int bridgeDepth(int flags) {
+        return (flags >> 5) & 255;
+    }
+
+    /** The first free block above the ground: from the world where it is loaded, else from the land's shape as generated. */
+    public static int height(ServerLevel level, int x, int z) {
+        if (level.isLoaded(new BlockPos(x, 64, z))) return Village.groundAt(level, x, z);
+        return level.getChunkSource().getGenerator().getBaseHeight(x, z, net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE_WG,
+                level, level.getChunkSource().randomState());
+    }
+
+    /** Water below a column's first free block (0 on dry land). */
+    public static int waterDepth(ServerLevel level, int x, int y, int z) {
+        if (level.isLoaded(new BlockPos(x, 64, z))) {
+            int d = 0;
+            while (d < 64 && level.getFluidState(new BlockPos(x, y - 1 - d, z)).is(net.minecraft.tags.FluidTags.WATER)) d++;
+            return d;
+        }
+        var gen = level.getChunkSource().getGenerator();
+        int floor = gen.getBaseHeight(x, z, net.minecraft.world.level.levelgen.Heightmap.Types.OCEAN_FLOOR_WG, level, level.getChunkSource().randomState());
+        return Math.max(0, y - floor);
+    }
+
+    private static boolean needsEarth(ServerLevel level, int x, int y, int z) {
+        if (!level.isLoaded(new BlockPos(x, 64, z))) return false;
+        BlockState below = level.getBlockState(new BlockPos(x, y - 2, z));
+        return below.isAir() || !below.getFluidState().isEmpty() || below.canBeReplaced();
     }
 
     private static final net.minecraft.core.Direction[] FACINGS = {null, net.minecraft.core.Direction.NORTH, net.minecraft.core.Direction.EAST,
@@ -151,8 +226,7 @@ public final class Paths {
             int[] ys = new int[mid.size()];
             for (int i = 0; i < mid.size(); i++) {
                 int[] c = mid.get(i);
-                if (!level.isLoaded(new BlockPos(c[0], 64, c[1]))) return null;
-                int y = Village.groundAt(level, c[0], c[1]);
+                int y = height(level, c[0], c[1]);
                 // One block up or down at a time: steeper ground is cut back or banked up.
                 if (prevY != null) y = Math.max(prevY - 1, Math.min(prevY + 1, y));
                 ys[i] = y;
@@ -166,11 +240,13 @@ public final class Paths {
                 for (int o = -half; o <= extra; o++) {
                     int x = mid.get(i)[0] + px * o, z = mid.get(i)[1] + pz * o, y = ys[i];
                     if (!seen.add(key(x, z)) || !allowed(t, x, z)) continue;
-                    if (!level.isLoaded(new BlockPos(x, 64, z))) return null;
-                    if (fenced(level, x, y, z)) continue;
-                    BlockState below = level.getBlockState(new BlockPos(x, y - 2, z));
-                    int earth = below.isAir() || !below.getFluidState().isEmpty() || below.canBeReplaced() ? EARTH : 0;
-                    out.add(new int[]{x, y, z, earth | (up << 1)});
+                    if (level.isLoaded(new BlockPos(x, 64, z)) && fenced(level, x, y, z)) continue;
+                    int depth = waterDepth(level, x, y, z);
+                    if (depth >= 2) {
+                        out.add(new int[]{x, y, z, BRIDGE | (Math.min(255, depth) << 5)});
+                        continue;
+                    }
+                    out.add(new int[]{x, y, z, (needsEarth(level, x, y, z) ? EARTH : 0) | (up << 1)});
                 }
             }
         }
@@ -218,9 +294,13 @@ public final class Paths {
 
     private static boolean allowed(Territory t, int x, int z) {
         long dx = x - t.center.getX(), dz = z - t.center.getZ();
-        // Out to the edge of the levelled grounds, past the wall and even past the border.
-        long reach = Village.reach(t);
-        if (dx * dx + dz * dz > reach * reach) return false;
+        // Within the village's grounds (past the wall, even past the border), and beyond as a road
+        // into the wilds, so long as it keeps out of other Lords' lands.
+        if (dx * dx + dz * dz > (long) MAX_ROAD * MAX_ROAD) return false;
+        if (dx * dx + dz * dz > (long) Village.reach(t) * Village.reach(t)) {
+            for (Territory o : ALL.get()) if (o != t && o.dimension.equals(t.dimension) && o.distanceTo(new BlockPos(x, 64, z)) <= o.radius()) return false;
+            return true;
+        }
         if (Math.abs(dx) <= 5 && Math.abs(dz) <= 5) return false;
         for (Building b : t.buildings) if (b.footprint() && b.overlaps(x, z, 1, 1, 0)) return false;
         return true;
@@ -232,11 +312,17 @@ public final class Paths {
     }
 
     public static String start(ServerPlayer p, Territory t, Surface surface, int width, int[] pts, boolean stairs) {
+        return start(p, t, surface, width, pts, stairs, false);
+    }
+
+    /** As above; area: the first two points are opposite corners of a paved area instead. */
+    public static String start(ServerPlayer p, Territory t, Surface surface, int width, int[] pts, boolean stairs, boolean area) {
         if (pts.length < 4 || pts.length % 2 != 0 || pts.length > MAX_POINTS * 2) return "realmlord.path.err.points";
         width = Math.max(1, Math.min(MAX_WIDTH, width));
         ServerLevel level = p.serverLevel();
         if (!level.dimension().equals(t.dimension)) return "realmlord.build.err.dimension";
-        List<int[]> cols = columns(level, t, pts, width, stairs);
+        if (area && (Math.abs(pts[2] - pts[0]) + 1 > MAX_AREA || Math.abs(pts[3] - pts[1]) + 1 > MAX_AREA)) return "realmlord.path.err.area";
+        List<int[]> cols = area ? areaColumns(level, t, pts[0], pts[1], pts[2], pts[3]) : columns(level, t, pts, width, stairs);
         if (cols == null) return "realmlord.path.err.unloaded";
         if (cols.isEmpty()) return "realmlord.path.err.empty";
         long[] c = cost(surface, cols.size());
@@ -253,6 +339,7 @@ public final class Paths {
         b.pathPoints = pts.clone();
         b.pathSurface = surface.ordinal();
         b.pathWidth = width;
+        b.pathArea = area;
         int[] flat = new int[cols.size() * 4];
         for (int i = 0; i < cols.size(); i++) System.arraycopy(cols.get(i), 0, flat, i * 4, 4);
         b.pathCols = flat;
@@ -270,6 +357,10 @@ public final class Paths {
             int x = b.pathCols[i], y = b.pathCols[i + 1], z = b.pathCols[i + 2], flags = b.pathCols[i + 3];
             if ((flags & EARTH) != 0) out.add(new BuildingDesigns.Placement(new BlockPos(x, y - 2, z), Blocks.DIRT.defaultBlockState()));
             out.add(new BuildingDesigns.Placement(new BlockPos(x, y - 1, z), top));
+            if ((flags & BRIDGE) != 0) {
+                bridge(out, b, surface, x, y, z, flags);
+                continue;
+            }
             int f = stairFacing(flags);
             if (f > 0) {
                 // A step up, then headroom over it.
@@ -283,6 +374,43 @@ public final class Paths {
             }
         }
         return out;
+    }
+
+    /**
+     * A bridge column: a deck one block above the water, a rail along each open side, and a
+     * pier down to the bed under every fourth block of the rails. Planks and dirt or gravel
+     * ways get a timber bridge; cobble and stone ways a stone one.
+     */
+    private static void bridge(List<BuildingDesigns.Placement> out, Building b, Surface surface, int x, int y, int z, int flags) {
+        boolean stone = surface == Surface.COBBLE || surface == Surface.STONE;
+        BlockState deck = (surface == Surface.STONE ? Blocks.STONE_BRICKS : stone ? Blocks.COBBLESTONE : Blocks.SPRUCE_PLANKS).defaultBlockState();
+        BlockState pier = (stone ? Blocks.STONE_BRICKS : Blocks.STRIPPED_SPRUCE_LOG).defaultBlockState();
+        java.util.Map<Long, Integer> cols = colMap(b);
+        boolean wide = b.pathArea || b.pathWidth >= 3;
+        boolean edge = !cols.containsKey(key(x + 1, z)) || !cols.containsKey(key(x - 1, z)) || !cols.containsKey(key(x, z + 1)) || !cols.containsKey(key(x, z - 1));
+        // Rails along the sides of a bridge three or more wide; a narrow one is left open to walk.
+        boolean rail = wide && edge;
+        if (edge && Math.floorMod(x + z, 4) == 0) {
+            for (int d = 1; d <= bridgeDepth(flags); d++) out.add(new BuildingDesigns.Placement(new BlockPos(x, y - d, z), pier));
+        }
+        out.add(new BuildingDesigns.Placement(new BlockPos(x, y, z), deck));
+        out.add(new BuildingDesigns.Placement(new BlockPos(x, y + 1, z), rail ? rail(surface) : Blocks.AIR.defaultBlockState()));
+        out.add(new BuildingDesigns.Placement(new BlockPos(x, y + 2, z), Blocks.AIR.defaultBlockState()));
+    }
+
+    private static BlockState rail(Surface surface) {
+        boolean stone = surface == Surface.COBBLE || surface == Surface.STONE;
+        return (surface == Surface.STONE ? Blocks.STONE_BRICK_WALL : stone ? Blocks.COBBLESTONE_WALL : Blocks.SPRUCE_FENCE).defaultBlockState();
+    }
+
+    private static final java.util.Map<int[], java.util.Map<Long, Integer>> COLS = new java.util.WeakHashMap<>();
+
+    private static java.util.Map<Long, Integer> colMap(Building b) {
+        return COLS.computeIfAbsent(b.pathCols, k -> {
+            java.util.Map<Long, Integer> m = new java.util.HashMap<>();
+            for (int i = 0; i + 3 < k.length; i += 4) m.put(key(k[i], k[i + 2]), k[i + 3]);
+            return m;
+        });
     }
 
     public static int blocks(Building b) {

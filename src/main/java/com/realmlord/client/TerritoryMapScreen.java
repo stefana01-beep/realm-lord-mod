@@ -24,6 +24,8 @@ public class TerritoryMapScreen extends Screen {
     /** Zoom steps: how many times closer than the whole map. */
     private static final double[] ZOOMS = {1, 1.5, 2, 3, 4, 6, 8};
     private int zoom;
+    /** How far the map reaches: 0 the village, 1 the country around, 2 the region (for roads). */
+    private static int range;
     /** The top-left corner of the view, in map pixels. */
     private double viewU = -1, viewV = -1;
     private int viewSize = -1;
@@ -45,6 +47,8 @@ public class TerritoryMapScreen extends Screen {
     private int pathSurface = 1, pathWidth = 2;
     /** The path follows the land with steps, rather than being evened out. */
     private boolean pathStairs;
+    /** A paved area between two corners instead of a line. */
+    private boolean pathArea;
     /** The clearing is graded into a slope from the first corner to the second. */
     private boolean clearSlope;
     /** Marking out ground to clear and level: two corners, and the level relative to the usual ground. */
@@ -246,8 +250,15 @@ public class TerritoryMapScreen extends Screen {
     protected void init() {
         if (Ui.fit(this, W, H)) return;
         clearWidgets();
-        if (!ClientMap.ready || refreshIn < 0) ModNetwork.toServer(new ManorActionPacket(ManorActionPacket.Action.MAP, 0, 0));
+        if (!ClientMap.ready || refreshIn < 0) ModNetwork.toServer(new ManorActionPacket(ManorActionPacket.Action.MAP, range + 1, 0));
         int bx = left() + MAP + 22, by = top() + H - 24, bw = W - MAP - 32;
+        addRenderableWidget(Button.builder(Component.translatable("realmlord.map.range." + range), b -> {
+            range = (range + 1) % 3;
+            zoom = 0;
+            viewU = -1;
+            ModNetwork.toServer(new ManorActionPacket(ManorActionPacket.Action.MAP, range + 1, 0));
+            init();
+        }).bounds(mapX() + 2, mapY() + 2, 70, 16).tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("realmlord.map.range.tip"))).build());
         addRenderableWidget(Button.builder(Component.literal("+"), b -> zoomBy(1, mapX() + MAP / 2.0, mapY() + MAP / 2.0))
                 .bounds(mapX() + MAP - 34, mapY() + 2, 16, 16).tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("realmlord.map.zoom_in"))).build());
         addRenderableWidget(Button.builder(Component.literal("-"), b -> zoomBy(-1, mapX() + MAP / 2.0, mapY() + MAP / 2.0))
@@ -305,6 +316,11 @@ public class TerritoryMapScreen extends Screen {
             }).bounds(bx, by - 18, bw, 16).build());
         } else if (pathMode) {
             Paths.Surface s = Paths.Surface.byOrdinal(pathSurface);
+            addRenderableWidget(Button.builder(Component.translatable(pathArea ? "realmlord.path.area_on" : "realmlord.path.area_off"), b -> {
+                pathArea = !pathArea;
+                pathPts.clear();
+                init();
+            }).bounds(bx, by - 126, bw, 16).tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("realmlord.path.area.tip", Paths.MAX_AREA))).build());
             addRenderableWidget(Button.builder(Component.translatable(pathStairs ? "realmlord.path.stairs_on" : "realmlord.path.stairs_off"), b -> {
                 pathStairs = !pathStairs;
                 init();
@@ -323,7 +339,7 @@ public class TerritoryMapScreen extends Screen {
                     pts[i * 2] = pathPts.get(i)[0];
                     pts[i * 2 + 1] = pathPts.get(i)[1];
                 }
-                ModNetwork.toServer(new com.realmlord.network.PlacePathPacket(pathSurface, pathWidth, pts, pathStairs));
+                ModNetwork.toServer(new com.realmlord.network.PlacePathPacket(pathSurface, pathWidth, pts, pathStairs, pathArea));
                 pathMode = false;
                 pathPts.clear();
                 refreshIn = 20;
@@ -352,7 +368,7 @@ public class TerritoryMapScreen extends Screen {
                 init();
             }).bounds(bx, by - 18, bw, 16).build());
         } else {
-            addRenderableWidget(Button.builder(Component.translatable("realmlord.map.refresh"), b -> ModNetwork.toServer(new ManorActionPacket(ManorActionPacket.Action.MAP, 0, 0)))
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.map.refresh"), b -> ModNetwork.toServer(new ManorActionPacket(ManorActionPacket.Action.MAP, range + 1, 0)))
                     .bounds(bx, by - 18, bw, 16).build());
             CompoundTag f = fence();
             if (f != null) {
@@ -420,7 +436,7 @@ public class TerritoryMapScreen extends Screen {
     public void tick() {
         if (refreshIn > 0 && --refreshIn == 0) {
             refreshIn = -1;
-            ModNetwork.toServer(new ManorActionPacket(ManorActionPacket.Action.MAP, 0, 0));
+            ModNetwork.toServer(new ManorActionPacket(ManorActionPacket.Action.MAP, range + 1, 0));
         }
     }
 
@@ -460,7 +476,7 @@ public class TerritoryMapScreen extends Screen {
             return true;
         }
         if (pathMode && at != null) {
-            if (button == 0 && pathPts.size() < Paths.MAX_POINTS) pathPts.add(new int[]{at.getX(), at.getZ()});
+            if (button == 0 && pathPts.size() < (pathArea ? 2 : Paths.MAX_POINTS)) pathPts.add(new int[]{at.getX(), at.getZ()});
             else if (button == 1 && !pathPts.isEmpty()) pathPts.remove(pathPts.size() - 1);
             init();
             return true;
@@ -601,7 +617,10 @@ public class TerritoryMapScreen extends Screen {
             int col = surfaceColor(b.getInt("mat"));
             if (!b.getBoolean("complete")) col = (col & 0x00FFFFFF) | 0x90000000;
             if (b.getInt("id") == selectedId) col = 0xFFFFFFFF;
-            polyline(g, b.getIntArray("pts"), b.getInt("w"), col);
+            int[] pp = b.getIntArray("pts");
+            if (b.getBoolean("area") && pp.length >= 4) {
+                rect(g, Math.min(pp[0], pp[2]), Math.min(pp[1], pp[3]), Math.abs(pp[2] - pp[0]) + 1, Math.abs(pp[3] - pp[1]) + 1, (col & 0x00FFFFFF) | 0x90000000, col);
+            } else polyline(g, pp, b.getInt("w"), col);
         }
         if (pathMode && !pathPts.isEmpty()) {
             int[] pts = new int[pathPts.size() * 2];
@@ -609,7 +628,10 @@ public class TerritoryMapScreen extends Screen {
                 pts[i * 2] = pathPts.get(i)[0];
                 pts[i * 2 + 1] = pathPts.get(i)[1];
             }
-            polyline(g, pts, pathWidth, 0xC0FFE07A);
+            if (pathArea && pathPts.size() == 2) {
+                int[] a0 = pathPts.get(0), a1 = pathPts.get(1);
+                rect(g, Math.min(a0[0], a1[0]), Math.min(a0[1], a1[1]), Math.abs(a1[0] - a0[0]) + 1, Math.abs(a1[1] - a0[1]) + 1, 0x60FFE07A, 0xFFFFD84D);
+            } else if (!pathArea) polyline(g, pts, pathWidth, 0xC0FFE07A);
             for (int[] p : pathPts) {
                 int px = screenX(p[0] + 0.5), py = screenY(p[1] + 0.5);
                 g.fill(px - 2, py - 2, px + 2, py + 2, 0xFFFFD84D);
@@ -674,6 +696,10 @@ public class TerritoryMapScreen extends Screen {
             CompoundTag b = bs.getCompound(i);
             if (b.getInt("type") != BuildingType.PATH.ordinal() || !b.contains("pts")) continue;
             int[] p = b.getIntArray("pts");
+            if (b.getBoolean("area") && p.length >= 4) {
+                if (x >= Math.min(p[0], p[2]) && x <= Math.max(p[0], p[2]) && z >= Math.min(p[1], p[3]) && z <= Math.max(p[1], p[3])) return b;
+                continue;
+            }
             for (int s = 0; s + 3 < p.length; s += 2) {
                 if (segDist(x, z, p[s], p[s + 1], p[s + 2], p[s + 3]) <= reach + b.getInt("w") / 2.0) return b;
             }
@@ -703,6 +729,7 @@ public class TerritoryMapScreen extends Screen {
 
     /** Rough size of the path being drawn, in blocks. */
     private int pathEstimate() {
+        if (pathArea) return pathPts.size() < 2 ? 0 : (Math.abs(pathPts.get(1)[0] - pathPts.get(0)[0]) + 1) * (Math.abs(pathPts.get(1)[1] - pathPts.get(0)[1]) + 1);
         double len = 0;
         for (int i = 1; i < pathPts.size(); i++)
             len += Math.hypot(pathPts.get(i)[0] - pathPts.get(i - 1)[0], pathPts.get(i)[1] - pathPts.get(i - 1)[1]);
