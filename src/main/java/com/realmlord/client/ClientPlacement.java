@@ -93,6 +93,26 @@ public final class ClientPlacement {
             int g = Village.defence(type) || Village.defence(bt) ? 1 : Village.BUILDING_GAP;
             if (o.getX() - g < bx + bsx && bx < o.getX() + sx + g && o.getZ() - g < bz + bsz && bz < o.getZ() + sz + g) return false;
         }
+        // Not on a path or paved area already laid.
+        for (int i = 0; i < bs.size(); i++) {
+            CompoundTag b = bs.getCompound(i);
+            if (b.getInt("type") != BuildingType.PATH.ordinal()) continue;
+            int[] p = b.getIntArray("pts");
+            if (b.getBoolean("area") && p.length >= 4) {
+                if (Math.min(p[0], p[2]) < o.getX() + sx && o.getX() <= Math.max(p[0], p[2])
+                        && Math.min(p[1], p[3]) < o.getZ() + sz && o.getZ() <= Math.max(p[1], p[3])) return false;
+                continue;
+            }
+            double half = b.getInt("w") / 2.0;
+            for (int s = 0; s + 3 < p.length; s += 2) {
+                double ax = p[s] + 0.5, az = p[s + 1] + 0.5, dx = p[s + 2] - p[s], dz = p[s + 3] - p[s + 1];
+                int n = (int) Math.ceil(Math.hypot(dx, dz) * 2) + 1;
+                for (int k = 0; k <= n; k++) {
+                    double qx = ax + dx * k / n, qz = az + dz * k / n;
+                    if (qx > o.getX() - half && qx < o.getX() + sx + half && qz > o.getZ() - half && qz < o.getZ() + sz + half) return false;
+                }
+            }
+        }
         return true;
     }
 

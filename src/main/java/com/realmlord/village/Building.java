@@ -59,6 +59,13 @@ public class Building {
     public transient int clearTop = Integer.MAX_VALUE;
     /** Levelling the grounds: how many columns, counted from the manor outwards, are done. */
     public int groundsCursor;
+    /** A finished building that has lost blocks (broken, burnt, blown up): the builders go back to put it right. */
+    public transient boolean damaged;
+
+    /** Builders have work here: a site under way, or a finished building to repair. */
+    public boolean needsWork() {
+        return !complete || damaged;
+    }
     /** A workshop's choice of what to make (see Workshops.modes). */
     public int mode;
 

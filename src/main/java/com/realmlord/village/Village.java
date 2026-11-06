@@ -651,6 +651,14 @@ public final class Village {
             int g = b.type == BuildingType.CLEARING ? 1 : defence(b.type) ? 1 : gap;
             if (b.overlaps(origin.getX(), origin.getZ(), sx, sz, g)) return b.overlaps(origin.getX(), origin.getZ(), sx, sz, 1) ? "realmlord.build.err.overlap" : "realmlord.build.err.lane";
         }
+        // Not on a path or paved area already laid: take the path up first.
+        for (Building b : t.buildings) {
+            if (b.type != BuildingType.PATH || b.pathCols == null || b.demolishing) continue;
+            for (int i = 0; i + 3 < b.pathCols.length; i += 4) {
+                int px = b.pathCols[i], pz = b.pathCols[i + 2];
+                if (px >= origin.getX() && px < origin.getX() + sx && pz >= origin.getZ() && pz < origin.getZ() + sz) return "realmlord.build.err.path";
+            }
+        }
         // Nothing may block a gateway; only towers may stand on the fence.
         for (Building f : t.buildings) {
             if (f.type != BuildingType.SIMPLE_FENCE || f.demolishing) continue;
@@ -923,6 +931,22 @@ public final class Village {
         return null;
     }
 
+    /**
+     * Looks every finished building over: one that has lost blocks (to a creeper, fire, a
+     * careless player) is marked for repair, and the builders go back to put it right.
+     */
+    public static void inspect(ServerLevel level, Territory t) {
+        for (Building b : t.buildings) {
+            if (!b.complete || b.demolishing || b.damaged || !Sites.repairable(b)) continue;
+            int n = Sites.missing(level, t, b);
+            if (n <= 0) continue;
+            b.damaged = true;
+            b.verified = false;
+            b.verifyCursor = 0;
+            tell(level, t, Component.translatable("realmlord.build.damaged", Component.translatable(b.type.key()), t.name, n));
+        }
+    }
+
     /** True if a column lies within another Lord's territory. */
     public static boolean othersLand(Territory t, int x, int z) {
         BlockPos p = new BlockPos(x, 64, z);
@@ -1026,7 +1050,7 @@ public final class Village {
     public static void construct(ServerLevel level, Territory t, int ticks) {
         allocateBuilders(t);
         for (Building site : new ArrayList<>(t.buildings)) {
-            if (site.complete) continue;
+            if (!site.needsWork()) continue;
             double work = 0;
             for (Resident r : t.residents) {
                 if (r.job == Job.CONSTRUCTION && !r.militia && r.workplace == site.id) work += r.skillAt(Job.CONSTRUCTION);
@@ -1043,7 +1067,7 @@ public final class Village {
      */
     public static void allocateBuilders(Territory t) {
         List<Building> sites = new ArrayList<>();
-        for (Building b : t.buildings) if (!b.complete) sites.add(b);
+        for (Building b : t.buildings) if (b.needsWork()) sites.add(b);
         List<Resident> builders = withJob(t, Job.CONSTRUCTION);
         builders.removeIf(r -> r.militia);
         builders.sort(Comparator.comparingInt(r -> r.id));
@@ -1078,6 +1102,17 @@ public final class Village {
     }
 
     private static void work(ServerLevel level, Territory t, Building site, double work, int ticks) {
+        if (site.complete && site.damaged) {
+            // Repairs: the builders put back what was lost, by hand if they are there.
+            boolean byHand = buildersNear(level, t, site) && level.getGameTime() - site.lastWork < Sites.STALL_TICKS;
+            if (!byHand) Sites.work(level, t, site, (int) Math.max(1, Math.round(work * ticks / 10.0)));
+            if (site.verified) {
+                site.damaged = false;
+                for (Resident r : t.residents) if (r.workplace == site.id) r.workplace = -1;
+                tell(level, t, Component.translatable("realmlord.build.repaired", Component.translatable(site.type.key()), t.name));
+            }
+            return;
+        }
         if (site.type == BuildingType.GROUNDS) {
             // Builders work it by hand where they stand; the rest of the crew's work goes on all round.
             Grounds.sweep(level, t, site, (int) Math.max(20, Math.round(work * ticks * 2)));
@@ -1561,6 +1596,8 @@ public final class Village {
         if (!t.settled) settle(t, level.getRandom(), Math.max(0, t.population - 10));
         catchUp(level, t);
         construct(level, t, 20 * speed);
+        // Every two minutes or so, the village looks its finished buildings over for damage.
+        if ((level.getGameTime() / 20) % 120 == Math.floorMod(t.id * 37, 120)) inspect(level, t);
         if (t.waitingSettlers > 0) admitWaiting(level, t);
         refitFence(level, t);
         if (com.realmlord.territory.Residence.upgrade(level, t)) {

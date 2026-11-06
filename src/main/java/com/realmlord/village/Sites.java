@@ -49,7 +49,7 @@ public final class Sites {
 
     /** The site builders work on now: the oldest one being built or taken down. */
     public static Building active(Territory t) {
-        for (Building b : t.buildings) if (!b.complete) return b;
+        for (Building b : t.buildings) if (b.needsWork()) return b;
         return null;
     }
 
@@ -68,6 +68,12 @@ public final class Sites {
         if (b.type == BuildingType.SIMPLE_FENCE && !b.demolishing && b.placed == 0 && Grounds.active(t)) return null;
         if (!loaded(level, b)) return null;
         if (b.demolishing) return nextRemove(level, t, b);
+        if (b.complete) {
+            // Repairs: only what is missing is put back; anything the Lord has put inside is left be.
+            if (!b.damaged) return null;
+            List<BuildingDesigns.Placement> design = BuildingDesigns.design(level, t, b);
+            return design == null ? null : nextRepair(level, b, design, true);
+        }
         if (b.stage == Building.CLEAR) {
             Op o = b.footprint() ? nextClear(level, b) : null;
             if (o != null) return o;
@@ -198,8 +204,14 @@ public final class Sites {
      * building counts as done.
      */
     private static Op nextRepair(ServerLevel level, Building b, List<BuildingDesigns.Placement> design) {
+        return nextRepair(level, b, design, false);
+    }
+
+    private static Op nextRepair(ServerLevel level, Building b, List<BuildingDesigns.Placement> design, boolean solidOnly) {
         for (int i = Math.max(0, b.verifyCursor); i < design.size(); i++) {
             BuildingDesigns.Placement p = design.get(i);
+            if (solidOnly && p.state().isAir()) continue;
+            if (solidOnly && level.isLoaded(p.pos()) && sameKind(level.getBlockState(p.pos()), p.state())) continue;
             if (!level.isLoaded(p.pos())) {
                 b.verifyCursor = i;
                 return null;
@@ -369,6 +381,32 @@ public final class Sites {
             case Haul.ORE -> t.ironOre += units;
             default -> t.food += units;
         }
+    }
+
+    /** Close enough to the design: the same block, or earth that has grown grass (or been trodden to a path). */
+    static boolean sameKind(BlockState now, BlockState want) {
+        if (now.getBlock() == want.getBlock()) return true;
+        return now.is(net.minecraft.tags.BlockTags.DIRT) && want.is(net.minecraft.tags.BlockTags.DIRT)
+                || now.is(Blocks.DIRT_PATH) && want.is(net.minecraft.tags.BlockTags.DIRT);
+    }
+
+    /** Buildings that are worked and change as they are (fields, the quarry, the mine) are not repaired. */
+    public static boolean repairable(Building b) {
+        return b.type.placed() && b.type.fieldJob() == null || b.type == BuildingType.SIMPLE_FENCE;
+    }
+
+    /** How many of a finished building's blocks are missing or wrong (ignoring its open spaces). -1 if it can't be seen now. */
+    public static int missing(ServerLevel level, Territory t, Building b) {
+        if (!loaded(level, b)) return -1;
+        List<BuildingDesigns.Placement> design = BuildingDesigns.design(level, t, b);
+        if (design == null) return -1;
+        int n = 0;
+        for (BuildingDesigns.Placement p : design) {
+            if (p.state().isAir()) continue;
+            if (!level.isLoaded(p.pos())) return -1;
+            if (!sameKind(level.getBlockState(p.pos()), p.state())) n++;
+        }
+        return n;
     }
 
     /**

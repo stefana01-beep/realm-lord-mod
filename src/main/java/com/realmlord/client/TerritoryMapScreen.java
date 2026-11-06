@@ -191,11 +191,11 @@ public class TerritoryMapScreen extends Screen {
     }
 
     private int screenX(double wx) {
-        return mapX() + (int) Math.round(((wx - ClientMap.x0) / ClientMap.step - viewU) * scale());
+        return mapX() + (int) Math.floor(((wx - ClientMap.x0) / ClientMap.step - viewU) * scale() + 1e-6);
     }
 
     private int screenY(double wz) {
-        return mapY() + (int) Math.round(((wz - ClientMap.z0) / ClientMap.step - viewV) * scale());
+        return mapY() + (int) Math.floor(((wz - ClientMap.z0) / ClientMap.step - viewV) * scale() + 1e-6);
     }
 
     private boolean overMap(double mx, double my) {
@@ -784,8 +784,21 @@ public class TerritoryMapScreen extends Screen {
             case 3 -> g.fill(x0, y0, x0 + 2, y1, 0xFFFFD84D);
             default -> g.fill(x0, y0, x1, y0 + 2, 0xFFFFD84D);
         }
+        // The exact block under the mouse, and (zoomed in) the footprint's block grid, so it is
+        // plain where every wall will stand.
+        double px = scale() / Math.max(1, ClientMap.step);
+        if (px >= 4) {
+            for (int i = 1; i < sx(); i++) g.fill(screenX(o.getX() + i), y0, screenX(o.getX() + i) + 1, y1, 0x30FFFFFF);
+            for (int j = 1; j < sz(); j++) g.fill(x0, screenY(o.getZ() + j), x1, screenY(o.getZ() + j) + 1, 0x30FFFFFF);
+        }
+        int cx0 = screenX(at.getX()), cy0 = screenY(at.getZ()), cx1 = Math.max(cx0 + 1, screenX(at.getX() + 1)), cy1 = Math.max(cy0 + 1, screenY(at.getZ() + 1));
+        g.fill(cx0, cy0, cx1, cy1, 0xC0FFFFFF);
+        placeInfo = Component.translatable("realmlord.map.place_at", o.getX(), o.getZ(), o.getX() + sx() - 1, o.getZ() + sz() - 1);
         return null;
     }
+
+    /** Where the building under the mouse would stand, for the side panel. */
+    private Component placeInfo;
 
     private Component hover(CompoundTag v, int mx, int my) {
         BlockPos at = worldAt(mx, my);
@@ -869,7 +882,8 @@ public class TerritoryMapScreen extends Screen {
             g.drawString(font, Component.translatable("realmlord.map.placing"), sx, sy, Ui.GOLD, false);
             g.drawString(font, Component.translatable(placing.key()), sx, sy + 11, Ui.INK, false);
             g.drawString(font, placing.width + " x " + placing.depth, sx, sy + 22, Ui.MUTED, false);
-            Ui.wrap(g, font, Component.translatable("realmlord.map.place_hint"), sx, sy + 36, w, Ui.MUTED);
+            if (placeInfo != null && hoverAt != null) Ui.wrap(g, font, placeInfo, sx, sy + 33, w, Ui.INK);
+            Ui.wrap(g, font, Component.translatable("realmlord.map.place_hint"), sx, sy + 58, w, Ui.MUTED);
         } else {
             g.drawString(font, Component.translatable("realmlord.map.legend"), sx, sy, Ui.GOLD, false);
             legend(g, sx, sy + 13, 0xFFE8C15A, "realmlord.map.legend.border");

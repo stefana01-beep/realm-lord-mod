@@ -151,7 +151,7 @@ public final class Residents {
     /** The site a builder is working on: the one the village gave them, else the oldest. */
     public static Building siteOf(Territory t, Resident r) {
         Building b = t.building(r.workplace);
-        if (b != null && !b.complete) return b;
+        if (b != null && b.needsWork()) return b;
         return Sites.active(t);
     }
 

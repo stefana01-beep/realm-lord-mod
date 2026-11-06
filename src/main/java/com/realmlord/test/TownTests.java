@@ -242,4 +242,47 @@ public class TownTests {
             for (int z = -2; z <= 2; z++) level.setChunkForced((far.getX() >> 4) + x, (far.getZ() >> 4) + z, false);
         VillageTests.done(helper, p, t);
     }
+
+    @GameTest(template = "empty", timeoutTicks = 200, batch = "town_repair")
+    public static void damagedBuildingsAreRepairedAndPathsKeepTheirGround(GameTestHelper helper) {
+        ServerPlayer p = RealmTests.lord(helper, CombatClass.GENERAL);
+        Territory t = VillageTests.village(helper, p, 16000);
+        ServerLevel level = helper.getLevel();
+        BlockPos o = t.center.offset(20, 0, 20);
+        // A finished bathroom, standing as designed.
+        Building b = new Building();
+        b.id = t.nextBuildingId++;
+        b.type = BuildingType.BATHROOM;
+        b.w = BuildingType.BATHROOM.width;
+        b.d = BuildingType.BATHROOM.depth;
+        b.origin = o;
+        b.stage = Building.BUILD;
+        b.workNeeded = b.progress = 1;
+        t.buildings.add(b);
+        var design = com.realmlord.village.BuildingDesigns.design(level, t, b);
+        for (var pl : design) level.setBlock(pl.pos(), pl.state(), 2);
+        b.placed = design.size();
+        b.complete = true;
+        b.verified = true;
+        helper.assertTrue(com.realmlord.village.Sites.missing(level, t, b) == 0, "the building is not as designed");
+        // Knock three blocks out of it.
+        int knocked = 0;
+        for (var pl : design) {
+            if (pl.state().isAir() || knocked >= 3) continue;
+            level.setBlock(pl.pos(), Blocks.AIR.defaultBlockState(), 2);
+            knocked++;
+        }
+        com.realmlord.village.Village.inspect(level, t);
+        helper.assertTrue(b.damaged && b.needsWork(), "the damage was not noticed");
+        for (int i = 0; i < 20 && !b.verified; i++) com.realmlord.village.Sites.work(level, t, b, 50);
+        helper.assertTrue(com.realmlord.village.Sites.missing(level, t, b) == 0, "the damage was not repaired");
+        // No building may be put down on a path already laid.
+        t.stone = 1000;
+        BlockPos a = t.center.offset(-30, 0, -30);
+        String err = Paths.start(p, t, Paths.Surface.COBBLE, 3, new int[]{a.getX(), a.getZ(), a.getX() + 20, a.getZ()});
+        helper.assertTrue(err == null, "could not lay the path: " + err);
+        helper.assertTrue("realmlord.build.err.path".equals(com.realmlord.village.Village.checkPlacement(level, t, BuildingType.BATHROOM, a.offset(6, 0, -2), 0)),
+                "a building was allowed on a path");
+        VillageTests.done(helper, p, t);
+    }
 }
