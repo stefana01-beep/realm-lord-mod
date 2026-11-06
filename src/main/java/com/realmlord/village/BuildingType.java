@@ -33,6 +33,9 @@ public enum BuildingType {
     MINING_FIELD(2, false, null, 0, 40, 20, 24, 9, 9, Style.MINE, 2, 1),
     ARROW_TOWER(2, false, null, 0, 80, 10, 24, 3, 3, Style.TOWER, 2, 1),
     STONE_OUTPOST(2, false, null, 0, 20, 200, 24, 5, 5, Style.OUTPOST, 0, 0),
+    BARRACKS(2, true, null, 0, 200, 120, 24, 11, 9, Style.CAMP, 0, 0),
+    /** Hidden: revealed to a village by the sea. */
+    MAZU_TEMPLE(2, false, null, 0, 300, 250, 48, 11, 11, Style.TEMPLE, 0, 0),
     MEDIUM_RESIDENTIAL_COURTYARD(2, true, null, 0, 120, 80, 24, 21, 19, Style.COURTYARD, 0, 0),
     // ---------------------------------------------------------------- Grade 3 village
     TEMPLE(3, true, null, 0, 400, 350, 48, 11, 11, Style.TEMPLE, 3, 1),
@@ -98,6 +101,11 @@ public enum BuildingType {
     }
 
     /** Not one of the novel's buildings: kept out of the building lists (paths are laid from the map). */
+    /** A hidden building, offered only once the village has revealed it (see Village.revealHidden). */
+    public boolean secret() {
+        return this == MAZU_TEMPLE;
+    }
+
     public boolean hidden() {
         return this == PATH || this == CLEARING;
     }
@@ -170,13 +178,15 @@ public enum BuildingType {
             case MILL, MULBERRY_SHED -> new int[]{0, 3, 0, 0};
             case STABLE -> new int[]{0, 0, 0, 3};
             case PATH, CLEARING -> new int[]{0, 0, 0, 0};
+            case BARRACKS -> new int[]{0, 0, 0, 6};
+            case MAZU_TEMPLE -> new int[]{2, 2, 6, 0};
         };
     }
 
     /** People's Thoughts the building supports. */
     public int morale() {
         return switch (this) {
-            case DINING_HALL, CLINIC, TEMPLE -> 5;
+            case DINING_HALL, CLINIC, TEMPLE, MAZU_TEMPLE -> 5;
             case BATHROOM, ANCESTRAL_HALL -> 3;
             default -> 0;
         };
@@ -203,7 +213,7 @@ public enum BuildingType {
 
     public static List<BuildingType> ofGrade(int g) {
         List<BuildingType> out = new ArrayList<>();
-        for (BuildingType t : values()) if (t.grade == g && !t.hidden()) out.add(t);
+        for (BuildingType t : values()) if (t.grade == g && !t.hidden() && !t.secret()) out.add(t);
         return out;
     }
 

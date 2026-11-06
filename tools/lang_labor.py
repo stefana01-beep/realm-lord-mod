@@ -187,6 +187,10 @@ def add(L):
     L.update(ROUND_SAFETY)
     import gen_goods
     gen_goods.lang(L)
+    gen_goods.beast_lang(L)
+    import gen_figures
+    gen_figures.lang(L)
+    L.update(PHASE_2B)
 
 
 ROUND_PATHS = {
@@ -302,4 +306,81 @@ ROUND_SAFETY = {
     "realmlord.records.empty": "Nothing has happened yet.",
     "realmlord.records.day": "Day %s",
     "realmlord.records.scroll": "%s of %s (scroll)",
+}
+
+
+PHASE_2B = {
+    # Summoning
+    "realmlord.summoning.tooltip2": "Use it to summon a historical figure of this rank to your village.",
+    "realmlord.summoning.no_village": "Summoned figures come to your village: found one first.",
+    "realmlord.summoning.none_left": "Every figure of that rank has already answered another Lord's call.",
+    "realmlord.summoning.arrived": "%s (%s rank) answers your summons. %s They join %s.",
+    "realmlord.summoning.world": "%s has summoned a %s-rank figure from history: %s!",
+    "realmlord.rank.king": "King", "realmlord.rank.emperor": "Emperor", "realmlord.rank.divine": "Divine", "realmlord.rank.saint": "Saint",
+    # Companions
+    "realmlord.resident.tab.duty": "Duties",
+    "realmlord.companion.title": "Companion",
+    "realmlord.companion.follow": "Follow me",
+    "realmlord.companion.stay": "Stay in the village",
+    "realmlord.companion.hint": "Talents can walk with you and fight at your side (%s of %s companions now).",
+    "realmlord.companion.following": "Walking with the Lord",
+    "realmlord.companion.follows": "%s walks with you.",
+    "realmlord.companion.stays": "%s stays in the village.",
+    "realmlord.companion.wounded": "%s was struck down and carried home to recover until tomorrow.",
+    "realmlord.companion.wounded_now": "Wounded: resting until tomorrow.",
+    "realmlord.companion.err.talent": "Only talents and figures from history can be companions.",
+    "realmlord.companion.err.busy": "They hold an office or serve in the militia.",
+    "realmlord.companion.err.wounded": "They are wounded and resting until tomorrow.",
+    "realmlord.companion.err.many": "At most %s companions can walk with you.",
+    # Militia
+    "realmlord.militia.title": "Militia",
+    "realmlord.militia.join": "Join the militia",
+    "realmlord.militia.leave": "Stand down",
+    "realmlord.militia.count": "%s of %s places filled. The militia drills at the camp and walks the fence; half keep the night watch.",
+    "realmlord.militia.err.no_camp": "Build a Military Camp (10 places) or Barracks (50) to raise a militia.",
+    "realmlord.militia.err.full": "The militia is full: build more barracks.",
+    "realmlord.militia.err.office": "Office holders do not serve in the militia.",
+    "realmlord.job.err.office": "They hold an office; dismiss them first.",
+    "realmlord.job.hunting": "Hunting",
+    "realmlord.activity.follow": "walking with the Lord",
+    "realmlord.activity.patrol": "on patrol",
+    "realmlord.activity.hunt": "hunting in the wilds",
+    "realmlord.building.barracks": "Barracks",
+    "realmlord.building.barracks.desc": "Quarters and a drill yard for fifty militia. +6 Military.",
+    # Offices
+    "realmlord.office.title": "Offices",
+    "realmlord.office.appoint": "Appoint",
+    "realmlord.office.dismiss": "Dismiss",
+    "realmlord.office.vacant": "vacant",
+    "realmlord.office.locked": "Opens at Grade %s",
+    "realmlord.office.holds": "Office: %s",
+    "realmlord.office.appointed": "%s is now %s.",
+    "realmlord.office.err.none": "No such office.",
+    "realmlord.office.err.grade": "The village is not yet grand enough for that office.",
+    "realmlord.office.steward": "Steward", "realmlord.office.steward.desc": "Civil affairs: more newcomers and a happier village (Politics).",
+    "realmlord.office.treasurer": "Treasurer", "realmlord.office.treasurer.desc": "Finance: more taxes (Politics).",
+    "realmlord.office.works": "Works Officer", "realmlord.office.works.desc": "Construction: builders work faster (Intelligence).",
+    "realmlord.office.agriculture": "Agriculture Officer", "realmlord.office.agriculture.desc": "Bigger harvests and more from the hunt (Intelligence).",
+    "realmlord.office.military": "Military Officer", "realmlord.office.military.desc": "Commands the militia: more places, faster drill, more Security (Command).",
+    "realmlord.office.commerce": "Commerce Officer", "realmlord.office.commerce.desc": "The market: less tax on what you sell (Politics).",
+    "realmlord.office.rites": "Rites Officer", "realmlord.office.rites.desc": "Culture and ceremony: a happier village and a higher Cultural index (Intelligence).",
+    # Dens
+    "realmlord.den.found": "You have found a beast den, a Boar King's lair, at %s, %s.",
+    "realmlord.den.cleared": "The Boar King is slain! The den lies quiet for %s days.",
+    "realmlord.reason.boar_king": "Slaying a Boar King",
+    # Beastwave
+    "realmlord.beastwave.warning": "The beasts of the wilds are stirring. The beastwave will strike every village on the night of the lunar new year, in %s days.",
+    "realmlord.beastwave.tonight": "The beastwave comes tonight! Close your gates and arm your militia.",
+    "realmlord.beastwave.begins": "Night falls on the new year: the beastwave has begun!",
+    "realmlord.beastwave.wave": "Wave %s of %s: %s beasts come out of the wilds against %s!",
+    "realmlord.beastwave.unseen": "Wave %s struck %s while no one was near: %s food lost, %s residents killed.",
+    "realmlord.beastwave.over": "Dawn breaks and the beasts withdraw. The beastwave is over.",
+    "realmlord.beastwave.rank": "Defender #%s: %s, %s beasts slain, rewarded with %s gold.",
+    "realmlord.beastwave.no_sleep": "You can't sleep while beasts are at the gates.",
+    "realmlord.beastwave.next": "The next beastwave strikes on the new year of Gaia year %s, in %s days.",
+    "realmlord.reason.beastwave": "Defending against the beastwave",
+    # Hidden buildings
+    "realmlord.hidden.revealed": "A hidden building has been revealed to %2$s: the %1$s!",
+    "realmlord.building.mazu_temple": "Mazu Temple",
+    "realmlord.building.mazu_temple.desc": "A temple to Mazu, goddess of the sea, revealed only to villages by the sea. Fishermen and sailors put to sea under her protection. +5 People's Thoughts, +6 Cultural.",
 }

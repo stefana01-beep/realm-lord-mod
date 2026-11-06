@@ -31,6 +31,14 @@ public class Resident {
     /** The spawned entity, if this resident is currently shown in the world. */
     public UUID entity;
     public boolean militia;
+    /** A historical figure's id (see Figures), or empty. */
+    public String figure = "";
+    /** Walking with the Lord as a companion. */
+    public boolean follows;
+    /** The office they hold (Office ordinal), or -1. */
+    public int office = -1;
+    /** Wounded companions rest until this novel day. */
+    public long woundedUntil;
     /** What they carry: tools, and their haul until they hand it in. */
     public final net.minecraft.world.SimpleContainer inv = new net.minecraft.world.SimpleContainer(9);
     /** Wood, stone and iron ore handed in today, which counts towards their day's work. */
@@ -40,6 +48,10 @@ public class Resident {
 
     public boolean isTalent() {
         return grade != COMMON || occupation.special;
+    }
+
+    public boolean isFigure() {
+        return !figure.isEmpty();
     }
 
     /** Output multiplier for a job: the right trade, a better rank and a matching specialty all help. */
@@ -136,6 +148,10 @@ public class Resident {
         t.putInt("skin", skin);
         if (entity != null) t.putUUID("entity", entity);
         t.putBoolean("militia", militia);
+        if (!figure.isEmpty()) t.putString("figure", figure);
+        t.putBoolean("follows", follows);
+        t.putInt("office", office);
+        t.putLong("wounded", woundedUntil);
         t.put("inv", inv.createTag());
         t.putLongArray("gathered", gathered);
         return t;
@@ -163,6 +179,10 @@ public class Resident {
         r.skin = t.getInt("skin");
         r.entity = t.hasUUID("entity") ? t.getUUID("entity") : null;
         r.militia = t.getBoolean("militia");
+        r.figure = t.getString("figure");
+        r.follows = t.getBoolean("follows");
+        r.office = t.contains("office") ? t.getInt("office") : -1;
+        r.woundedUntil = t.getLong("wounded");
         r.inv.fromTag(t.getList("inv", net.minecraft.nbt.Tag.TAG_COMPOUND));
         long[] g = t.getLongArray("gathered");
         System.arraycopy(g, 0, r.gathered, 0, Math.min(g.length, 3));

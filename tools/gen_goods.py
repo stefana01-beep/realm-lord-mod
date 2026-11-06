@@ -165,3 +165,124 @@ def lang(L):
     })
     for i, page in enumerate(GUIDE, 1):
         L[f"realmlord.guide.page.{i}"] = page
+
+
+# --------------------------------------------------------------------------- beast drops
+
+BEAST_ITEMS = ["boar_hide", "boar_tusk", "boar_king_tusk", "wolf_pelt", "tiger_pelt", "tiger_bone", "bear_paw",
+               "braised_bear_paw", "tiger_bone_wine"]
+WEAPONS = ["tusk_spear", "boar_king_spear"]
+EGGS = ["wild_boar", "boar_king", "grey_wolf", "mountain_tiger", "snow_bear"]
+
+
+def hide(base, stripes=None):
+    img, px = blank()
+    for y in range(3, 14):
+        w = 5 if y in (3, 13) else 6
+        for x in range(8 - w, 8 + w):
+            c = shade(base, 1.05 - 0.04 * abs(x - 8) / 3 + (0.06 if (x + y) % 3 == 0 else 0))
+            if stripes and (x + y // 2) % 4 == 0: c = stripes
+            px[x, y] = c
+    for x, y in [(2, 3), (13, 3), (2, 13), (13, 13), (1, 6), (14, 9)]: px[x, y] = shade(base, 0.8)   # the legs of the hide
+    return img
+
+
+def tusk(col, big=False):
+    img, px = blank()
+    pts = [(3, 12), (4, 11), (5, 10), (6, 9), (7, 8), (8, 7), (9, 6), (10, 5), (11, 4), (12, 3)]
+    for i, (x, y) in enumerate(pts):
+        px[x, y] = shade(col, 1.1)
+        if i < len(pts) - 2 or big: px[x, y + 1] = shade(col, 0.85)
+        if big and i < len(pts) - 3: px[x + 1, y + 1] = shade(col, 0.95)
+    px[2, 13] = px[3, 13] = hexc("8a6a3a")
+    if big:
+        for x, y in [(4, 13), (2, 12)]: px[x, y] = hexc("e8c15a")
+    return img
+
+
+def bone():
+    img, px = blank()
+    c = hexc("ece4cc")
+    for i in range(4, 12): px[i, 15 - i] = c; px[i + 1, 15 - i] = shade(c, 0.85)
+    for x, y in [(3, 12), (3, 11), (4, 13), (11, 3), (12, 4), (12, 3)]: px[x, y] = c
+    return img
+
+
+def paw(base, cooked=False):
+    img, px = blank()
+    for y in range(6, 14):
+        for x in range(4, 12):
+            if (x - 7.5) ** 2 + (y - 10) ** 2 < 15: px[x, y] = shade(base, 1.0 + 0.1 * ((x + y) % 2))
+    for cx in (4, 7, 10, 12):
+        for x, y in [(cx, 4), (cx, 5)]:
+            if 0 <= x < 16: px[x, y] = shade(base, 0.85)
+    if cooked:
+        for x, y in [(6, 9), (9, 11), (7, 12)]: px[x, y] = hexc("f2d06b")
+    return img
+
+
+def spear(head, big=False):
+    img, px = blank()
+    shaft = hexc("8a5a2e")
+    for i in range(2, 12): px[i, 15 - i] = shaft
+    for x, y in [(11, 4), (12, 3), (13, 2), (12, 2), (13, 3), (14, 1)]: px[x, y] = head
+    if big:
+        for x, y in [(10, 3), (14, 4), (11, 2), (13, 4)]: px[x, y] = shade(head, 0.9)
+        px[9, 6] = px[10, 5] = hexc("c8423b")
+    return img
+
+
+def beast_textures(item_dir):
+    hide(hexc("6b4a2e")).save(os.path.join(item_dir, "boar_hide.png"))
+    tusk(hexc("efe6cf")).save(os.path.join(item_dir, "boar_tusk.png"))
+    tusk(hexc("f6edd2"), big=True).save(os.path.join(item_dir, "boar_king_tusk.png"))
+    hide(hexc("8a8a8a")).save(os.path.join(item_dir, "wolf_pelt.png"))
+    hide(hexc("e08a2a"), stripes=hexc("1e1a16")).save(os.path.join(item_dir, "tiger_pelt.png"))
+    bone().save(os.path.join(item_dir, "tiger_bone.png"))
+    paw(hexc("3a2a22")).save(os.path.join(item_dir, "bear_paw.png"))
+    paw(hexc("9a4a22"), cooked=True).save(os.path.join(item_dir, "braised_bear_paw.png"))
+    img = wine()
+    p = img.load()
+    for y in range(8, 12):
+        for x in range(6, 10): p[x, y] = hexc("2a2a2a")
+    p[7, 9] = p[8, 10] = hexc("ece4cc")
+    img.save(os.path.join(item_dir, "tiger_bone_wine.png"))
+    spear(hexc("efe6cf")).save(os.path.join(item_dir, "tusk_spear.png"))
+    spear(hexc("f6edd2"), big=True).save(os.path.join(item_dir, "boar_king_spear.png"))
+
+
+def beast_models(write, assets):
+    for n in BEAST_ITEMS:
+        write(os.path.join(assets, "models", "item", f"{n}.json"),
+              {"parent": "minecraft:item/generated", "textures": {"layer0": f"realmlord:item/{n}"}})
+    for n in WEAPONS:
+        write(os.path.join(assets, "models", "item", f"{n}.json"),
+              {"parent": "minecraft:item/handheld", "textures": {"layer0": f"realmlord:item/{n}"}})
+    for n in EGGS:
+        write(os.path.join(assets, "models", "item", f"{n}_spawn_egg.json"), {"parent": "minecraft:item/template_spawn_egg"})
+
+
+def beast_lang(L):
+    L.update({
+        "entity.realmlord.wild_boar": "Wild Boar",
+        "entity.realmlord.boar_king": "Boar King",
+        "entity.realmlord.grey_wolf": "Grey Wolf",
+        "entity.realmlord.mountain_tiger": "Mountain Tiger",
+        "entity.realmlord.snow_bear": "Snow Bear",
+        "item.realmlord.boar_hide": "Boar Hide",
+        "item.realmlord.boar_tusk": "Boar Tusk",
+        "item.realmlord.boar_king_tusk": "Boar King's Tusk",
+        "item.realmlord.wolf_pelt": "Wolf Pelt",
+        "item.realmlord.tiger_pelt": "Tiger Pelt",
+        "item.realmlord.tiger_bone": "Tiger Bone",
+        "item.realmlord.bear_paw": "Bear Paw",
+        "item.realmlord.braised_bear_paw": "Braised Bear Paw",
+        "item.realmlord.tiger_bone_wine": "Tiger Bone Wine",
+        "item.realmlord.tusk_spear": "Tusk Spear",
+        "item.realmlord.boar_king_spear": "Boar King's Spear",
+        "item.realmlord.wild_boar_spawn_egg": "Wild Boar Spawn Egg",
+        "item.realmlord.boar_king_spawn_egg": "Boar King Spawn Egg",
+        "item.realmlord.grey_wolf_spawn_egg": "Grey Wolf Spawn Egg",
+        "item.realmlord.mountain_tiger_spawn_egg": "Mountain Tiger Spawn Egg",
+        "item.realmlord.snow_bear_spawn_egg": "Snow Bear Spawn Egg",
+    })

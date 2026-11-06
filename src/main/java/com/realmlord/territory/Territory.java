@@ -57,6 +57,8 @@ public class Territory {
     /** The manor standing now (see Residence: 1 the refugees' hall, 2 and 3 the Lord's residence), and the way its door faces (-1 unknown). */
     public int manorTier = 1;
     public int manorFront = -1;
+    /** Hidden buildings this village has revealed. */
+    public final java.util.Set<String> revealed = new java.util.HashSet<>();
     /** Players the Lord trusts to build and use chests in the territory (not the manor's). */
     public final java.util.Set<java.util.UUID> trusted = new java.util.HashSet<>();
     /** The village log, newest first: {novel day, message as JSON}. */
@@ -149,6 +151,7 @@ public class Territory {
         }
         t.put("log", lg);
         t.putLongArray("ledger", ledger);
+        t.putString("revealed", String.join(",", revealed));
         t.putString("freeChoices", String.join(",", freeChoices.stream().map(com.realmlord.village.BuildingType::id).toList()));
         t.putString("freeBuilds", String.join(",", freeBuilds.stream().map(com.realmlord.village.BuildingType::id).toList()));
         t.putBoolean("settled", settled);
@@ -213,6 +216,7 @@ public class Territory {
         }
         long[] lg = t.getLongArray("ledger");
         if (lg.length == r.ledger.length) r.ledger = lg;
+        for (String s : t.getString("revealed").split(",")) if (!s.isEmpty()) r.revealed.add(s);
         for (String s : t.getString("freeChoices").split(",")) {
             var bt = com.realmlord.village.BuildingType.byId(s);
             if (bt != null) r.freeChoices.add(bt);

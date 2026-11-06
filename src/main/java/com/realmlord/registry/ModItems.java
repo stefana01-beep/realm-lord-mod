@@ -68,6 +68,36 @@ public class ModItems {
     public static final RegistryObject<Item> VILLAGE_GUIDE = ITEMS.register("village_guide",
             () -> new com.realmlord.item.GuideItem(new Item.Properties().stacksTo(1)));
 
+    // What the wild beasts leave behind.
+    public static final RegistryObject<Item> BOAR_HIDE = ITEMS.register("boar_hide", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> BOAR_TUSK = ITEMS.register("boar_tusk", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> BOAR_KING_TUSK = ITEMS.register("boar_king_tusk", () -> new Item(new Item.Properties().rarity(Rarity.RARE)));
+    public static final RegistryObject<Item> WOLF_PELT = ITEMS.register("wolf_pelt", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> TIGER_PELT = ITEMS.register("tiger_pelt", () -> new Item(new Item.Properties().rarity(Rarity.UNCOMMON)));
+    public static final RegistryObject<Item> TIGER_BONE = ITEMS.register("tiger_bone", () -> new Item(new Item.Properties().rarity(Rarity.UNCOMMON)));
+    public static final RegistryObject<Item> BEAR_PAW = ITEMS.register("bear_paw", () -> new Item(new Item.Properties()
+            .food(new net.minecraft.world.food.FoodProperties.Builder().nutrition(3).saturationMod(0.3F).meat().build())));
+    public static final RegistryObject<Item> BRAISED_BEAR_PAW = ITEMS.register("braised_bear_paw", () -> new Item(new Item.Properties().rarity(Rarity.UNCOMMON)
+            .food(new net.minecraft.world.food.FoodProperties.Builder().nutrition(12).saturationMod(1.2F).meat()
+                    .effect(() -> new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.REGENERATION, 200, 1), 1.0F)
+                    .effect(() -> new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.ABSORPTION, 2400, 1), 1.0F).build())));
+    public static final RegistryObject<Item> TIGER_BONE_WINE = ITEMS.register("tiger_bone_wine",
+            () -> new com.realmlord.item.WineItem(new Item.Properties().stacksTo(16).rarity(Rarity.UNCOMMON), 1));
+    public static final RegistryObject<Item> TUSK_SPEAR = ITEMS.register("tusk_spear",
+            () -> new net.minecraft.world.item.SwordItem(net.minecraft.world.item.Tiers.IRON, 4, -2.6F, new Item.Properties()));
+    public static final RegistryObject<Item> BOAR_KING_SPEAR = ITEMS.register("boar_king_spear",
+            () -> new net.minecraft.world.item.SwordItem(net.minecraft.world.item.Tiers.DIAMOND, 5, -2.6F, new Item.Properties().rarity(Rarity.RARE)));
+    public static final RegistryObject<Item> WILD_BOAR_SPAWN_EGG = ITEMS.register("wild_boar_spawn_egg",
+            () -> new ForgeSpawnEggItem(ModEntities.WILD_BOAR, 0x6b4a2e, 0xd9c7a0, new Item.Properties()));
+    public static final RegistryObject<Item> BOAR_KING_SPAWN_EGG = ITEMS.register("boar_king_spawn_egg",
+            () -> new ForgeSpawnEggItem(ModEntities.BOAR_KING, 0x3d2a1a, 0xe8c15a, new Item.Properties()));
+    public static final RegistryObject<Item> GREY_WOLF_SPAWN_EGG = ITEMS.register("grey_wolf_spawn_egg",
+            () -> new ForgeSpawnEggItem(ModEntities.GREY_WOLF, 0x8a8a8a, 0x3a3a3a, new Item.Properties()));
+    public static final RegistryObject<Item> MOUNTAIN_TIGER_SPAWN_EGG = ITEMS.register("mountain_tiger_spawn_egg",
+            () -> new ForgeSpawnEggItem(ModEntities.MOUNTAIN_TIGER, 0xe08a2a, 0x1a1a1a, new Item.Properties()));
+    public static final RegistryObject<Item> SNOW_BEAR_SPAWN_EGG = ITEMS.register("snow_bear_spawn_egg",
+            () -> new ForgeSpawnEggItem(ModEntities.SNOW_BEAR, 0xeeeeee, 0x9a9a9a, new Item.Properties()));
+
     public static final RegistryObject<Item> BANDIT_LEDGER = ITEMS.register("bandit_ledger",
             () -> new BanditLedgerItem(new Item.Properties().stacksTo(1)));
 

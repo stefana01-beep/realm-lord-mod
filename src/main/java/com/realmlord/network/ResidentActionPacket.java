@@ -19,7 +19,7 @@ import java.util.function.Supplier;
 
 /** Client to server: give a resident a job, or trade with them. */
 public class ResidentActionPacket {
-    public enum Action { SET_JOB, STAFF, TRADE, REFRESH, INVENTORY }
+    public enum Action { SET_JOB, STAFF, TRADE, REFRESH, INVENTORY, FOLLOW, MILITIA, OFFICE }
 
     private final Action action;
     private final int territory, resident, a;
@@ -72,6 +72,43 @@ public class ResidentActionPacket {
                 if (err != null) Notify.player(p, err);
             }
             case REFRESH -> { }
+            case FOLLOW -> {
+                if (!owner) return;
+                if (a == 1) {
+                    if (!r.isTalent()) Notify.player(p, "realmlord.companion.err.talent");
+                    else if (r.office >= 0 || r.militia) Notify.player(p, "realmlord.companion.err.busy");
+                    else if (r.woundedUntil > com.realmlord.village.GaiaCalendar.today(p.server)) Notify.player(p, "realmlord.companion.err.wounded");
+                    else {
+                        int n = 0;
+                        for (Resident o : t.residents) if (o.follows) n++;
+                        if (n >= com.realmlord.village.Village.MAX_COMPANIONS) Notify.player(p, Component.translatable("realmlord.companion.err.many", com.realmlord.village.Village.MAX_COMPANIONS));
+                        else {
+                            r.follows = true;
+                            r.job = Job.IDLE;
+                            r.workplace = -1;
+                            Notify.player(p, Component.translatable("realmlord.companion.follows", r.name));
+                        }
+                    }
+                } else {
+                    r.follows = false;
+                    Notify.player(p, Component.translatable("realmlord.companion.stays", r.name));
+                }
+            }
+            case MILITIA -> {
+                if (!owner) return;
+                String err = Village.enlist(t, r, a == 1);
+                if (err != null) Notify.player(p, err);
+            }
+            case OFFICE -> {
+                if (!owner) return;
+                if (a < 0) {
+                    if (r.office >= 0) com.realmlord.village.Office.appoint(t, com.realmlord.village.Office.byId(r.office), null);
+                } else {
+                    String err = com.realmlord.village.Office.appoint(t, com.realmlord.village.Office.byId(a), r);
+                    if (err != null) Notify.player(p, err);
+                    else Village.tell(p.serverLevel(), t, Component.translatable("realmlord.office.appointed", r.name, Component.translatable(com.realmlord.village.Office.byId(a).key())));
+                }
+            }
             case INVENTORY -> {
                 if (!owner) return;
                 p.openMenu(new net.minecraft.world.SimpleMenuProvider(

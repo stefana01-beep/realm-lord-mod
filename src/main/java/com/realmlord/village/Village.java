@@ -41,6 +41,8 @@ public final class Village {
     public static final int NOMINAL_BUILDERS = 5;
     /** Half-width of the Lord's Manor yard, which nothing may be built on. */
     public static final int MANOR_YARD = 8;
+    /** Companions who may walk with the Lord at once. */
+    public static final int MAX_COMPANIONS = 3;
     public static final int MANOR_HOUSING = 10;
     public static final int ADMIN_PLACES = 3;
     public static final long FARMLAND_MU = 10;
@@ -125,6 +127,101 @@ public final class Village {
         return n;
     }
 
+    // ================================================================== hidden buildings
+
+    /**
+     * Hidden buildings, as the novel's Mazu Temple: not in any list until a village meets their
+     * condition. The Mazu Temple, to the goddess of the sea, is revealed to a village of Grade 2
+     * or more that lies by the sea.
+     */
+    public static void revealHidden(ServerLevel level, Territory t) {
+        if (t.revealed.contains(BuildingType.MAZU_TEMPLE.id())) return;
+        if (t.level.ordinal() < TerritoryLevel.VILLAGE_2.ordinal() || !coastal(level, t)) return;
+        t.revealed.add(BuildingType.MAZU_TEMPLE.id());
+        tell(level, t, Component.translatable("realmlord.hidden.revealed", Component.translatable(BuildingType.MAZU_TEMPLE.key()), t.name));
+    }
+
+    /** True if the sea or a beach lies within the territory or just beyond it. */
+    public static boolean coastal(ServerLevel level, Territory t) {
+        for (int ring : new int[]{t.radius() / 2, t.radius(), t.radius() + 16})
+            for (int i = 0; i < 24; i++) {
+                double a = Math.PI * 2 * i / 24;
+                BlockPos p = new BlockPos(t.center.getX() + (int) (Math.cos(a) * ring), 62, t.center.getZ() + (int) (Math.sin(a) * ring));
+                if (!level.isLoaded(p)) continue;
+                var b = level.getBiome(p);
+                if (b.is(net.minecraft.tags.BiomeTags.IS_OCEAN) || b.is(net.minecraft.tags.BiomeTags.IS_BEACH)) return true;
+            }
+        return false;
+    }
+
+    // ================================================================== the militia
+
+    /** How many may serve in the militia: ten for a Military Camp, fifty for each Barracks, more under a good commander. */
+    public static int militiaCap(Territory t) {
+        int n = 0;
+        for (Building b : t.buildings) {
+            if (!b.complete) continue;
+            if (b.type == BuildingType.MILITARY_CAMP) n += 10;
+            if (b.type == BuildingType.BARRACKS) n += 50;
+        }
+        return n == 0 ? 0 : n + Office.power(t, Office.MILITARY) / 5;
+    }
+
+    public static int militiaCount(Territory t) {
+        int n = 0;
+        for (Resident r : t.residents) if (r.militia) n++;
+        return n;
+    }
+
+    /** Enlists a resident in the militia, or stands them down. Returns an error key or null. */
+    public static String enlist(Territory t, Resident r, boolean join) {
+        if (!join) {
+            r.militia = false;
+            return null;
+        }
+        if (r.militia) return null;
+        if (r.office >= 0) return "realmlord.militia.err.office";
+        if (militiaCap(t) == 0) return "realmlord.militia.err.no_camp";
+        if (militiaCount(t) >= militiaCap(t)) return "realmlord.militia.err.full";
+        r.militia = true;
+        r.follows = false;
+        r.job = Job.IDLE;
+        r.workplace = -1;
+        return null;
+    }
+
+    /** The militia's daily drill: Force grows, faster under a good commander, up to what the person can reach. */
+    private static void drill(Territory t, RandomSource rnd) {
+        double chance = 0.25 * Office.boost(t, Office.MILITARY, 200);
+        for (Resident r : t.residents) {
+            if (!r.militia) continue;
+            int cap = r.isFigure() ? 100 : r.grade >= 0 ? 70 : 45;
+            if (r.force < cap && rnd.nextDouble() < chance) r.force++;
+            if (r.occupation == Occupation.OFFICER && r.command < cap && rnd.nextDouble() < chance / 2) r.command++;
+        }
+    }
+
+    /** Hunters' day out in the wilds: meat and hides. */
+    private static void hunt(Territory t) {
+        double meat = 0, leather = 0;
+        for (Resident r : t.residents) {
+            if (r.job != Job.HUNTING || r.militia) continue;
+            double skill = r.occupation == Occupation.HUNTER ? 1.5 + 0.2 * r.rank : 1.0;
+            meat += 6 * skill;
+            leather += 1.5 * skill;
+        }
+        double boost = productionBonus(t) * Office.boost(t, Office.AGRICULTURE, 300);
+        addFraction(t, Goods.MEAT, meat * boost);
+        addFraction(t, Goods.LEATHER, leather * boost);
+    }
+
+    private static void addFraction(Territory t, Goods g, double units) {
+        double total = t.goodsCarry[g.ordinal()] + units;
+        long whole = (long) Math.floor(total);
+        t.goodsCarry[g.ordinal()] = total - whole;
+        g.add(t, whole);
+    }
+
     /** Beds in finished residential courtyards of any size. */
     public static int courtyardBeds(Territory t) {
         int n = 0;
@@ -153,6 +250,7 @@ public final class Village {
         if (job == Job.CONSTRUCTION || job == Job.IDLE) return Integer.MAX_VALUE;
         if (job == Job.ADMINISTRATION) return ADMIN_PLACES;
         if (job == Job.STAFF) return 0;
+        if (job == Job.HUNTING) return Integer.MAX_VALUE;
         // A field takes any number of workers; each one adds to its output.
         for (Building b : t.buildings) if (b.complete && b.type.fieldJob() == job) return Integer.MAX_VALUE;
         return 0;
@@ -180,6 +278,7 @@ public final class Village {
     /** Why a job cannot be given, or null if it can. */
     public static String canAssign(Territory t, Resident r, Job job, int workplace) {
         if (r.militia) return "realmlord.job.err.militia";
+        if (r.office >= 0 && job != Job.IDLE) return "realmlord.job.err.office";
         if (job == Job.STAFF) {
             Building b = t.building(workplace);
             if (b == null || !b.complete) return "realmlord.job.err.no_building";
@@ -265,6 +364,13 @@ public final class Village {
         int militia = 0;
         for (Resident r : t.residents) if (r.militia) militia++;
         ix[3] += Math.min(20, militia);
+        // The offices: politics, economy, culture and the military.
+        ix[0] += Office.power(t, Office.STEWARD) / 8 + Office.power(t, Office.TREASURER) / 12;
+        ix[1] += Office.power(t, Office.TREASURER) / 10 + Office.power(t, Office.COMMERCE) / 8 + Office.power(t, Office.AGRICULTURE) / 12;
+        ix[2] += Office.power(t, Office.RITES) / 5;
+        ix[3] += Office.power(t, Office.MILITARY) / 8;
+        // Scholars and figures of culture lift the cultural index.
+        for (Resident r : t.residents) if (r.occupation == Occupation.SCHOLAR && r.grade >= 0) ix[2] += r.isFigure() ? 4 : 1;
         for (int i = 0; i < 4; i++) ix[i] = Mth.clamp(ix[i], 0, 100);
         return ix;
     }
@@ -296,7 +402,7 @@ public final class Village {
 
     /** Immigrants per day, as on the novel's panel: 10 x (1 + bonus), scaled by People's Thoughts. */
     public static double immigrationRate(Territory t) {
-        return 10.0 * immigrationBonus(t) * Mth.clamp(t.peopleThoughts / 70.0, 0.3, 1.4);
+        return 10.0 * immigrationBonus(t) * Mth.clamp(t.peopleThoughts / 70.0, 0.3, 1.4) * Office.boost(t, Office.STEWARD, 300);
     }
 
     public static long foodUse(Territory t) {
@@ -331,7 +437,7 @@ public final class Village {
 
     public static long dailyTax(Territory t) {
         int econ = indexes(t)[1];
-        return Math.round(t.residents.size() * (1.0 + econ / 10.0));
+        return Math.round(t.residents.size() * (1.0 + econ / 10.0) * Office.boost(t, Office.TREASURER, 250));
     }
 
     // ================================================================== the day
@@ -378,8 +484,11 @@ public final class Village {
         t.wood += Math.round(owed[0]);
         t.stone += Math.round(owed[1]);
         t.ironOre += Math.round(owed[2]);
-        // The workshops' day.
+        // The workshops' day, the hunt and the militia's drill.
         Goods.produce(t);
+        hunt(t);
+        drill(t, rnd);
+        revealHidden(level, t);
         farm(t, day);
         updateCrops(level, t, day);
         ledger[LEDGER_GRAIN] = t.food - food0;
@@ -406,14 +515,14 @@ public final class Village {
         ledger[LEDGER_TAX] = tax;
         int before = t.residents.size();
         // People's Thoughts drift towards what the village offers.
-        int target = 60;
+        int target = 60 + Office.power(t, Office.STEWARD) / 10 + (Office.holder(t, Office.RITES) != null ? 3 + Office.power(t, Office.RITES) / 20 : 0);
         for (Building b : t.buildings) if (b.complete) target += b.type.morale();
         if (hungry) target -= 30;
         if (t.residents.size() > housing(t)) target -= 10;
         target = Mth.clamp(target, 0, 100);
         t.peopleThoughts += Integer.signum(target - t.peopleThoughts) * Math.min(3, Math.abs(target - t.peopleThoughts));
         if (hungry) t.peopleThoughts = Math.max(0, t.peopleThoughts - 5);
-        int secTarget = 50 + indexes(t)[3] / 4;
+        int secTarget = 50 + indexes(t)[3] / 4 + Office.power(t, Office.MILITARY) / 10;
         for (Building b : t.buildings) if (b.complete) secTarget += b.type.security();
         secTarget = Mth.clamp(secTarget, 0, 100);
         t.security += Integer.signum(secTarget - t.security) * Math.min(3, Math.abs(secTarget - t.security));
@@ -475,7 +584,7 @@ public final class Village {
                 }
             } else if (day - f.sowDay >= GaiaCalendar.GROWING_MONTHS * GaiaCalendar.daysPerMonth()) {
                 double work = Math.min(1.0, perField / BuildingType.FARMLAND.fieldPlaces());
-                long food = Math.round(FARMLAND_MU * FOOD_PER_MU * f.sowYield * cropBonus(t) * Math.max(0.2, work) * Math.max(1.0, perField / BuildingType.FARMLAND.fieldPlaces()));
+                long food = Math.round(FARMLAND_MU * FOOD_PER_MU * f.sowYield * cropBonus(t) * Office.boost(t, Office.AGRICULTURE, 300) * Math.max(0.2, work) * Math.max(1.0, perField / BuildingType.FARMLAND.fieldPlaces()));
                 t.food += food;
                 f.sown = false;
             }
@@ -817,7 +926,7 @@ public final class Village {
             for (Resident r : t.residents) {
                 if (r.job == Job.CONSTRUCTION && !r.militia && r.workplace == site.id) work += r.skillAt(Job.CONSTRUCTION);
             }
-            if (work > 0) work(level, t, site, work, ticks);
+            if (work > 0) work(level, t, site, work * Office.boost(t, Office.WORKS, 300), ticks);
         }
     }
 
@@ -1174,7 +1283,7 @@ public final class Village {
     public static boolean sellGood(ServerPlayer p, Territory t, Goods g, long units) {
         if (g == null || units <= 0 || g.stock(t) < units) return false;
         g.add(t, -units);
-        Coins.give(p, g.sellIncome(units));
+        Coins.give(p, g.sellIncome(units) + Math.round(g.price * units * Market.SALES_TAX * Math.min(1.0, Office.power(t, Office.COMMERCE) / 150.0)));
         return true;
     }
 

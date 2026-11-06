@@ -1,0 +1,15 @@
+{
+ "type": "minecraft:crafting_shapeless",
+ "ingredients": [
+  {
+   "item": "realmlord:three_flower_wine"
+  },
+  {
+   "item": "realmlord:tiger_bone"
+  }
+ ],
+ "result": {
+  "item": "realmlord:tiger_bone_wine",
+  "count": 1
+ }
+}

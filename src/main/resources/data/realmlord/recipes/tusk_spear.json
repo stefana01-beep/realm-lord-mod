@@ -1,0 +1,19 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "  T",
+  " S ",
+  "S  "
+ ],
+ "key": {
+  "T": {
+   "item": "realmlord:boar_tusk"
+  },
+  "S": {
+   "item": "minecraft:stick"
+  }
+ },
+ "result": {
+  "item": "realmlord:tusk_spear"
+ }
+}

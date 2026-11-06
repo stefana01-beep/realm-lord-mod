@@ -15,15 +15,24 @@ import net.minecraft.world.level.Level;
  * a while. Too much makes the head spin.
  */
 public class WineItem extends Item {
+    /** 0 for Three Flower Wine; 1 for the stronger Tiger Bone Wine. */
+    private final int potency;
+
     public WineItem(Properties p) {
+        this(p, 0);
+    }
+
+    public WineItem(Properties p, int potency) {
         super(p);
+        this.potency = potency;
     }
 
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity who) {
         if (!level.isClientSide) {
-            who.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 60 * 20, 0));
-            who.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 8 * 20, 0));
+            who.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, (60 + 60 * potency) * 20, potency));
+            who.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 8 * 20, potency));
+            if (potency > 0) who.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 90 * 20, 0));
             MobEffectInstance had = who.getEffect(MobEffects.DAMAGE_BOOST);
             if (had != null && had.getDuration() > 90 * 20 || who.getRandom().nextInt(4) == 0) {
                 who.addEffect(new MobEffectInstance(MobEffects.CONFUSION, 8 * 20, 0));

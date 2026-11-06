@@ -112,7 +112,7 @@ public final class Views {
         // Construction options for this player
         ListTag opts = new ListTag();
         for (BuildingType type : BuildingType.values()) {
-            if (type.hidden()) continue;
+            if (type.hidden() || type.secret() && !t.revealed.contains(type.id())) continue;
             CompoundTag o = new CompoundTag();
             o.putInt("type", type.ordinal());
             o.putInt("built", Village.countComplete(t, type));
@@ -179,6 +179,22 @@ public final class Views {
         Building w = t.building(r.workplace);
         if (w != null) v.putInt("workType", w.type.ordinal());
         v.putLong("coins", Coins.count(p));
+        // Duties: the militia, the offices, following the Lord.
+        v.putInt("militiaCap", Village.militiaCap(t));
+        v.putInt("militiaCount", Village.militiaCount(t));
+        v.putBoolean("wounded", r.woundedUntil > GaiaCalendar.today(p.server));
+        int companions = 0;
+        for (Resident o : t.residents) if (o.follows) companions++;
+        v.putInt("companions", companions);
+        ListTag offices = new ListTag();
+        for (Office o : Office.values()) {
+            CompoundTag ot = new CompoundTag();
+            ot.putBoolean("open", o.open(t));
+            Resident h = Office.holder(t, o);
+            if (h != null) ot.putString("by", h.name);
+            offices.add(ot);
+        }
+        v.put("offices", offices);
         // Trades
         ListTag trades = new ListTag();
         boolean shop = Village.hasWorkshop(t, r);

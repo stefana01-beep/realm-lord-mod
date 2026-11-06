@@ -603,6 +603,7 @@ def textures():
     summoning_texture().save(os.path.join(item_dir, "summoning_token.png"))
     import gen_goods
     gen_goods.textures(item_dir)
+    gen_goods.beast_textures(item_dir)
     entity_dir = os.path.join(ASSETS, "textures", "entity")
     os.makedirs(entity_dir, exist_ok=True)
     for name, img in gen_skins.all_skins().items():
@@ -626,6 +627,7 @@ def models():
         w(os.path.join(ASSETS, "models", "item", f"{name}.json"), {"parent": "minecraft:item/template_spawn_egg"})
     import gen_goods
     gen_goods.models(w, ASSETS)
+    gen_goods.beast_models(w, ASSETS)
     w(os.path.join(ASSETS, "models", "item", "bandit_ledger.json"),
       {"parent": "minecraft:item/generated", "textures": {"layer0": "realmlord:item/bandit_ledger"}})
     w(os.path.join(ASSETS, "models", "block", "lords_manor.json"),

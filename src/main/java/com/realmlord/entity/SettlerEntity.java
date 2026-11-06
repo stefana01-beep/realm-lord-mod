@@ -10,6 +10,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
@@ -63,7 +64,9 @@ public class SettlerEntity extends PathfinderMob {
     public static AttributeSupplier.Builder createAttributes() {
         return PathfinderMob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0)
-                .add(Attributes.MOVEMENT_SPEED, 0.5);
+                .add(Attributes.MOVEMENT_SPEED, 0.5)
+                .add(Attributes.ATTACK_DAMAGE, 2.0)
+                .add(Attributes.FOLLOW_RANGE, 24.0);
     }
 
     @Override
@@ -76,11 +79,44 @@ public class SettlerEntity extends PathfinderMob {
     @Override
     protected void registerGoals() {
         goalSelector.addGoal(0, new FloatGoal(this));
-        goalSelector.addGoal(1, new PanicGoal(this, 0.75));
+        goalSelector.addGoal(1, new PanicGoal(this, 0.75) {
+            @Override
+            public boolean canUse() {
+                return !fighter() && super.canUse();
+            }
+        });
+        goalSelector.addGoal(1, new net.minecraft.world.entity.ai.goal.MeleeAttackGoal(this, 0.9, true) {
+            @Override
+            public boolean canUse() {
+                return fighter() && super.canUse();
+            }
+        });
         goalSelector.addGoal(2, new AvoidEntityGoal<>(this, BanditEntity.class, 8.0F, 0.6, 0.75) {
             @Override
             public boolean canUse() {
-                return !isCaptive() && super.canUse();
+                return !isCaptive() && !fighter() && super.canUse();
+            }
+        });
+        // Fighters (companions, the militia and hunters on the hunt) go for what threatens the village.
+        targetSelector.addGoal(1, new net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal(this) {
+            @Override
+            public boolean canUse() {
+                return fighter() && super.canUse();
+            }
+        });
+        targetSelector.addGoal(2, new net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal<>(this, net.minecraft.world.entity.Mob.class, 10, true, false,
+                e -> e instanceof net.minecraft.world.entity.monster.Enemy && !(e instanceof SettlerEntity)) {
+            @Override
+            public boolean canUse() {
+                return fighter() && super.canUse();
+            }
+        });
+        targetSelector.addGoal(3, new net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal<>(this, net.minecraft.world.entity.animal.Animal.class, 20, true, false,
+                e -> activity == Activity.HUNT && terr != null && !terr.contains(level().dimension(), e.blockPosition())
+                        && !(e instanceof net.minecraft.world.entity.TamableAnimal t && t.isTame())) {
+            @Override
+            public boolean canUse() {
+                return activity == Activity.HUNT && super.canUse();
             }
         });
         goalSelector.addGoal(3, new LaborGoal());
@@ -186,7 +222,7 @@ public class SettlerEntity extends PathfinderMob {
 
     /** What a resident is up to. Each has a text key for their card. */
     public enum Activity {
-        IDLE, HOME, BUILD, CHOP, GATHER, FARM, STAFF, ADMIN, DEPOSIT;
+        IDLE, HOME, BUILD, CHOP, GATHER, FARM, STAFF, ADMIN, DEPOSIT, FOLLOW, PATROL, HUNT;
 
         public String key() {
             return "realmlord.activity." + name().toLowerCase(java.util.Locale.ROOT);
@@ -236,13 +272,119 @@ public class SettlerEntity extends PathfinderMob {
             settlerName = r.name;
             refreshName();
         }
+        strengthen();
+        if (following()) {
+            activity = Activity.FOLLOW;
+            if (isSleeping()) wake();
+            r.activity = activity.key();
+            clearRestriction();
+            arm();
+            return;
+        }
         decide();
         if (isSleeping() && (activity != Activity.HOME || bed == null)) wake();
         // Woken some other way (their bed broken, say): free to move again.
         if (!isSleeping()) wake();
         r.activity = isSleeping() ? "realmlord.activity.sleeping" : activity.key();
-        restrictTo(spot, spotRadius);
-        equip();
+        if (activity == Activity.HUNT || activity == Activity.PATROL) clearRestriction();
+        else restrictTo(spot, spotRadius);
+        if (activity == Activity.PATROL || activity == Activity.HUNT) arm();
+        else equip();
+    }
+
+    // ------------------------------------------------------------------ fighting
+
+    /** Fighting now: a companion at the Lord's side, the militia on duty, a hunter on the hunt. */
+    public boolean fighter() {
+        return activity == Activity.FOLLOW || activity == Activity.PATROL || activity == Activity.HUNT;
+    }
+
+    private ServerPlayer lord() {
+        if (!(level() instanceof ServerLevel sl) || terr == null || terr.owner == null) return null;
+        ServerPlayer p = sl.getServer().getPlayerList().getPlayer(terr.owner);
+        return p != null && p.level() == level() && !p.isSpectator() ? p : null;
+    }
+
+    /** Whether this resident is walking with the Lord now. */
+    private boolean following() {
+        if (res == null || !res.follows || !(level() instanceof ServerLevel sl)) return false;
+        if (res.woundedUntil > com.realmlord.village.GaiaCalendar.today(sl.getServer())) return false;
+        return lord() != null;
+    }
+
+    /** Health and strength follow Force: a great general is far harder to put down than a farmer. */
+    private void strengthen() {
+        if (res == null) return;
+        double hp = 20 + (res.isFigure() || res.militia ? res.force / 4.0 : 0);
+        var h = getAttribute(Attributes.MAX_HEALTH);
+        if (h != null && h.getBaseValue() != hp) {
+            h.setBaseValue(hp);
+            if (getHealth() > hp) setHealth((float) hp);
+        }
+        var a = getAttribute(Attributes.ATTACK_DAMAGE);
+        double dmg = 1 + res.force / 15.0;
+        if (a != null && a.getBaseValue() != dmg) a.setBaseValue(dmg);
+    }
+
+    /** A weapon for the fight: a diamond sword for a Gold-grade talent, iron for the rest, a bow-less spear-hand for the militia. */
+    private void arm() {
+        net.minecraft.world.item.Item weapon = res != null && res.grade >= 3 ? net.minecraft.world.item.Items.DIAMOND_SWORD
+                : activity == Activity.HUNT ? net.minecraft.world.item.Items.IRON_AXE : net.minecraft.world.item.Items.IRON_SWORD;
+        hold(weapon);
+    }
+
+    /** One tick at the Lord's side: keep up (or catch up) and keep them safe. */
+    private void accompany() {
+        ServerPlayer p = lord();
+        if (p == null || res == null || !res.follows) {
+            activity = Activity.IDLE;
+            return;
+        }
+        double d = distanceToSqr(p);
+        if (d > 24 * 24) {
+            // Lost the Lord: catch up at once, as companions do.
+            BlockPos at = p.blockPosition();
+            for (int i = 0; i < 10; i++) {
+                int x = at.getX() + random.nextInt(5) - 2, z = at.getZ() + random.nextInt(5) - 2;
+                BlockPos s = new BlockPos(x, at.getY(), z);
+                if (level().getBlockState(s).isAir() && level().getBlockState(s.above()).isAir() && !level().getBlockState(s.below()).isAir()) {
+                    getNavigation().stop();
+                    teleportTo(x + 0.5, at.getY(), z + 0.5);
+                    break;
+                }
+            }
+            return;
+        }
+        // Whoever hurts the Lord, or whom the Lord fights, is the enemy.
+        if (getTarget() == null) {
+            net.minecraft.world.entity.LivingEntity foe = p.getLastHurtByMob();
+            if (foe == null) foe = p.getLastHurtMob();
+            if (foe != null && foe.isAlive() && !(foe instanceof SettlerEntity) && foe.distanceToSqr(this) < 20 * 20
+                    && !(foe instanceof net.minecraft.world.entity.player.Player)) setTarget(foe);
+        }
+        if (getTarget() == null && d > 4 * 4) getNavigation().moveTo(p, 1.0);
+    }
+
+    /** The militia: by day half drill at the camp and half walk the fence; at night the watch walks it. */
+    private BlockPos patrolSpot(Territory t) {
+        com.realmlord.village.Building camp = null;
+        for (com.realmlord.village.Building b : t.buildings) {
+            if (b.complete && (b.type == com.realmlord.village.BuildingType.BARRACKS || b.type == com.realmlord.village.BuildingType.MILITARY_CAMP)) camp = b;
+        }
+        boolean walk = camp == null || (res.id + level().getDayTime() / 3000) % 2 == 0;
+        if (!walk) return camp.center();
+        double a = ((res.id * 47 + level().getDayTime() / 600) % 360) * Math.PI / 180;
+        int r = Math.max(8, t.radius() - 6);
+        int x = t.center.getX() + (int) (Math.cos(a) * r), z = t.center.getZ() + (int) (Math.sin(a) * r);
+        return new BlockPos(x, level().getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z), z);
+    }
+
+    /** Hunters go out beyond the border to the wilds. */
+    private BlockPos huntSpot(Territory t) {
+        double a = ((res.id * 83 + level().getDayTime() / 2400) % 360) * Math.PI / 180;
+        int r = t.radius() + 24;
+        int x = t.center.getX() + (int) (Math.cos(a) * r), z = t.center.getZ() + (int) (Math.sin(a) * r);
+        return new BlockPos(x, level().getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z), z);
     }
 
     private boolean late() {
@@ -254,7 +396,8 @@ public class SettlerEntity extends PathfinderMob {
         Territory t = terr;
         com.realmlord.village.Resident r = res;
         Activity was = activity;
-        if (!level().isDay()) {
+        boolean watch = r.militia && r.id % 2 == 1;
+        if (!level().isDay() && !watch) {
             activity = Activity.HOME;
             bed = level() instanceof ServerLevel sl ? com.realmlord.village.Residents.bedOf(sl, t, r) : null;
             spot = bed != null ? bed : com.realmlord.village.Residents.home(t, r);
@@ -263,6 +406,18 @@ public class SettlerEntity extends PathfinderMob {
             activity = Activity.DEPOSIT;
             spot = com.realmlord.village.Residents.manorSpot(t, r);
             spotRadius = 3;
+        } else if (r.militia) {
+            activity = Activity.PATROL;
+            spot = patrolSpot(t);
+            spotRadius = 6;
+        } else if (r.office >= 0) {
+            activity = Activity.ADMIN;
+            spot = com.realmlord.village.Residents.manorSpot(t, r);
+            spotRadius = 5;
+        } else if (r.job == com.realmlord.village.Job.HUNTING) {
+            activity = Activity.HUNT;
+            spot = huntSpot(t);
+            spotRadius = 16;
         } else {
             com.realmlord.village.Building field = com.realmlord.village.Residents.field(t, r);
             switch (r.job) {
@@ -377,10 +532,12 @@ public class SettlerEntity extends PathfinderMob {
     }
 
     private boolean busy() {
+        if (activity == Activity.FOLLOW) return res != null && getTarget() == null;
         if (terr == null || res == null || spot == null || isCaptive() || isSleeping()) return false;
         if (activity == Activity.HOME && bed != null) return true;
         return switch (activity) {
-            case BUILD, CHOP, GATHER, FARM, DEPOSIT -> true;
+            case BUILD, CHOP, GATHER, FARM, DEPOSIT, FOLLOW -> true;
+            case PATROL, HUNT -> getTarget() == null;
             default -> horizontalDist(spot) > spotRadius + 2;
         };
     }
@@ -449,6 +606,8 @@ public class SettlerEntity extends PathfinderMob {
     private void labor() {
         if (!(level() instanceof ServerLevel sl)) return;
         switch (activity) {
+            case FOLLOW -> accompany();
+            case PATROL, HUNT -> approach(spot, spotRadius);
             case BUILD -> build(sl);
             case CHOP -> chop(sl);
             case GATHER -> gather(sl);
@@ -738,6 +897,19 @@ public class SettlerEntity extends PathfinderMob {
         if (isCaptive() && !source.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY)) return false;
         if (source.is(net.minecraft.world.damagesource.DamageTypes.IN_WALL)) return false;
         if (isSleeping()) wake();
+        // A figure from history is not lost in a skirmish: struck down, they are carried home to recover.
+        if (res != null && res.isFigure() && amount >= getHealth() && !source.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY)
+                && level() instanceof ServerLevel sl && terr != null) {
+            res.follows = false;
+            res.woundedUntil = com.realmlord.village.GaiaCalendar.today(sl.getServer()) + 1;
+            setHealth(getMaxHealth() / 2);
+            setTarget(null);
+            BlockPos home = com.realmlord.village.Residents.home(terr, res);
+            int y = sl.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, home.getX(), home.getZ());
+            teleportTo(home.getX() + 0.5, y, home.getZ() + 0.5);
+            com.realmlord.village.Village.tell(sl, terr, Component.translatable("realmlord.companion.wounded", res.name));
+            return false;
+        }
         return super.hurt(source, amount);
     }
 

@@ -27,7 +27,9 @@ public final class Residents {
     /** Residents who should be shown, talents first. */
     public static List<Resident> shown(Territory t) {
         List<Resident> list = new ArrayList<>(t.residents);
-        list.sort(Comparator.comparing((Resident r) -> !r.isTalent()).thenComparingInt(r -> r.id));
+        // Companions and the militia first (they must be out), then figures and talents.
+        list.sort(Comparator.comparing((Resident r) -> !(r.follows || r.militia)).thenComparing(r -> !r.isFigure())
+                .thenComparing(r -> !r.isTalent()).thenComparingInt(r -> r.id));
         return list.subList(0, Math.min(list.size(), RealmConfig.visibleResidents()));
     }
 
@@ -53,6 +55,8 @@ public final class Residents {
             if (s == null) continue;
             // They appear at home by night and at work by day, not all bunched at the manor.
             BlockPos base = level.isDay() && workplace(t, r) != null ? workplace(t, r) : home(t, r);
+            net.minecraft.server.level.ServerPlayer lord = t.owner == null ? null : level.getServer().getPlayerList().getPlayer(t.owner);
+            if (r.follows && lord != null && lord.level() == level) base = lord.blockPosition();
             BlockPos at = SettlerEntity.groundNear(level, base, level.getRandom(), 3);
             s.moveTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, level.getRandom().nextFloat() * 360F, 0F);
             s.finalizeSpawn(level, level.getCurrentDifficultyAt(at), MobSpawnType.EVENT, null, null);

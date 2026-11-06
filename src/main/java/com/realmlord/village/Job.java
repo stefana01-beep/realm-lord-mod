@@ -12,7 +12,8 @@ public enum Job {
     FARMING("farming"),
     MINING("mining"),
     ADMINISTRATION("administration"),
-    STAFF("staff");
+    STAFF("staff"),
+    HUNTING("hunting");
 
     public final String id;
 

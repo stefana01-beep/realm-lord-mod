@@ -45,8 +45,21 @@ public class SummoningTokenItem extends Item {
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
-        if (!level.isClientSide && player instanceof ServerPlayer sp) Notify.player(sp, "realmlord.summoning.not_yet");
-        return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), level.isClientSide);
+        ItemStack stack = player.getItemInHand(hand);
+        if (!level.isClientSide && player instanceof ServerPlayer sp) {
+            com.realmlord.territory.Territory t = com.realmlord.territory.TerritoryData.get(sp.server).ownedBy(sp.getUUID());
+            if (t == null) {
+                Notify.player(sp, "realmlord.summoning.no_village");
+                return InteractionResultHolder.fail(stack);
+            }
+            com.realmlord.village.Resident r = com.realmlord.village.Figures.summon(sp, t, rank(stack));
+            if (r == null) return InteractionResultHolder.fail(stack);
+            if (!sp.getAbilities().instabuild) stack.shrink(1);
+            net.minecraft.server.level.ServerLevel sl = sp.serverLevel();
+            sl.sendParticles(net.minecraft.core.particles.ParticleTypes.END_ROD, sp.getX(), sp.getY() + 1, sp.getZ(), 40, 0.6, 1.0, 0.6, 0.05);
+            sl.playSound(null, sp.blockPosition(), net.minecraft.sounds.SoundEvents.BEACON_ACTIVATE, net.minecraft.sounds.SoundSource.PLAYERS, 1.0F, 1.2F);
+        }
+        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
     }
 
     @Override

@@ -1,0 +1,9 @@
+{
+ "type": "minecraft:campfire_cooking",
+ "ingredient": {
+  "item": "realmlord:bear_paw"
+ },
+ "result": "realmlord:braised_bear_paw",
+ "experience": 0.5,
+ "cookingtime": 600
+}

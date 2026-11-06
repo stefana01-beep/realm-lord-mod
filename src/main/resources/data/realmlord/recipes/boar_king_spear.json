@@ -1,0 +1,22 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "  K",
+  " I ",
+  "S  "
+ ],
+ "key": {
+  "K": {
+   "item": "realmlord:boar_king_tusk"
+  },
+  "I": {
+   "item": "minecraft:iron_ingot"
+  },
+  "S": {
+   "item": "minecraft:stick"
+  }
+ },
+ "result": {
+  "item": "realmlord:boar_king_spear"
+ }
+}

@@ -57,6 +57,31 @@ public final class RealmCommand {
                     com.realmlord.territory.SpawnPicker.offer(c.getSource().getPlayerOrException());
                     return 1;
                 }))
+                .then(Commands.literal("beastwave").requires(s -> s.hasPermission(2))
+                        .then(Commands.literal("start").executes(c -> {
+                            com.realmlord.world.Beastwave.force(c.getSource().getServer(), true);
+                            return 1;
+                        }))
+                        .then(Commands.literal("stop").executes(c -> {
+                            com.realmlord.world.Beastwave.force(c.getSource().getServer(), false);
+                            return 1;
+                        }))
+                        .executes(c -> {
+                            long today = com.realmlord.village.GaiaCalendar.today(c.getSource().getServer());
+                            int y = com.realmlord.world.Beastwave.nextWaveYear(today);
+                            long left = com.realmlord.world.Beastwave.newYearDay(y) - today;
+                            c.getSource().sendSuccess(() -> Component.translatable("realmlord.beastwave.next", y, left), false);
+                            return 1;
+                        }))
+                .then(Commands.literal("den").requires(s -> s.hasPermission(2)).executes(c -> {
+                    ServerPlayer p = c.getSource().getPlayerOrException();
+                    var w = com.realmlord.world.WorldState.get(p.server);
+                    var at = p.blockPosition().relative(p.getDirection(), 16);
+                    int y = com.realmlord.village.Village.groundAt(p.serverLevel(), at.getX(), at.getZ());
+                    w.dens.add(com.realmlord.world.Dens.create(p.serverLevel(), new net.minecraft.core.BlockPos(at.getX(), y, at.getZ())));
+                    w.touch();
+                    return 1;
+                }))
                 .then(Commands.literal("guide").executes(c -> {
                     ServerPlayer p = c.getSource().getPlayerOrException();
                     ItemStack g = new ItemStack(ModItems.VILLAGE_GUIDE.get());

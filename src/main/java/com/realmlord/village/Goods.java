@@ -100,6 +100,11 @@ public enum Goods {
         if (i == com.realmlord.registry.ModItems.MEDICINAL_HERBS.get()) return new Unit(HERBS, 1);
         if (i == com.realmlord.registry.ModItems.THREE_FLOWER_WINE.get()) return new Unit(WINE, 1);
         if (i == com.realmlord.registry.ModItems.FIRE_OIL.get()) return new Unit(FIRE_OIL, 1);
+        if (i == com.realmlord.registry.ModItems.BOAR_HIDE.get() || i == com.realmlord.registry.ModItems.WOLF_PELT.get()) return new Unit(LEATHER, 2);
+        if (i == com.realmlord.registry.ModItems.TIGER_PELT.get()) return new Unit(LEATHER, 4);
+        if (i == com.realmlord.registry.ModItems.TIGER_BONE.get()) return new Unit(HERBS, 5);
+        if (i == com.realmlord.registry.ModItems.BEAR_PAW.get()) return new Unit(MEAT, 4);
+        if (i == com.realmlord.registry.ModItems.TIGER_BONE_WINE.get()) return new Unit(WINE, 3);
         if (i == Items.IRON_PICKAXE || i == Items.IRON_AXE || i == Items.IRON_SHOVEL || i == Items.IRON_HOE) return new Unit(TOOLS, 1);
         if (i == Items.IRON_SWORD || i == Items.BOW || i == Items.CROSSBOW) return new Unit(WEAPONS, 1);
         return null;
