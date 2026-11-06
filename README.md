@@ -103,6 +103,16 @@ You can decide any time after clearing the camp, even after claiming your reward
 
 Run out of time or abandon the quest and you lose the right to found a village, continuing as an Adventurer.
 
+### The novel's goods
+- **Three Flower Wine:** drink for Strength (one minute) and a little healing. Too much makes your head spin.
+- **Medicinal Herbs:** eat for a quick heal.
+- **Barrel of Fire Oil:** throw it; where it lands, the ground bursts into flame and every creature close by catches fire. As in the novel's beastwave defence. Flames are only set where the thrower may build.
+- **Salt, Roll of Linen, Roll of Fine Silk:** trade goods, worth their market price.
+
+The village's workshops make them every day; the grocer sells salt and fire oil, the tailor linen and silk, the doctor herbs and the winemaker wine.
+
+**The Lord's Handbook** comes with your role: a short book on founding, building, the map, the fence, people, the day, food, the market, goods and protecting your land. Lost it? `/realm guide`.
+
 ### Loot
 - **Coins:** copper, silver and gold, as in the novel: 1 gold = 100 silver = 10,000 copper. Copper is everyday money, and a gold coin is a lot. Use a coin to break it into 100 of the coin below; sneak and use to change 100 coins into one of the coin above. Phase 2's market uses them.
 - **Graded equipment:** Bronze, Black Iron, Silver and Gold grades, each with more damage (weapons) or armour and health (armour).
@@ -178,7 +188,8 @@ Press **M** anywhere to open the world map. Scroll to zoom, drag to move around,
 - **Construction:** every building of your grade and the next, with its wood, stone, time, blueprint and specialist, and how many the upgrade needs. Click **Place** to put it down on the map, or choose to place it in the world: an outline follows your crosshair, green where it fits and red where it doesn't. **Right-click** places it, **sneak + right-click** turns it, **left-click** cancels. The gold edge marks the door side. Choosing a spot puts nothing down; your builders go there and clear and level it themselves. Ponds, marsh and shallow water up to 3 blocks deep can be built on, because the settlers fill them in with earth; deeper water cannot. Trees, mangrove roots, giant mushrooms and plants don't count as ground: the builders clear them, and sites may rise or fall up to 10 blocks across, which the builders cut and fill level. The Simple Fence is laid out on the map too: its ring follows your border, and you click the ring to put gates wherever you want them.
 - **People:** assign residents to Construction, Logging, Quarrying, Farming, Mining and Administration with the +/- buttons; the best-suited idle residents go first. Open any talent's card from the list.
 - **Market:** the novel's Basic Market, with its trading platforms.
-  - **Material Trading Platform:** 17 goods with your stock, the daily change from your workshops, and Buy 10 / Buy 100 / Sell 10 / Sell all. Prices follow the novel where it gives them: grain 10 copper, wood 20, stone 30, iron ore 100, salt 20, Three Flower Wine 1 silver, a roll of linen 10 silver, fine silk 50 silver, fire oil 1 silver a barrel. Meat, fish, leather, herbs, flour, pottery, iron tools and weapons are priced alongside. Every sale pays a 20% tax.
+  - **Material Trading Platform:** 20 goods with your stock, the daily change from your workshops, and Buy 10 / Buy 100 / Sell 10 / Sell all. Prices follow the novel where it gives them: grain 10 copper, wood 20, stone 30, iron ore 100, salt 20, Three Flower Wine 1 silver, a roll of linen 10 silver, fine silk 50 silver, fire oil 1 silver a barrel. Meat, fish, leather, herbs, flour, pottery, iron tools and weapons are priced alongside. Every sale pays a 20% tax.
+    - **Take** puts goods from the stores into your pack as items (shift-click for a stack): grain as wheat, wood as logs, flour as bread, wine, salt, linen, silk, herbs and fire oil as their own items, sand, clay and earth as sand, clay balls and dirt. **Hand In** puts them back.
   - **Workshops make goods each day** (with their specialist at work; inputs come from the stores):
     - Wine Workshop: 60 grain → 20 Three Flower Wine (3 to 1, as in the novel).
     - Mill: 100 grain → 100 flour.
