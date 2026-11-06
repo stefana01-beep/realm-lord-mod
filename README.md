@@ -14,6 +14,7 @@ Requires **Forge 47.x** for 1.20.1. No other mods needed. Runs on its own or alo
 | Key | Action |
 |---|---|
 | **J** | Character panel (Character, Quest and Territory tabs) |
+| **M** | World map |
 | **R** | Use the selected skill |
 | **Y** | Next skill (sneak + Y: previous) |
 
@@ -118,13 +119,41 @@ The Territory tab shows what the next upgrade needs. These are the novel's requi
 | Capital | 2,000,000 | Duke | 90 |
 
 ## The China world: "Earth Online: China"
-When you create a world, set **World Type** to **Earth Online: China** (More World Options). The overworld becomes a map of China about 23,000 blocks across (1 block ≈ 280 m), with Luoyang at 0, 0. The rest of the terrain, caves and structures are vanilla, so it plays like an ordinary world shaped like the real land:
-- The Tibetan Plateau rises to around y 190 with snowy peaks, and the Himalaya, Kunlun, Tianshan, Qinling, Taihang and Hengduan ranges stand where they should.
-- The Taklamakan and Gobi are desert. The North China Plain, the Sichuan Basin and the Yangtze delta are flat farmland. The far south is jungle and mangrove.
-- The Yellow River, the Yangtze, the Pearl River and others are carved in, with the great lakes. The Bohai, Yellow, East and South China Seas lie to the east, with Taiwan and Hainan offshore.
-- The climate runs from cold in the north-east and on the plateau to warm in the south.
+When you create a world, set **World Type** to **Earth Online: China** (More World Options). The overworld becomes the real land of China and its neighbours, with Luoyang at 0, 0. Caves, ores and the small structures are vanilla. Vanilla villages never generate (in any world): settlements are the players' own.
 
-`/realm capitals` lists the coordinates of the historic capitals (Jingdu, Chang'an, Luoyang, Jianye, Chengdu, Xiangyang, Dali, Quanzhou and Xianyang) if you want to found your village somewhere famous. Existing worlds are unchanged; only new worlds with this world type use the map.
+- **Heights are real:** they come from NOAA's ETOPO2 elevation data (one reading every 3.7 km).
+  - The North China Plain lies a few blocks above the sea.
+  - The Sichuan Basin sits in its ring of mountains near y 120.
+  - The Loess Plateau and Yunnan rise past y 200.
+  - The Tibetan Plateau stands near y 370, and the Himalaya climb above y 440.
+- **Rivers and lakes are real:** they come from Natural Earth and are cut into the land.
+  - Lowland rivers (the lower Yangtze, the Pearl, the Huai) fill from the sea.
+  - Upland rivers and lakes (the Yellow River at Lanzhou, Qinghai Lake) get still water laid in their beds.
+  - The Yangtze is about 50 blocks wide.
+- **Climate:** follows latitude, altitude and distance from the sea. The Taklamakan and Gobi are desert, the plateau is snow, the north-east is forest and steppe, and the far south is jungle and mangrove.
+
+### The scale
+| | |
+|---|---|
+| Horizontal | **1 block = 50 m** (1:50). One map pixel = 64 blocks = 3.2 km. |
+| The mapped area | 132,096 × 94,016 blocks (X −81,472 to 50,624, Z −47,616 to 46,400): from Central Asia to Japan, Lake Baikal to the South China Sea |
+| China itself | about 107,000 blocks east to west (Kashgar to the Ussuri) and 79,000 north to south (Mohe to Sanya) |
+| Distances from Luoyang | Chang'an 6,450 · Jianye 12,900 · Jingdu 13,800 · Chengdu 17,600 · Shanhai 29,100 blocks |
+| Walking | Luoyang to Chang'an about 25 minutes; to Jingdu about 55; across China about 7 hours |
+| East–west | exact at 35°N; about 27% stretched at 50°N and 13% squeezed at 20°N (one flat grid for the whole map) |
+| Height | the world runs from y −64 to y 576. Height above the sea is squeezed more the higher it goes: 50 m → y 70, 100 m → y 75, 500 m → y 118, 1,000 m → y 166, 2,000 m → y 244, 3,000 m → y 304, 4,500 m → y 369, 7,500 m → y 443 |
+| Seas | 30 m of depth per block, at least 5 blocks deep, deepest floors at y 13 |
+
+At true 1:1 scale China would be about 5 million blocks across, a two-week walk, so 1:50 keeps the real shapes while leaving room for roads and travel.
+
+`/realm capitals` lists the coordinates of the historic capitals (Jingdu, Chang'an, Luoyang, Jianye, Chengdu, Xiangyang, Dali, Quanzhou and Xianyang). Existing worlds are unchanged; only new worlds with this world type use the map, and worlds made with an older version of the mod keep their old terrain only where it is already generated.
+
+## The world map (M)
+Press **M** anywhere to open the world map. Scroll to zoom, drag to move around, **Space** or **Find me** to return to yourself, and **Whole world** to see everything.
+- **On the China world:** zoomed out, it is an atlas of the whole land. It shows real heights, rivers and lakes, the novel's provinces (Lingnan, Chuannan, Shu, Zhongyuan, Jiangnan and the rest), seas and neighbouring lands, and the nine Imperial Capitals. Hovering shows block coordinates and the real latitude and longitude.
+- **Zoomed in:** the land you have seen this session is drawn block by block, like a vanilla map.
+- **Territories:** every territory is ringed, yours in green.
+- **Other worlds:** the map shows the land you have seen.
 
 ## Running your village (Phase 2)
 **Right-click the Lord's Manor Seal** to open the Manor screen. It has four tabs:
@@ -228,6 +257,14 @@ The order follows the novel: Ouyang Shuo summons his first general, sets up the 
    - Wars on the frontier against the Xiongnu.
    - Greater hidden buildings.
 7. **Capital, kingdom and dynasty:** the road to Son of Heaven.
+
+**Planned for the world** (to be fitted into the phases above):
+- **The great capitals:** the nine Imperial Capitals built as massive walled cities, the only ready-made settlements in the world.
+- **Bandit camps from the start:** small, medium and large camps scattered across the land, harder and richer as they grow.
+- **Native tribes:** mountain barbarians and others, as in the novel, to trade with or make war on.
+- **Roads:** built between territories, speeding up travel along them.
+- **Quick travel:** journeys that cost in-game time for the traveller (days on the road, food eaten) without changing the time for anyone else.
+- **Ships and weapons:** more kinds of boats and warships, and the novel's weapons and siege engines.
 
 ## Building from source
 Java 17, then `./gradlew build` (jar in `build/libs`). Textures, models and the language file are generated by `python3 tools/gen_assets.py`. Every build runs in-game tests on a real server: choosing a role, titles, levels and points, every skill, every work rank, the full Village Creation quest, token grading, bandit strength and drops, loot items, founding a village with its settlers, dimension travel and syncing.
