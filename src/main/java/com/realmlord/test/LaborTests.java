@@ -533,14 +533,22 @@ public class LaborTests {
 
         // Only the Lord and those trusted may build; the manor's chests are the Lord's alone.
         BlockPos field = t.center.offset(20, 0, 0), manorChest = t.center.offset(2, 0, 2);
+        java.util.UUID other = stranger.getUUID(), lord = p.getUUID();
+        helper.assertTrue(!com.realmlord.territory.TerritoryEvents.allowed(level, other, field, false), "a stranger could build in the territory");
+        helper.assertTrue(!com.realmlord.territory.TerritoryEvents.allowed(level, other, manorChest, true), "a stranger opened the Lord's chests");
+        helper.assertTrue(com.realmlord.territory.TerritoryEvents.allowed(level, other, t.center.offset(500, 0, 0), false), "land outside any territory should be free");
+        t.trusted.add(other);
+        helper.assertTrue(com.realmlord.territory.TerritoryEvents.allowed(level, other, field, false), "a trusted player could not build");
+        helper.assertTrue(com.realmlord.territory.TerritoryEvents.allowed(level, other, field, true), "a trusted player could not use a chest outside the manor");
+        helper.assertTrue(!com.realmlord.territory.TerritoryEvents.allowed(level, other, manorChest, true), "a trusted player opened the Lord's chests");
+        helper.assertTrue(com.realmlord.territory.TerritoryEvents.allowed(level, lord, manorChest, true) && com.realmlord.territory.TerritoryEvents.allowed(level, lord, field, false), "the Lord was shut out of his own land");
+        helper.assertTrue(Territory.load(t.save()).trusts(other), "trust lost on saving");
+        // The real events: a stranger's block break is refused.
+        t.trusted.remove(other);
         if (!stranger.hasPermissions(2)) {
-            helper.assertTrue(!com.realmlord.territory.TerritoryEvents.allowed(stranger, field, false), "a stranger could build in the territory");
-            t.trusted.add(stranger.getUUID());
-            helper.assertTrue(com.realmlord.territory.TerritoryEvents.allowed(stranger, field, false), "a trusted player could not build");
-            helper.assertTrue(!com.realmlord.territory.TerritoryEvents.allowed(stranger, manorChest, true), "a trusted player opened the Lord's chests");
-            helper.assertTrue(com.realmlord.territory.TerritoryEvents.allowed(p, manorChest, true), "the Lord could not open his own chests");
-            Territory copy = Territory.load(t.save());
-            helper.assertTrue(copy.trusts(stranger.getUUID()), "trust lost on saving");
+            var ev = new net.minecraftforge.event.level.BlockEvent.BreakEvent(level, field, level.getBlockState(field), stranger);
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(ev);
+            helper.assertTrue(ev.isCanceled(), "a stranger's block break went through");
         }
 
         // A resident who dies is gone, and the log says so.

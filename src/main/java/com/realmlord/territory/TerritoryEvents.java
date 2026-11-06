@@ -40,11 +40,17 @@ public final class TerritoryEvents {
 
     /** Whether a player may change things at a spot (and, with manor true, use the Lord's own chests). */
     public static boolean allowed(ServerPlayer p, BlockPos pos, boolean lordOnly) {
-        if (!RealmConfig.protectTerritories() || p.hasPermissions(2)) return true;
-        Territory t = at(p.serverLevel(), pos);
+        if (p.hasPermissions(2)) return true;
+        return allowed(p.serverLevel(), p.getUUID(), pos, lordOnly);
+    }
+
+    /** As above, for a player who is not an operator. */
+    public static boolean allowed(ServerLevel level, java.util.UUID player, BlockPos pos, boolean lordOnly) {
+        if (!RealmConfig.protectTerritories()) return true;
+        Territory t = at(level, pos);
         if (t == null || t.owner == null) return true;
-        if (lordOnly && inManor(t, pos)) return p.getUUID().equals(t.owner);
-        return t.trusts(p.getUUID());
+        if (lordOnly && inManor(t, pos)) return player.equals(t.owner);
+        return t.trusts(player);
     }
 
     private static void refuse(ServerPlayer p, BlockPos pos) {
