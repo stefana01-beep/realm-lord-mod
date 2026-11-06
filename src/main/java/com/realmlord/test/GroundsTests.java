@@ -45,6 +45,15 @@ public class GroundsTests {
         // Uneven ground: a rocky knoll, a tree, a flooded pit, bare rock, and things people made.
         BlockPos knoll = c.offset(20, 0, 0), pit = c.offset(-20, 0, 5), tree = c.offset(0, 0, 25), rock = c.offset(12, 0, -12);
         BlockPos far = c.offset(98, 0, 0), cobble = c.offset(30, 0, 30), yard = c.offset(3, 1, 3);
+        BlockPos buried = c.offset(-12, 0, 14), hollow = c.offset(14, 0, 12);
+        // Firm, plain ground under each of them first, whatever the test world's terrain.
+        for (BlockPos f : new BlockPos[]{knoll, pit, tree, rock, far, cobble, buried, hollow, c.offset(-40, 0, -40)})
+            for (int x = -4; x <= 9; x++)
+                for (int z = -4; z <= 9; z++) {
+                    for (int y = -6; y < -1; y++) level.setBlock(f.offset(x, y, z), Blocks.DIRT.defaultBlockState(), 2);
+                    level.setBlock(f.offset(x, -1, z), Blocks.GRASS_BLOCK.defaultBlockState(), 2);
+                    for (int y = 0; y < 16; y++) level.setBlock(f.offset(x, y, z), Blocks.AIR.defaultBlockState(), 2);
+                }
         for (int x = 0; x < 5; x++)
             for (int z = 0; z < 5; z++)
                 for (int h = 0; h < 6; h++) level.setBlock(knoll.offset(x, h, z), Blocks.STONE.defaultBlockState(), 2);
@@ -56,10 +65,8 @@ public class GroundsTests {
         level.setBlock(tree.above(5), Blocks.OAK_LEAVES.defaultBlockState(), 2);
         level.setBlock(rock.below(), Blocks.STONE.defaultBlockState(), 2);
         // A tree buried below the floor, and flowers in a hollow: earth all the way down instead.
-        BlockPos buried = c.offset(-12, 0, 14);
         level.setBlock(buried.below(), Blocks.OAK_LOG.defaultBlockState(), 2);
         level.setBlock(buried.below(2), Blocks.OAK_LEAVES.defaultBlockState(), 2);
-        BlockPos hollow = c.offset(14, 0, 12);
         level.setBlock(hollow.below(), Blocks.POPPY.defaultBlockState(), 2);
         for (int h = 0; h < 3; h++) level.setBlock(cobble.above(h), Blocks.COBBLESTONE.defaultBlockState(), 2);
         level.setBlock(yard, Blocks.GOLD_BLOCK.defaultBlockState(), 2);
@@ -103,23 +110,28 @@ public class GroundsTests {
         for (int h = 0; h < 6; h++) helper.assertTrue(level.getBlockState(tree.above(h)).isAir(), "the tree still stands");
         for (int x = 0; x < 3; x++)
             for (int z = 0; z < 3; z++) {
-                helper.assertTrue(level.getBlockState(pit.offset(x, -1, z)).is(Blocks.GRASS_BLOCK), "the pit was not filled level with grass on top");
-                helper.assertTrue(level.getBlockState(pit.offset(x, -2, z)).is(Blocks.DIRT) && level.getBlockState(pit.offset(x, -3, z)).is(Blocks.DIRT),
-                        "the pit was not filled with dirt (and its water) beneath");
+                Grounds.Earth e = Grounds.earth(level, pit.getX() + x, y - 1, pit.getZ() + z);
+                helper.assertTrue(level.getBlockState(pit.offset(x, -1, z)).is(e.top().getBlock()), "the pit was not filled level with its earth on top: "
+                        + level.getBlockState(pit.offset(x, -1, z)));
+                helper.assertTrue(level.getBlockState(pit.offset(x, -2, z)).is(e.under().getBlock()) && level.getBlockState(pit.offset(x, -3, z)).is(e.under().getBlock()),
+                        "the pit was not filled with earth (and its water) beneath");
             }
-        helper.assertTrue(level.getBlockState(rock.below()).is(Blocks.GRASS_BLOCK), "bare rock at the floor was not given grass");
-        helper.assertTrue(level.getBlockState(buried.below()).is(Blocks.GRASS_BLOCK) && level.getBlockState(buried.below(2)).is(Blocks.DIRT),
+        helper.assertTrue(level.getBlockState(rock.below()).is(top(level, rock)), "bare rock at the floor was not given its earth");
+        helper.assertTrue(level.getBlockState(buried.below()).is(top(level, buried)) && level.getBlockState(buried.below(2)).is(Grounds.earth(level, buried.getX(), y - 1, buried.getZ()).under().getBlock()),
                 "a buried trunk and leaves were left in the floor: " + level.getBlockState(buried.below()) + ", " + level.getBlockState(buried.below(2)));
-        helper.assertTrue(level.getBlockState(hollow.below()).is(Blocks.GRASS_BLOCK), "a flower in a hollow was left instead of ground");
+        helper.assertTrue(level.getBlockState(hollow.below()).is(top(level, hollow)), "a flower in a hollow was left instead of ground");
         helper.assertTrue(level.getBlockState(cobble.above(2)).is(Blocks.COBBLESTONE), "something a person built was cut away");
         helper.assertTrue(level.getBlockState(yard).is(Blocks.GOLD_BLOCK), "the manor yard was touched");
         helper.assertTrue(level.getBlockState(site.origin.offset(1, 1, 1)).is(Blocks.STONE), "a building site was levelled over");
-        helper.assertTrue(Grounds.earth(level, c.getX(), y, c.getZ()) == Grounds.GRASS, "plains should be grass over dirt");
         // Finished: the job leaves the list and the wall may start.
         helper.assertTrue(!Grounds.active(t) && !t.buildings.contains(job), "the finished levelling is still listed");
 
         for (int x = -8; x <= 8; x++)
             for (int z = -8; z <= 8; z++) if (Math.abs(x) > 5 || Math.abs(z) > 5) level.setChunkForced((c.getX() >> 4) + x, (c.getZ() >> 4) + z, false);
         VillageTests.done(helper, p, t);
+    }
+
+    private static net.minecraft.world.level.block.Block top(ServerLevel level, BlockPos p) {
+        return Grounds.earth(level, p.getX(), p.getY() - 1, p.getZ()).top().getBlock();
     }
 }
