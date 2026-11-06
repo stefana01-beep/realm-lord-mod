@@ -18,6 +18,8 @@ public final class RealmConfig {
     public static final ForgeConfigSpec.DoubleValue XP_MULTIPLIER;
     public static final ForgeConfigSpec.IntValue DAYS_PER_MONTH;
     public static final ForgeConfigSpec.IntValue VISIBLE_RESIDENTS;
+    public static final ForgeConfigSpec.BooleanValue PROTECT_TERRITORIES;
+    public static final ForgeConfigSpec.BooleanValue SAFE_INSIDE_FENCE;
 
     static {
         ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
@@ -37,7 +39,11 @@ public final class RealmConfig {
 
         b.push("village");
         VISIBLE_RESIDENTS = b.comment("Most residents of one territory shown walking around at once; the rest live on in the records. Talents are always shown first.")
-                .defineInRange("visibleResidents", 24, 4, 200);
+                .defineInRange("visibleResidents", 48, 4, 300);
+        PROTECT_TERRITORIES = b.comment("Only a territory's Lord and the players they trust (/realm trust) may break or place blocks and open chests there. The chests in the Lord's Manor are the Lord's alone. Operators are exempt.")
+                .define("protectTerritories", true);
+        SAFE_INSIDE_FENCE = b.comment("Monsters do not spawn inside a village's finished fence.")
+                .define("safeInsideFence", true);
         b.pop();
 
         b.push("village_creation_quest");
@@ -59,6 +65,14 @@ public final class RealmConfig {
     }
 
     /** Safe reads: game tests and early code can run before the config file loads. */
+    public static boolean protectTerritories() {
+        return !SPEC.isLoaded() || PROTECT_TERRITORIES.get();
+    }
+
+    public static boolean safeInsideFence() {
+        return !SPEC.isLoaded() || SAFE_INSIDE_FENCE.get();
+    }
+
     public static boolean lordRestriction() {
         return SPEC.isLoaded() ? LORD_RESTRICTION.get() : false;
     }
@@ -92,7 +106,7 @@ public final class RealmConfig {
     }
 
     public static int visibleResidents() {
-        return SPEC.isLoaded() ? VISIBLE_RESIDENTS.get() : 24;
+        return SPEC.isLoaded() ? VISIBLE_RESIDENTS.get() : 48;
     }
 
     public static long ticksPerNovelDay() {

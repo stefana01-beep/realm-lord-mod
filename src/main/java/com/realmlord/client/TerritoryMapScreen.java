@@ -344,7 +344,7 @@ public class TerritoryMapScreen extends Screen {
                 return true;
             }
             if (button == 0) {
-                BlockPos o = at.offset(-sx() / 2, 0, -sz() / 2);
+                BlockPos o = snap(at).offset(-sx() / 2, 0, -sz() / 2);
                 ModNetwork.toServer(new PlaceBuildingPacket(placing.ordinal(), o, rotation));
                 placing = null;
                 refreshIn = 20;
@@ -515,6 +515,16 @@ public class TerritoryMapScreen extends Screen {
         return Math.hypot(px - (ax + t * dx), pz - (az + t * dz));
     }
 
+    /** Arrow towers and sentry posts near the fence snap onto it, to stand in the wall. */
+    private BlockPos snap(BlockPos at) {
+        if (placing == null || placing.style != BuildingType.Style.TOWER || fence() == null) return at;
+        CompoundTag v = ClientVillageData.manor;
+        int cx = v.getInt("cx"), cz = v.getInt("cz"), r = fenceRadius();
+        double dx = at.getX() - cx, dz = at.getZ() - cz, d = Math.hypot(dx, dz);
+        if (d < 1 || Math.abs(d - r) > Math.max(4, ClientMap.step * 3)) return at;
+        return new BlockPos(cx + (int) Math.round(dx / d * r), at.getY(), cz + (int) Math.round(dz / d * r));
+    }
+
     private int[] clearSize() {
         return new int[]{Math.abs(corner2[0] - corner1[0]) + 1, Math.abs(corner2[1] - corner1[1]) + 1};
     }
@@ -546,7 +556,7 @@ public class TerritoryMapScreen extends Screen {
     private Component placement(GuiGraphics g, int mx, int my) {
         BlockPos at = worldAt(mx, my);
         if (at == null) return null;
-        BlockPos o = at.offset(-sx() / 2, 0, -sz() / 2);
+        BlockPos o = snap(at).offset(-sx() / 2, 0, -sz() / 2);
         boolean ok = ClientPlacement.fits(placing, rotation, o);
         rect(g, o.getX(), o.getZ(), sx(), sz(), ok ? 0x8040FF60 : 0x80FF4040, ok ? 0xFF40FF60 : 0xFFFF4040);
         // Door side

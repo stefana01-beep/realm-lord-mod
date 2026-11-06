@@ -714,6 +714,24 @@ public class SettlerEntity extends PathfinderMob {
         return net.minecraft.world.InteractionResult.sidedSuccess(level().isClientSide);
     }
 
+    /** A resident who dies is gone from the village for good; what they carried falls where they lie. */
+    @Override
+    public void die(DamageSource source) {
+        super.die(source);
+        if (!(level() instanceof ServerLevel sl) || territoryId < 0) return;
+        Territory t = TerritoryData.get(sl.getServer()).byId(territoryId);
+        var r = t == null ? null : t.resident(residentId);
+        if (r == null || !getUUID().equals(r.entity)) return;
+        for (int i = 0; i < r.inv.getContainerSize(); i++) {
+            net.minecraft.world.item.ItemStack st = r.inv.getItem(i);
+            if (!st.isEmpty()) spawnAtLocation(st.copy());
+        }
+        t.residents.remove(r);
+        t.population = t.residents.size();
+        com.realmlord.village.Village.tell(sl, t, Component.translatable("realmlord.village.died", t.name, source.getLocalizedDeathMessage(this)));
+        TerritoryData.get(sl.getServer()).touch();
+    }
+
     /** Captives cannot be harmed, so a stray blast cannot spoil the quest. */
     @Override
     public boolean hurt(DamageSource source, float amount) {

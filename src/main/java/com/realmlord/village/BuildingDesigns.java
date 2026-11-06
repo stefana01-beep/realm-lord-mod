@@ -923,8 +923,11 @@ public final class BuildingDesigns {
             gate[i] = b.isGate(bearing(t.center, cols.get(i)[0], cols.get(i)[1]));
         }
         List<Placement> out = new ArrayList<>();
+        java.util.Set<Long> towers = towerColumns(t);
         for (int i = 0; i < n; i++) {
             int x = cols.get(i)[0], z = cols.get(i)[1], y = b.fenceYs[i], rail = rails[i];
+            // An arrow tower or sentry post set on the wall takes the wall's place there.
+            if (towers.contains(((long) x << 32) ^ (z & 0xffffffffL))) continue;
             boolean prevGate = gate[Math.floorMod(i - 1, n)], nextGate = gate[Math.floorMod(i + 1, n)];
             for (int k = b.fenceFill[i]; k >= 1; k--) out.add(new Placement(new BlockPos(x, y - 1 - k, z), earth));
             out.add(new Placement(new BlockPos(x, y - 1, z), plank));
@@ -954,10 +957,32 @@ public final class BuildingDesigns {
             }
         }
         if (walkway) walk(level, t, b, cols, rails, gate, out);
+        out.removeIf(pl -> towers.contains(((long) pl.pos().getX() << 32) ^ (pl.pos().getZ() & 0xffffffffL)));
         // One block to a place: the first claim wins (the wall before the walk, the walk before a ladder).
         java.util.Set<BlockPos> taken = new java.util.HashSet<>();
         out.removeIf(pl -> !taken.add(pl.pos()));
         return out;
+    }
+
+    /** Columns under towers (built or being built) that stand on or by the wall. */
+    public static java.util.Set<Long> towerColumns(Territory t) {
+        java.util.Set<Long> out = new java.util.HashSet<>();
+        for (Building o : t.buildings) {
+            if (o.type.style != BuildingType.Style.TOWER || o.demolishing && o.placed <= 0) continue;
+            for (int x = 0; x < o.sizeX(); x++)
+                for (int z = 0; z < o.sizeZ(); z++) {
+                    int wx = o.origin.getX() + x, wz = o.origin.getZ() + z;
+                    out.add(((long) wx << 32) ^ (wz & 0xffffffffL));
+                }
+        }
+        return out;
+    }
+
+    /** A signature of the towers, so the fence knows when one is added or taken away. */
+    public static int towerSignature(Territory t) {
+        int sig = 1;
+        for (Building o : t.buildings) if (o.type.style == BuildingType.Style.TOWER && !(o.demolishing && o.placed <= 0)) sig = sig * 31 + o.id;
+        return sig;
     }
 
     /** From Town Grade 1 the palisade has a wall-walk behind it. */

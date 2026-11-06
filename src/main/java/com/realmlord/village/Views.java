@@ -94,6 +94,21 @@ public final class Views {
             bs.add(bt);
         }
         v.put("buildings", bs);
+        // The village log and yesterday's ledger.
+        net.minecraft.nbt.ListTag lg = new net.minecraft.nbt.ListTag();
+        for (Territory.LogEntry e : t.log) {
+            CompoundTag c = new CompoundTag();
+            c.putLong("d", e.day());
+            c.putString("m", e.json());
+            lg.add(c);
+        }
+        v.put("log", lg);
+        v.putLongArray("ledger", t.ledger);
+        v.putLong("foodDays", Village.foodDaysLeft(t));
+        long other = 0;
+        for (Goods g : Village.OTHER_FOODS) other += g.stock(t);
+        v.putLong("otherFood", other);
+        v.putLong("foodNeed", Village.foodUse(t));
         // Construction options for this player
         ListTag opts = new ListTag();
         for (BuildingType type : BuildingType.values()) {

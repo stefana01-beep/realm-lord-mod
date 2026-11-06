@@ -95,7 +95,7 @@ public final class Village {
         for (int i = 0; i < n; i++) add(t, Resident.random(r, Resident.randomOccupation(r, 1.0), t.grade.ordinal()));
         t.waitingSettlers -= n;
         ServerPlayer owner = t.owner == null ? null : level.getServer().getPlayerList().getPlayer(t.owner);
-        if (owner != null) Notify.player(owner, Component.translatable("realmlord.village.waiting_joined", n, t.name, t.waitingSettlers));
+        tell(level, t, Component.translatable("realmlord.village.waiting_joined", n, t.name, t.waitingSettlers));
         return n;
     }
 
@@ -122,6 +122,13 @@ public final class Village {
     public static int countComplete(Territory t, BuildingType type) {
         int n = 0;
         for (Building b : t.buildings) if (b.complete && b.type == type) n++;
+        return n;
+    }
+
+    /** Beds in finished residential courtyards of any size. */
+    public static int courtyardBeds(Territory t) {
+        int n = 0;
+        for (Building b : t.buildings) if (b.complete) n += b.type.housing();
         return n;
     }
 
@@ -346,9 +353,18 @@ public final class Village {
     }
 
     /** One novel day in the life of the village. */
+    /** Yesterday's ledger, by index. */
+    public static final int LEDGER_GRAIN = 0, LEDGER_EATEN = 1, LEDGER_WOOD = 2, LEDGER_STONE = 3, LEDGER_ORE = 4,
+            LEDGER_TAX = 5, LEDGER_ARRIVED = 6, LEDGER_LEFT = 7, LEDGER_OTHER_FOOD = 8, LEDGER_DAY = 9;
+    /** Goods eaten when the grain runs short, in this order (one unit feeds one person a day). */
+    public static final Goods[] OTHER_FOODS = {Goods.FLOUR, Goods.MEAT, Goods.FISH};
+
     public static void day(ServerLevel level, Territory t, long day) {
         RandomSource rnd = level.getRandom();
         trimJobs(t);
+        long food0 = t.food, wood0 = t.wood, stone0 = t.stone, ore0 = t.ironOre;
+        long[] ledger = new long[10];
+        ledger[LEDGER_DAY] = day;
         // Work: what residents carried in by hand counts towards their day; the rest comes in now.
         double[] owed = {0, 0, 0};
         for (Resident r : t.residents) {
@@ -364,13 +380,29 @@ public final class Village {
         Goods.produce(t);
         farm(t, day);
         updateCrops(level, t, day);
-        // Food
+        ledger[LEDGER_GRAIN] = t.food - food0;
+        ledger[LEDGER_WOOD] = t.wood - wood0;
+        ledger[LEDGER_STONE] = t.stone - stone0;
+        ledger[LEDGER_ORE] = t.ironOre - ore0;
+        // Food: grain first, then flour, meat and fish from the goods shelves.
         long need = foodUse(t);
-        boolean hungry = t.food < need;
-        t.food = Math.max(0, t.food - need);
+        long fromGrain = Math.min(t.food, need);
+        t.food -= fromGrain;
+        long short_ = need - fromGrain;
+        for (Goods g : OTHER_FOODS) {
+            long take = Math.min(short_, g.stock(t));
+            g.add(t, -take);
+            short_ -= take;
+            ledger[LEDGER_OTHER_FOOD] += take;
+        }
+        ledger[LEDGER_EATEN] = need - short_;
+        boolean hungry = short_ > 0;
         t.hungryDays = hungry ? t.hungryDays + 1 : 0;
         // Taxes
-        t.treasury += dailyTax(t);
+        long tax = dailyTax(t);
+        t.treasury += tax;
+        ledger[LEDGER_TAX] = tax;
+        int before = t.residents.size();
         // People's Thoughts drift towards what the village offers.
         int target = 60;
         for (Building b : t.buildings) if (b.complete) target += b.type.morale();
@@ -392,6 +424,7 @@ public final class Village {
                 t.residents.remove(r);
             }
         }
+        ledger[LEDGER_LEFT] = before - t.residents.size();
         // Immigration, into free housing up to the level's limit.
         int room = capacity(t) - t.residents.size();
         t.immigrantCarry += immigrationRate(t);
@@ -402,11 +435,23 @@ public final class Village {
         for (int i = 0; i < arrivals; i++) add(t, Resident.random(rnd, Resident.randomOccupation(rnd, specialBoost), t.grade.ordinal()));
         if (room <= 0) t.immigrantCarry = 0;
         t.population = t.residents.size();
-        ServerPlayer owner = t.owner == null ? null : level.getServer().getPlayerList().getPlayer(t.owner);
-        if (owner != null) {
-            if (arrivals > 0) Notify.player(owner, Component.translatable("realmlord.village.immigrants", arrivals, t.name));
-            if (hungry) Notify.player(owner, Component.translatable("realmlord.village.hungry", t.name));
-        }
+        ledger[LEDGER_ARRIVED] = arrivals;
+        t.ledger = ledger;
+        if (arrivals > 0) tell(level, t, Component.translatable("realmlord.village.immigrants", arrivals, t.name));
+        if (ledger[LEDGER_LEFT] > 0) tell(level, t, Component.translatable("realmlord.village.left", ledger[LEDGER_LEFT], t.name));
+        if (hungry) tell(level, t, Component.translatable("realmlord.village.hungry", t.name));
+    }
+
+    /** Days the stored food lasts at yesterday's rate (grain, flour, meat and fish), or -1 if it is not running down. */
+    public static long foodDaysLeft(Territory t) {
+        long stock = t.food;
+        for (Goods g : OTHER_FOODS) stock += g.stock(t);
+        long net = t.ledger[LEDGER_EATEN] - t.ledger[LEDGER_GRAIN];
+        long need = foodUse(t);
+        // Harvests come in lumps, so judge by what is eaten when no harvest came in.
+        long burn = t.ledger[LEDGER_GRAIN] > need * 5 ? need : Math.max(net, 0);
+        if (burn <= 0) return -1;
+        return stock / burn;
     }
 
     // ================================================================== farming
@@ -474,6 +519,19 @@ public final class Village {
             return "realmlord.build.err.manor";
         }
         for (Building b : t.buildings) if (b.footprint() && b.overlaps(origin.getX(), origin.getZ(), sx, sz, 1)) return "realmlord.build.err.overlap";
+        // Nothing may block a gateway; only towers may stand on the fence.
+        for (Building f : t.buildings) {
+            if (f.type != BuildingType.SIMPLE_FENCE || f.demolishing) continue;
+            int fr = f.fenceRadius > 0 ? f.fenceRadius : t.radius() - 2;
+            for (int x = 0; x < sx; x++)
+                for (int z = 0; z < sz; z++) {
+                    int wx = origin.getX() + x, wz = origin.getZ() + z;
+                    double dist = Math.hypot(wx - t.center.getX(), wz - t.center.getZ());
+                    if (Math.abs(dist - fr) > 1.5) continue;
+                    if (f.isGate(BuildingDesigns.bearing(t.center, wx, wz))) return "realmlord.build.err.gate";
+                    if (type.style != BuildingType.Style.TOWER) return "realmlord.build.err.on_fence";
+                }
+        }
         // Ground: settlers fill in shallow water, ponds and marsh, but not deep water; slopes are limited.
         int lo = Integer.MAX_VALUE, hi = Integer.MIN_VALUE;
         for (int x = 0; x < sx; x += Math.max(1, Math.min(2, sx - 1 - x))) {
@@ -841,27 +899,35 @@ public final class Village {
             BuildingDesigns.forget(b);
             for (Resident r : t.residents) if (r.workplace == b.id) r.workplace = -1;
             ServerPlayer owner = t.owner == null ? null : level.getServer().getPlayerList().getPlayer(t.owner);
-            if (owner != null) Notify.player(owner, Component.translatable("realmlord.clear.done", b.sizeX(), b.sizeZ(), t.name));
+            tell(level, t, Component.translatable("realmlord.clear.done", b.sizeX(), b.sizeZ(), t.name));
             return;
         }
         b.complete = true;
         BuildingDesigns.forget(b);
         b.progress = b.workNeeded;
         level.playSound(null, b.center(), SoundEvents.PLAYER_LEVELUP, SoundSource.BLOCKS, 0.8F, 1.2F);
-        ServerPlayer owner = t.owner == null ? null : level.getServer().getPlayerList().getPlayer(t.owner);
-        if (owner != null) {
-            Notify.player(owner, Component.translatable("realmlord.build.done", Component.translatable(b.type.key()), t.name));
-            // The specialist the building needed moves in to run it.
-            if (b.type.staff() != null && staffOf(t, b) == null) {
-                for (Resident r : t.residents) {
-                    if (r.occupation == b.type.staff() && r.rank >= b.type.specialistRank && !isStaffing(t, r) && !r.militia) {
-                        assign(t, r, Job.STAFF, b.id);
-                        Notify.player(owner, Component.translatable("realmlord.build.staffed", r.name, Component.translatable(b.type.key())));
-                        break;
-                    }
+        if (b.quietRefit) {
+            b.quietRefit = false;
+            return;
+        }
+        tell(level, t, Component.translatable("realmlord.build.done", Component.translatable(b.type.key()), t.name));
+        // The specialist the building needed moves in to run it.
+        if (b.type.staff() != null && staffOf(t, b) == null) {
+            for (Resident r : t.residents) {
+                if (r.occupation == b.type.staff() && r.rank >= b.type.specialistRank && !isStaffing(t, r) && !r.militia) {
+                    assign(t, r, Job.STAFF, b.id);
+                    tell(level, t, Component.translatable("realmlord.build.staffed", r.name, Component.translatable(b.type.key())));
+                    break;
                 }
             }
         }
+    }
+
+    /** Tells the Lord (if online) and writes it in the village log. */
+    public static void tell(ServerLevel level, Territory t, Component msg) {
+        t.addLog(GaiaCalendar.day(level.getServer().overworld().getGameTime()), msg);
+        ServerPlayer owner = t.owner == null ? null : level.getServer().getPlayerList().getPlayer(t.owner);
+        if (owner != null) Notify.player(owner, msg);
     }
 
     /**
@@ -964,12 +1030,25 @@ public final class Village {
     public static void refitFence(ServerLevel level, Territory t) {
         for (Building b : t.buildings) {
             if (b.type != BuildingType.SIMPLE_FENCE || b.demolishing) continue;
+            // A tower put up on the wall, or taken down: the wall makes room, or closes the gap.
+            int sig = BuildingDesigns.towerSignature(t);
+            if (b.towerSig != sig) {
+                boolean first = b.towerSig == Integer.MIN_VALUE;
+                b.towerSig = sig;
+                BuildingDesigns.forget(b);
+                if (!first && b.complete && b.fenceStyle >= fenceStyle(t)) {
+                    int style = b.fenceStyle;
+                    refit(t, b);
+                    b.fenceStyle = style;
+                    b.quietRefit = true;
+                }
+            }
             int want = fenceStyle(t);
             if (b.fenceStyle >= want) continue;
             if (b.complete) {
                 refit(t, b);
                 ServerPlayer owner = t.owner == null ? null : level.getServer().getPlayerList().getPlayer(t.owner);
-                if (owner != null) Notify.player(owner, Component.translatable("realmlord.fence.refit", t.name));
+                tell(level, t, Component.translatable("realmlord.fence.refit", t.name));
             } else {
                 b.fenceStyle = want;
                 BuildingDesigns.forget(b);
@@ -991,6 +1070,12 @@ public final class Village {
         if (owner != null && !owner.getTitle().atLeast(next.title)) out.add(Component.translatable("realmlord.upgrade.need_title", Component.translatable(next.title.key())));
         for (BuildingType bt : BuildingType.values()) {
             if (bt.requiredFor != t.level.villageGrade() || bt.requiredFor == 0) continue;
+            if (bt.housing() > 0) {
+                // The novel's ten courtyards are beds for 200: any mix of courtyards will do.
+                int need = bt.housing() * bt.requiredCount, beds = courtyardBeds(t);
+                if (beds < need) out.add(Component.translatable("realmlord.upgrade.need_housing", beds, need));
+                continue;
+            }
             int have = countComplete(t, bt);
             if (have < bt.requiredCount) out.add(Component.translatable("realmlord.upgrade.need_building", Component.translatable(bt.key()), have, bt.requiredCount));
         }
@@ -1200,7 +1285,7 @@ public final class Village {
         refitFence(level, t);
         if (com.realmlord.territory.Residence.upgrade(level, t)) {
             ServerPlayer owner = t.owner == null ? null : server.getPlayerList().getPlayer(t.owner);
-            if (owner != null) Notify.player(owner, Component.translatable("realmlord.manor.rebuilt", t.name));
+            tell(level, t, Component.translatable("realmlord.manor.rebuilt", t.name));
             TerritoryData.get(server).touch();
         }
         Residents.sync(level, t);

@@ -86,16 +86,14 @@ public final class Wanderers {
             r.skin = s.getSkin();
             Village.add(t, r);
             level.sendParticles(ParticleTypes.HAPPY_VILLAGER, s.getX(), s.getY() + 1, s.getZ(), 10, 0.4, 0.6, 0.4, 0.0);
-            ServerPlayer owner = t.owner == null ? null : level.getServer().getPlayerList().getPlayer(t.owner);
-            if (owner != null) Notify.player(owner, Component.translatable("realmlord.village.wanderer_joined", r.name, t.name));
+            Village.tell(level, t, Component.translatable("realmlord.village.wanderer_joined", r.name, t.name));
             TerritoryData.get(level.getServer()).touch();
             s.discard();
             return;
         }
         if (full != null && !s.getPersistentData().getBoolean(TOLD)) {
             s.getPersistentData().putBoolean(TOLD, true);
-            ServerPlayer owner = full.owner == null ? null : level.getServer().getPlayerList().getPlayer(full.owner);
-            if (owner != null) Notify.player(owner, Component.translatable("realmlord.village.wanderer_no_bed", full.name));
+            Village.tell(level, full, Component.translatable("realmlord.village.wanderer_no_bed", full.name));
         }
         if (level.getGameTime() - born > LIFETIME) s.discard();
     }

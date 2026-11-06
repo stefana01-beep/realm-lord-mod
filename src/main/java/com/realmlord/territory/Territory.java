@@ -57,6 +57,24 @@ public class Territory {
     /** The manor standing now (see Residence: 1 the refugees' hall, 2 and 3 the Lord's residence), and the way its door faces (-1 unknown). */
     public int manorTier = 1;
     public int manorFront = -1;
+    /** Players the Lord trusts to build and use chests in the territory (not the manor's). */
+    public final java.util.Set<java.util.UUID> trusted = new java.util.HashSet<>();
+    /** The village log, newest first: {novel day, message as JSON}. */
+    public final java.util.List<LogEntry> log = new java.util.ArrayList<>();
+    public static final int LOG_SIZE = 60;
+    /** Yesterday's ledger (see Village.LEDGER_*). */
+    public long[] ledger = new long[10];
+
+    public record LogEntry(long day, String json) {}
+
+    public void addLog(long day, net.minecraft.network.chat.Component msg) {
+        log.add(0, new LogEntry(day, net.minecraft.network.chat.Component.Serializer.toJson(msg)));
+        while (log.size() > LOG_SIZE) log.remove(log.size() - 1);
+    }
+
+    public boolean trusts(java.util.UUID player) {
+        return player.equals(owner) || trusted.contains(player);
+    }
 
     public com.realmlord.village.Resident resident(int id) {
         for (var r : residents) if (r.id == id) return r;
@@ -119,6 +137,18 @@ public class Territory {
         t.putInt("waiting", waitingSettlers);
         t.putInt("manorTier", manorTier);
         t.putInt("manorFront", manorFront);
+        net.minecraft.nbt.ListTag tr = new net.minecraft.nbt.ListTag();
+        for (var u : trusted) tr.add(net.minecraft.nbt.NbtUtils.createUUID(u));
+        t.put("trusted", tr);
+        net.minecraft.nbt.ListTag lg = new net.minecraft.nbt.ListTag();
+        for (var e : log) {
+            CompoundTag c = new CompoundTag();
+            c.putLong("d", e.day());
+            c.putString("m", e.json());
+            lg.add(c);
+        }
+        t.put("log", lg);
+        t.putLongArray("ledger", ledger);
         t.putString("freeChoices", String.join(",", freeChoices.stream().map(com.realmlord.village.BuildingType::id).toList()));
         t.putString("freeBuilds", String.join(",", freeBuilds.stream().map(com.realmlord.village.BuildingType::id).toList()));
         t.putBoolean("settled", settled);
@@ -176,6 +206,13 @@ public class Territory {
         r.waitingSettlers = t.getInt("waiting");
         r.manorTier = t.contains("manorTier") ? t.getInt("manorTier") : 1;
         r.manorFront = t.contains("manorFront") ? t.getInt("manorFront") : -1;
+        for (var u : t.getList("trusted", net.minecraft.nbt.Tag.TAG_INT_ARRAY)) r.trusted.add(net.minecraft.nbt.NbtUtils.loadUUID(u));
+        for (var e : t.getList("log", net.minecraft.nbt.Tag.TAG_COMPOUND)) {
+            CompoundTag c = (CompoundTag) e;
+            r.log.add(new LogEntry(c.getLong("d"), c.getString("m")));
+        }
+        long[] lg = t.getLongArray("ledger");
+        if (lg.length == r.ledger.length) r.ledger = lg;
         for (String s : t.getString("freeChoices").split(",")) {
             var bt = com.realmlord.village.BuildingType.byId(s);
             if (bt != null) r.freeChoices.add(bt);

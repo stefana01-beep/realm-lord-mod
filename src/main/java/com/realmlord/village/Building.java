@@ -49,6 +49,10 @@ public class Building {
     public int[] clearCols;
     /** Which design the fence was built to: 0 the old post-and-rail, 2 the plank palisade, 3 with a wall-walk. */
     public int fenceStyle;
+    /** The towers the fence's design last allowed for (not saved). */
+    public transient int towerSig = Integer.MIN_VALUE;
+    /** A refit the Lord need not hear about when it is done. */
+    public transient boolean quietRefit;
     public static final int NO_FILL = Integer.MIN_VALUE, NO_CUT = Integer.MAX_VALUE;
     public transient int clearTop = Integer.MAX_VALUE;
 

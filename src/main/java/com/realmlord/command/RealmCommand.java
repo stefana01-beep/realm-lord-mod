@@ -57,6 +57,25 @@ public final class RealmCommand {
                     com.realmlord.territory.SpawnPicker.offer(c.getSource().getPlayerOrException());
                     return 1;
                 }))
+                .then(Commands.literal("trust")
+                        .then(Commands.argument("player", EntityArgument.player()).executes(c -> trust(c, EntityArgument.getPlayer(c, "player"), true))))
+                .then(Commands.literal("untrust")
+                        .then(Commands.argument("player", EntityArgument.player()).executes(c -> trust(c, EntityArgument.getPlayer(c, "player"), false))))
+                .then(Commands.literal("trusted").executes(c -> {
+                    ServerPlayer p = c.getSource().getPlayerOrException();
+                    com.realmlord.territory.Territory t = com.realmlord.territory.TerritoryData.get(p.server).ownedBy(p.getUUID());
+                    if (t == null) {
+                        c.getSource().sendFailure(Component.translatable("realmlord.protect.no_territory"));
+                        return 0;
+                    }
+                    java.util.List<String> names = new java.util.ArrayList<>();
+                    for (java.util.UUID u : t.trusted) {
+                        var prof = p.server.getProfileCache() == null ? java.util.Optional.<com.mojang.authlib.GameProfile>empty() : p.server.getProfileCache().get(u);
+                        names.add(prof.map(com.mojang.authlib.GameProfile::getName).orElse(u.toString()));
+                    }
+                    c.getSource().sendSuccess(() -> Component.translatable("realmlord.protect.list", names.isEmpty() ? "-" : String.join(", ", names)), false);
+                    return 1;
+                }))
                 .then(Commands.literal("camp")
                         .then(Commands.literal("keep").executes(c -> QuestLogic.decideCamp(c.getSource().getPlayerOrException(), false) ? 1 : 0))
                         .then(Commands.literal("salvage").executes(c -> QuestLogic.decideCamp(c.getSource().getPlayerOrException(), true) ? 1 : 0)))
@@ -153,6 +172,22 @@ public final class RealmCommand {
         ModNetwork.sync(p);
         ModNetwork.send(p, new OpenScreenPacket(OpenScreenPacket.ROLE));
         c.getSource().sendSuccess(() -> Component.translatable("realmlord.cmd.reset", p.getDisplayName()), true);
+        return 1;
+    }
+
+    private static int trust(com.mojang.brigadier.context.CommandContext<net.minecraft.commands.CommandSourceStack> c, ServerPlayer other, boolean add)
+            throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        ServerPlayer p = c.getSource().getPlayerOrException();
+        com.realmlord.territory.TerritoryData data = com.realmlord.territory.TerritoryData.get(p.server);
+        com.realmlord.territory.Territory t = data.ownedBy(p.getUUID());
+        if (t == null) {
+            c.getSource().sendFailure(Component.translatable("realmlord.protect.no_territory"));
+            return 0;
+        }
+        if (add) t.trusted.add(other.getUUID());
+        else t.trusted.remove(other.getUUID());
+        data.touch();
+        c.getSource().sendSuccess(() -> Component.translatable(add ? "realmlord.protect.trusted" : "realmlord.protect.untrusted", other.getDisplayName(), t.name), false);
         return 1;
     }
 

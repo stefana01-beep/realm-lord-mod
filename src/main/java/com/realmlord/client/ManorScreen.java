@@ -30,7 +30,7 @@ import java.util.List;
  * talents) and Market (resources and blueprints).
  */
 public class ManorScreen extends Screen {
-    public static final int OVERVIEW = 0, BUILD = 1, PEOPLE = 2, MARKET = 3;
+    public static final int OVERVIEW = 0, BUILD = 1, PEOPLE = 2, MARKET = 3, RECORDS = 4;
     private static final int W = 400, H = 248;
     private static final int ROW = 20;
 
@@ -67,23 +67,25 @@ public class ManorScreen extends Screen {
         CompoundTag v = v();
         if (v == null) return;
         int x = left(), y = top();
-        String[] tabs = {"realmlord.manor.tab.overview", "realmlord.manor.tab.build", "realmlord.manor.tab.people", "realmlord.manor.tab.market"};
+        String[] tabs = {"realmlord.manor.tab.overview", "realmlord.manor.tab.build", "realmlord.manor.tab.people", "realmlord.manor.tab.market", "realmlord.manor.tab.records"};
         for (int i = 0; i < tabs.length; i++) {
             final int idx = i;
             Button b = Button.builder(Component.translatable(tabs[i]), btn -> {
                 tab = idx;
                 scroll = 0;
                 init();
-            }).bounds(x + 8 + i * 80, y + 20, 77, 16).build();
+            }).bounds(x + 8 + i * 64, y + 20, 62, 16).build();
             b.active = tab != i;
             addRenderableWidget(b);
         }
         addRenderableWidget(Button.builder(Component.translatable("realmlord.manor.tab.map"), btn -> minecraft.setScreen(new TerritoryMapScreen(null)))
-                .bounds(x + 8 + 4 * 80, y + 20, 72, 16).build());
+                .bounds(x + 8 + 5 * 64, y + 20, 64, 16).build());
         switch (tab) {
             case OVERVIEW -> initOverview(v, x, y);
             case BUILD -> initBuild(v, x, y);
             case PEOPLE -> initPeople(v, x, y);
+            case RECORDS -> {
+            }
             default -> initMarket(v, x, y);
         }
     }
@@ -529,6 +531,67 @@ public class ManorScreen extends Screen {
         }
     }
 
+    // ------------------------------------------------------------------ records
+
+    private static final int LOG_ROWS = 12;
+
+    /** Yesterday's ledger and the food outlook on the left; the village log, newest first, on the right. */
+    private void renderRecords(GuiGraphics g, CompoundTag v, int x, int y) {
+        int lx = x + 10, ly = y + 42;
+        Ui.inset(g, lx - 4, ly - 4, 150, H - 54);
+        long[] l = v.getLongArray("ledger");
+        g.drawString(font, Component.translatable("realmlord.records.ledger"), lx, ly, Ui.GOLD, false);
+        if (l.length < 10 || l[9] == 0 && l[1] == 0) {
+            Ui.wrap(g, font, Component.translatable("realmlord.records.no_ledger"), lx, ly + 14, 140, Ui.MUTED);
+        } else {
+            int yy = ly + 14;
+            yy = line(g, lx, yy, Component.translatable("realmlord.records.grain", signed(l[0])));
+            yy = line(g, lx, yy, Component.translatable("realmlord.records.eaten", l[1], l[8]));
+            yy = line(g, lx, yy, Component.translatable("realmlord.records.wood", signed(l[2])));
+            yy = line(g, lx, yy, Component.translatable("realmlord.records.stone", signed(l[3])));
+            yy = line(g, lx, yy, Component.translatable("realmlord.records.ore", signed(l[4])));
+            yy = line(g, lx, yy, Component.translatable("realmlord.records.tax", Ui.money(l[5])));
+            yy = line(g, lx, yy, Component.translatable("realmlord.records.people", l[6], l[7]));
+        }
+        int yy = ly + 104;
+        g.drawString(font, Component.translatable("realmlord.records.food"), lx, yy, Ui.GOLD, false);
+        yy += 12;
+        yy = line(g, lx, yy, Component.translatable("realmlord.records.stock", v.getLong("food"), v.getLong("otherFood")));
+        yy = line(g, lx, yy, Component.translatable("realmlord.records.need", v.getLong("foodNeed")));
+        long days = v.getLong("foodDays");
+        Component outlook = days < 0 ? Component.translatable("realmlord.records.growing").withStyle(ChatFormatting.GREEN)
+                : Component.translatable("realmlord.records.lasts", days).withStyle(days < 5 ? ChatFormatting.RED : days < 15 ? ChatFormatting.GOLD : ChatFormatting.WHITE);
+        Ui.wrap(g, font, outlook, lx, yy, 140, Ui.INK);
+        // The log.
+        int rx = x + 166, rw = W - 176;
+        Ui.inset(g, rx - 4, ly - 4, rw + 4, H - 54);
+        g.drawString(font, Component.translatable("realmlord.records.log"), rx, ly, Ui.GOLD, false);
+        ListTag log = v.getList("log", Tag.TAG_COMPOUND);
+        if (log.isEmpty()) {
+            g.drawString(font, Component.translatable("realmlord.records.empty"), rx, ly + 14, Ui.MUTED, false);
+            return;
+        }
+        int first = Math.min(scroll, Math.max(0, log.size() - 1));
+        int ry = ly + 14;
+        for (int i = first; i < log.size() && ry < y + H - 22; i++) {
+            CompoundTag e = log.getCompound(i);
+            Component msg;
+            try {
+                msg = Component.Serializer.fromJson(e.getString("m"));
+            } catch (Exception ex) {
+                msg = null;
+            }
+            if (msg == null) continue;
+            g.drawString(font, Component.translatable("realmlord.records.day", e.getLong("d")), rx, ry, Ui.MUTED, false);
+            ry = Ui.wrap(g, font, msg, rx + 40, ry, rw - 44, Ui.INK) + 2;
+        }
+        if (log.size() > 1) Ui.centered(g, font, Component.translatable("realmlord.records.scroll", first + 1, log.size()), rx + rw / 2, y + H - 18, Ui.MUTED);
+    }
+
+    private static String signed(long n) {
+        return n > 0 ? "+" + n : String.valueOf(n);
+    }
+
     // ------------------------------------------------------------------ frame
 
     @Override
@@ -543,6 +606,7 @@ public class ManorScreen extends Screen {
                 case OVERVIEW -> renderOverview(g, v, x, y);
                 case BUILD -> renderBuild(g, v, x, y);
                 case PEOPLE -> renderPeople(g, v, x, y);
+                case RECORDS -> renderRecords(g, v, x, y);
                 default -> renderMarket(g, v, x, y);
             }
         }

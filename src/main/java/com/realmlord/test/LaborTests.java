@@ -328,7 +328,7 @@ public class LaborTests {
         helper.assertTrue(blocks >= 40 && blocks <= 46, "a 2-wide path 21 blocks long should cover about 42 blocks, covers " + blocks);
         helper.assertTrue(1000 - t.stone == blocks, "cobblestone costs a stone a block: paid " + (1000 - t.stone));
         path.progress = path.workNeeded;
-        for (int i = 0; i < 10; i++) Sites.work(level, t, path, 2000);
+        for (int i = 0; i < 60 && !path.verified; i++) Sites.work(level, t, path, 2000);
         helper.assertTrue(level.getBlockState(new BlockPos(cx + 12, gy, cz)).is(Blocks.COBBLESTONE), "path not laid");
         helper.assertTrue(level.getBlockState(new BlockPos(cx + 20, gy, cz)).is(Blocks.COBBLESTONE)
                 && !level.getBlockState(new BlockPos(cx + 20, gy - 1, cz)).isAir(), "the ditch should be filled beneath the path: "
@@ -476,6 +476,96 @@ public class LaborTests {
         helper.assertTrue(level.getBlockState(t.center.offset(3, 0, 2)).is(Blocks.ENCHANTING_TABLE), "no enchanting table in the Grade 3 study");
         Territory copy = Territory.load(t.save());
         helper.assertTrue(copy.manorTier == 3 && copy.manorFront == net.minecraft.core.Direction.NORTH.get2DDataValue(), "manor state lost on saving");
+        VillageTests.done(helper, p, t);
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 300, batch = "labor_safety")
+    public static void safetyProtectionAndRecords(GameTestHelper helper) {
+        ServerPlayer p = RealmTests.lord(helper, CombatClass.GENERAL);
+        ServerPlayer stranger = RealmTests.mockPlayer(helper);
+        Territory t = VillageTests.village(helper, p, 7200);
+        ServerLevel level = helper.getLevel();
+        int gy = t.center.getY() - 1, cx = t.center.getX(), cz = t.center.getZ();
+
+        // The upgrade asks for beds, not small courtyards: four medium ones will do.
+        for (int i = 0; i < 4; i++) VillageTests.built(t, BuildingType.MEDIUM_RESIDENTIAL_COURTYARD);
+        helper.assertTrue(Village.courtyardBeds(t) == 200, "four medium courtyards should hold 200");
+        boolean needsHousing = Village.upgradeMissing(t, Profiles.get(p)).stream().anyMatch(c -> c.getContents() instanceof net.minecraft.network.chat.contents.TranslatableContents tc
+                && (tc.getKey().equals("realmlord.upgrade.need_housing") || tc.getKey().equals("realmlord.upgrade.need_building") && String.valueOf(java.util.Arrays.toString(tc.getArgs())).contains("small_residential")));
+        helper.assertTrue(!needsHousing, "200 beds in medium courtyards should meet the housing requirement");
+
+        // A finished fence keeps monsters out.
+        Building fence = new Building();
+        fence.id = t.nextBuildingId++;
+        fence.type = BuildingType.SIMPLE_FENCE;
+        fence.origin = t.center;
+        fence.fenceRadius = 30;
+        fence.gates = new int[]{0};
+        fence.fenceStyle = 2;
+        fence.complete = true;
+        fence.workNeeded = fence.progress = 1;
+        t.buildings.add(fence);
+        helper.assertTrue(com.realmlord.territory.TerritoryEvents.fenced(level, t.center.offset(10, 0, 5)), "inside the fence should be safe");
+        helper.assertTrue(!com.realmlord.territory.TerritoryEvents.fenced(level, t.center.offset(60, 0, 0)), "outside the fence is not");
+
+        // Towers stand in the wall; nothing else may, and nothing may block a gate.
+        for (int x = -40; x <= 40; x++)
+            for (int z = -40; z <= 40; z++) {
+                level.setBlock(new BlockPos(cx + x, gy, cz + z), Blocks.GRASS_BLOCK.defaultBlockState(), 2);
+                for (int y = 1; y < 6; y++) level.setBlock(new BlockPos(cx + x, gy + y, cz + z), Blocks.AIR.defaultBlockState(), 2);
+            }
+        helper.assertTrue("realmlord.build.err.gate".equals(Village.checkPlacement(level, t, BuildingType.ARROW_TOWER, new BlockPos(cx + 29, gy + 1, cz - 1), 0)), "a tower was allowed in a gateway");
+        helper.assertTrue("realmlord.build.err.on_fence".equals(Village.checkPlacement(level, t, BuildingType.BATHROOM, new BlockPos(cx - 2, gy + 1, cz + 27), 0)), "a hut was allowed on the fence");
+        BlockPos towerAt = new BlockPos(cx - 1, gy + 1, cz + 29);
+        String err = Village.checkPlacement(level, t, BuildingType.ARROW_TOWER, towerAt, 0);
+        helper.assertTrue(err == null, "a tower should stand on the fence: " + err);
+        Building tower = new Building();
+        tower.id = t.nextBuildingId++;
+        tower.type = BuildingType.ARROW_TOWER;
+        tower.origin = towerAt;
+        t.buildings.add(tower);
+        com.realmlord.village.BuildingDesigns.forget(fence);
+        var design = com.realmlord.village.BuildingDesigns.design(level, t, fence);
+        helper.assertTrue(design != null && design.stream().noneMatch(pl -> pl.pos().getX() >= towerAt.getX() && pl.pos().getX() < towerAt.getX() + 3
+                && pl.pos().getZ() >= towerAt.getZ() && pl.pos().getZ() < towerAt.getZ() + 3), "the wall should make room for the tower");
+        t.buildings.remove(tower);
+        t.buildings.remove(fence);
+
+        // Only the Lord and those trusted may build; the manor's chests are the Lord's alone.
+        BlockPos field = t.center.offset(20, 0, 0), manorChest = t.center.offset(2, 0, 2);
+        if (!stranger.hasPermissions(2)) {
+            helper.assertTrue(!com.realmlord.territory.TerritoryEvents.allowed(stranger, field, false), "a stranger could build in the territory");
+            t.trusted.add(stranger.getUUID());
+            helper.assertTrue(com.realmlord.territory.TerritoryEvents.allowed(stranger, field, false), "a trusted player could not build");
+            helper.assertTrue(!com.realmlord.territory.TerritoryEvents.allowed(stranger, manorChest, true), "a trusted player opened the Lord's chests");
+            helper.assertTrue(com.realmlord.territory.TerritoryEvents.allowed(p, manorChest, true), "the Lord could not open his own chests");
+            Territory copy = Territory.load(t.save());
+            helper.assertTrue(copy.trusts(stranger.getUUID()), "trust lost on saving");
+        }
+
+        // A resident who dies is gone, and the log says so.
+        Resident r = t.residents.get(t.residents.size() - 1);
+        SettlerEntity s = com.realmlord.registry.ModEntities.SETTLER.get().create(level);
+        s.moveTo(cx + 12.5, gy + 1, cz + 12.5, 0, 0);
+        s.link(t, r);
+        r.entity = s.getUUID();
+        level.addFreshEntity(s);
+        int before = t.residents.size();
+        s.kill();
+        helper.assertTrue(t.resident(r.id) == null && t.residents.size() == before - 1, "a dead resident lived on in the records");
+        helper.assertTrue(!t.log.isEmpty() && t.log.get(0).json().contains("realmlord.village.died"), "the death was not written in the log");
+
+        // The ledger, and flour, meat and fish eaten when the grain runs out.
+        t.food = 0;
+        com.realmlord.village.Goods.MEAT.add(t, 500);
+        long day = GaiaCalendar.day(level.getServer().overworld().getGameTime()) + 1;
+        long need = Village.foodUse(t);
+        Village.day(level, t, day);
+        helper.assertTrue(t.ledger[Village.LEDGER_EATEN] == need && t.ledger[Village.LEDGER_OTHER_FOOD] == need && t.hungryDays == 0,
+                "the village should have eaten meat: eaten " + t.ledger[Village.LEDGER_EATEN] + ", other " + t.ledger[Village.LEDGER_OTHER_FOOD] + " of " + need);
+        helper.assertTrue(t.ledger[Village.LEDGER_DAY] == day && Territory.load(t.save()).ledger[Village.LEDGER_EATEN] == need, "ledger not kept");
+        helper.assertTrue(com.realmlord.RealmConfig.visibleResidents() >= 48, "more residents should be shown");
+        RealmTests.leave(stranger);
         VillageTests.done(helper, p, t);
     }
 

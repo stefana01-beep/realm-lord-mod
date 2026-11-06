@@ -180,9 +180,11 @@ def add(L):
         "A walled courtyard in the old style: a hall across the back and a wing down each side around a yard. "
         "Straw beds for 20 residents (23 in all), who sleep here at night.")
     L["realmlord.map.place_hint"] = ("Click the map to place it here. Right-click turns it; the yellow edge is the door. "
+                                     "Arrow towers and sentry posts snap onto the fence to stand in the wall. "
                                      "Green fits, red does not. Builders will clear and level the ground first.")
     L.update(ROUND_PATHS)
     L.update(ROUND_CLEARING)
+    L.update(ROUND_SAFETY)
 
 
 ROUND_PATHS = {
@@ -265,4 +267,37 @@ ROUND_CLEARING = {
     "realmlord.building.large_residential_courtyard": "Large Residential Courtyard",
     "realmlord.building.large_residential_courtyard.desc": "A great courtyard, every range two storeys high around a yard with a well. Straw beds for 100 residents.",
     "realmlord.manor.rebuilt": "The Lord's Manor in %s has been rebuilt as the Lord's residence. The residents now sleep in the residential courtyards.",
+}
+
+
+ROUND_SAFETY = {
+    "realmlord.upgrade.need_housing": "Courtyard beds: %s / %s",
+    "realmlord.build.err.gate": "That would block a gateway in the fence.",
+    "realmlord.build.err.on_fence": "Only an arrow tower or sentry post can stand on the fence.",
+    "realmlord.protect.denied": "This is %s's land: ask its Lord to trust you.",
+    "realmlord.protect.no_territory": "You don't rule a territory.",
+    "realmlord.protect.trusted": "%s may now build and use chests in %s.",
+    "realmlord.protect.untrusted": "%s may no longer build in %s.",
+    "realmlord.protect.list": "Trusted: %s",
+    "realmlord.village.died": "A resident of %s has died: %s",
+    "realmlord.village.left": "%s residents left %s.",
+    "realmlord.manor.tab.records": "Records",
+    "realmlord.records.ledger": "Yesterday",
+    "realmlord.records.no_ledger": "The first day's accounts come in tomorrow.",
+    "realmlord.records.grain": "Grain in: %s",
+    "realmlord.records.eaten": "Eaten: %s (%s not grain)",
+    "realmlord.records.wood": "Wood: %s",
+    "realmlord.records.stone": "Stone: %s",
+    "realmlord.records.ore": "Iron ore: %s",
+    "realmlord.records.tax": "Taxes: %s",
+    "realmlord.records.people": "Arrived %s, left %s",
+    "realmlord.records.food": "Food",
+    "realmlord.records.stock": "Grain %s, other %s",
+    "realmlord.records.need": "Eaten a day: %s",
+    "realmlord.records.growing": "Stores are growing.",
+    "realmlord.records.lasts": "Lasts about %s days without a harvest.",
+    "realmlord.records.log": "Village log",
+    "realmlord.records.empty": "Nothing has happened yet.",
+    "realmlord.records.day": "Day %s",
+    "realmlord.records.scroll": "%s of %s (scroll)",
 }
