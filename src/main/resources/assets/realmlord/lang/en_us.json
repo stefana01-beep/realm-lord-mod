@@ -232,6 +232,7 @@
   "realmlord.clear.done": "The %s x %s clearing in %s is level.",
   "realmlord.clear.err.big": "That area is too large: 48 x 48 blocks at most.",
   "realmlord.clear.err.nothing": "There is nothing there to level: it's all buildings, paths, the fence or the manor yard.",
+  "realmlord.clear.err.others": "That ground lies in another Lord's territory.",
   "realmlord.clear.err.site": "A building site is in the way. Wait until it's finished, or mark out ground around it.",
   "realmlord.clear.err.small": "Mark out at least 2 x 2 blocks.",
   "realmlord.clear.go": "Clear area",

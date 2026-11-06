@@ -851,10 +851,13 @@ public final class Village {
         int ax = Math.min(x0, x1), az = Math.min(z0, z1), sx = Math.abs(x1 - x0) + 1, sz = Math.abs(z1 - z0) + 1;
         if (sx < 2 || sz < 2) return "realmlord.clear.err.small";
         if (sx > MAX_CLEARING || sz > MAX_CLEARING) return "realmlord.clear.err.big";
-        int inner = reach(t) - 1;
+        // Anywhere the village's roads may go: its grounds, and out into the wilds beyond the
+        // border (for a ramp up to a road, a cutting, a level site for an outpost), but never in
+        // another Lord's land.
         for (int[] c : new int[][]{{ax, az}, {ax + sx - 1, az}, {ax, az + sz - 1}, {ax + sx - 1, az + sz - 1}}) {
             long dx = c[0] - t.center.getX(), dz = c[1] - t.center.getZ();
-            if (dx * dx + dz * dz > (long) inner * inner) return "realmlord.build.err.border";
+            if (dx * dx + dz * dz > (long) Paths.MAX_ROAD * Paths.MAX_ROAD) return "realmlord.build.err.border";
+            if (othersLand(t, c[0], c[1])) return "realmlord.clear.err.others";
         }
         // Sites still being built are in the way; finished buildings are simply left alone.
         for (Building b : t.buildings) if (!b.complete && b.footprint() && b.overlaps(ax, az, sx, sz, 0)) return "realmlord.clear.err.site";
@@ -920,6 +923,13 @@ public final class Village {
         return null;
     }
 
+    /** True if a column lies within another Lord's territory. */
+    public static boolean othersLand(Territory t, int x, int z) {
+        BlockPos p = new BlockPos(x, 64, z);
+        for (Territory o : Paths.ALL.get()) if (o != t && o.dimension.equals(t.dimension) && o.distanceTo(p) <= o.radius()) return true;
+        return false;
+    }
+
     /** The usual ground height around a corner (the middle of a 5 x 5 patch). */
     private static int cornerHeight(ServerLevel level, int x, int z) {
         List<Integer> hs = new ArrayList<>();
@@ -947,14 +957,14 @@ public final class Village {
      */
     public static java.util.Set<Long> keptColumns(Territory t, int x0, int z0, int sx, int sz) {
         java.util.Set<Long> out = new java.util.HashSet<>();
-        int cx = t.center.getX(), cz = t.center.getZ(), inner = reach(t);
+        int cx = t.center.getX(), cz = t.center.getZ();
         Building fence = null;
         for (Building b : t.buildings) if (b.type == BuildingType.SIMPLE_FENCE && !b.demolishing) fence = b;
         for (int x = x0; x < x0 + sx; x++)
             for (int z = z0; z < z0 + sz; z++) {
                 long dx = x - cx, dz = z - cz;
                 double dist = Math.sqrt(dx * dx + dz * dz);
-                boolean kept = dist > inner || (Math.abs(dx) <= MANOR_YARD && Math.abs(dz) <= MANOR_YARD);
+                boolean kept = dist > Paths.MAX_ROAD || othersLand(t, x, z) || (Math.abs(dx) <= MANOR_YARD && Math.abs(dz) <= MANOR_YARD);
                 if (!kept && fence != null) {
                     int fr = fence.fenceRadius > 0 ? fence.fenceRadius : t.level.wall();
                     kept = dist >= fr - 3 && dist <= fr + 2;

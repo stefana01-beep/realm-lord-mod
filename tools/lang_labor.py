@@ -513,4 +513,5 @@ ROUND_TOWN = {
     "realmlord.path.area.tip": "Paved area: click two opposite corners (up to %1$s x %1$s blocks) to pave a square, a market place or a yard. Path: click points along the way.",
     "realmlord.path.err.area": "A paved area can be at most 48 x 48 blocks.",
     "realmlord.build.err.lane": "Leave a lane of three blocks between buildings, for a path.",
+    "realmlord.clear.err.others": "That ground lies in another Lord's territory.",
 }

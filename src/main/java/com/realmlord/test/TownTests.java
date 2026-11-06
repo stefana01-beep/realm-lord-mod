@@ -220,4 +220,20 @@ public class TownTests {
             VillageTests.done(helper, p, t);
         });
     }
+
+    @GameTest(template = "empty", timeoutTicks = 100, batch = "town_outside")
+    public static void gradingBeyondTheBorder(GameTestHelper helper) {
+        ServerPlayer p = RealmTests.lord(helper, CombatClass.GENERAL);
+        Territory t = VillageTests.village(helper, p, 15600);
+        ServerLevel level = helper.getLevel();
+        BlockPos far = t.center.offset(300, 0, 0);
+        for (int x = -2; x <= 2; x++)
+            for (int z = -2; z <= 2; z++) level.setChunkForced((far.getX() >> 4) + x, (far.getZ() >> 4) + z, true);
+        t.wood = t.stone = 1000;
+        String err = com.realmlord.village.Village.startClearing(p, t, far.getX(), far.getZ(), far.getX() + 12, far.getZ() + 6, 0, true);
+        helper.assertTrue(err == null, "could not grade ground 300 blocks out, beyond the border: " + err);
+        for (int x = -2; x <= 2; x++)
+            for (int z = -2; z <= 2; z++) level.setChunkForced((far.getX() >> 4) + x, (far.getZ() >> 4) + z, false);
+        VillageTests.done(helper, p, t);
+    }
 }
