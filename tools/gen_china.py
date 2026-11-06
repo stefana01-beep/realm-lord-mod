@@ -374,7 +374,8 @@ def build(land_path, dem_path, ne_dir):
 
     # Climate: warm south, cold north and cold heights; wet south-east, dry north-west.
     ekm = np.maximum(elev, 0) / 1000.0
-    temp = 0.85 - (LAT - 18) * 0.036 - 0.17 * ekm
+    # Colder with height, and much colder above 2.5 km (the plateaus).
+    temp = 0.85 - (LAT - 18) * 0.032 - 0.12 * ekm - 0.2 * np.maximum(0, ekm - 2.5)
     veg = 0.7 - 0.0010 * np.where(is_land, dist_sea, 0) + np.clip((30 - LAT) * 0.05, 0, 0.6) - np.maximum(0, LAT - 40) * 0.015
     veg = veg - 0.3 * np.clip((elev - 3800) / 800, 0, 1)
     veg = np.where(is_land, veg, 0.3)
@@ -384,6 +385,9 @@ def build(land_path, dem_path, ne_dir):
             temp = blend(temp, targets["temp"] - 0.17 * ekm * 0.5, wgt)
         if "veg" in targets:
             veg = blend(veg, targets["veg"], wgt)
+
+    # Minecraft makes every hot place desert, so wet tropics count as warm (jungle and forest).
+    temp = np.where(veg > -0.35, np.minimum(temp, 0.5), temp)
 
     # Rivers: the real courses (Natural Earth), cut into the heights so that water traced
     # across the land follows them; each river's size is how much land drains into it.
