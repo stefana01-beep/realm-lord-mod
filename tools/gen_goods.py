@@ -170,9 +170,10 @@ def lang(L):
 # --------------------------------------------------------------------------- beast drops
 
 BEAST_ITEMS = ["boar_hide", "boar_tusk", "boar_king_tusk", "wolf_pelt", "tiger_pelt", "tiger_bone", "bear_paw",
-               "braised_bear_paw", "tiger_bone_wine"]
-WEAPONS = ["tusk_spear", "boar_king_spear"]
-EGGS = ["wild_boar", "boar_king", "grey_wolf", "mountain_tiger", "snow_bear"]
+               "braised_bear_paw", "tiger_bone_wine", "leopard_pelt", "white_tiger_pelt", "wolf_king_fang", "ox_horn"]
+WEAPONS = ["tusk_spear", "boar_king_spear", "fang_dagger"]
+EGGS = ["wild_boar", "boar_king", "grey_wolf", "mountain_tiger", "snow_bear", "black_bear", "leopard", "wolf_king",
+        "tiger_king", "wild_ox"]
 
 
 def hide(base, stripes=None):
@@ -249,6 +250,20 @@ def beast_textures(item_dir):
     img.save(os.path.join(item_dir, "tiger_bone_wine.png"))
     spear(hexc("efe6cf")).save(os.path.join(item_dir, "tusk_spear.png"))
     spear(hexc("f6edd2"), big=True).save(os.path.join(item_dir, "boar_king_spear.png"))
+    img = hide(hexc("d9a441"))
+    p = img.load()
+    for y in range(4, 13):
+        for x in range(3, 13):
+            if (x * 3 + y * 5) % 7 == 0 and p[x, y][3]: p[x, y] = hexc("2a1e14")   # rosettes
+    img.save(os.path.join(item_dir, "leopard_pelt.png"))
+    hide(hexc("eeeae0"), stripes=hexc("2a2a30")).save(os.path.join(item_dir, "white_tiger_pelt.png"))
+    tusk(hexc("e6e0d0"), big=True).save(os.path.join(item_dir, "wolf_king_fang.png"))
+    tusk(hexc("6a5a44")).save(os.path.join(item_dir, "ox_horn.png"))
+    img, p = blank()   # a short blade of the wolf king's fang on a bound grip
+    for i in range(3, 7): p[i, 15 - i] = hexc("5a3a22")
+    p[6, 10] = p[5, 8] = p[8, 11] = hexc("8a8a8a")
+    for i in range(7, 13): p[i, 15 - i] = hexc("f0eadc"); p[i + 1, 15 - i] = hexc("c8c0b0")
+    img.save(os.path.join(item_dir, "fang_dagger.png"))
 
 
 def beast_models(write, assets):
@@ -285,4 +300,32 @@ def beast_lang(L):
         "item.realmlord.grey_wolf_spawn_egg": "Grey Wolf Spawn Egg",
         "item.realmlord.mountain_tiger_spawn_egg": "Mountain Tiger Spawn Egg",
         "item.realmlord.snow_bear_spawn_egg": "Snow Bear Spawn Egg",
+        "entity.realmlord.black_bear": "Black Bear",
+        "entity.realmlord.leopard": "Leopard",
+        "entity.realmlord.wolf_king": "Wolf King",
+        "entity.realmlord.tiger_king": "White Tiger King",
+        "entity.realmlord.wild_ox": "Wild Ox",
+        "item.realmlord.leopard_pelt": "Leopard Pelt",
+        "item.realmlord.white_tiger_pelt": "White Tiger Pelt",
+        "item.realmlord.wolf_king_fang": "Wolf King's Fang",
+        "item.realmlord.ox_horn": "Ox Horn",
+        "item.realmlord.fang_dagger": "Fang Dagger",
+        "item.realmlord.black_bear_spawn_egg": "Black Bear Spawn Egg",
+        "item.realmlord.leopard_spawn_egg": "Leopard Spawn Egg",
+        "item.realmlord.wolf_king_spawn_egg": "Wolf King Spawn Egg",
+        "item.realmlord.tiger_king_spawn_egg": "White Tiger King Spawn Egg",
+        "item.realmlord.wild_ox_spawn_egg": "Wild Ox Spawn Egg",
+        "realmlord.mob.level": "Lv.%s %s",
+        "realmlord.horse.named": "%s %s",
+        "realmlord.horse.breed.mongolian": "Mongolian Horse",
+        "realmlord.horse.breed.hequ": "Hequ Horse",
+        "realmlord.horse.breed.dawan": "Dawan Horse",
+        "realmlord.horse.breed.bloodsweat": "Bloodsweat Horse",
+        "realmlord.gear.effect.lifesteal": "Lifesteal: heals for 15% of the damage dealt",
+        "realmlord.gear.effect.flame": "Flame: sets the struck alight",
+        "realmlord.gear.effect.frost": "Frost: slows the struck",
+        "realmlord.gear.effect.beastbane": "Beastbane: +30% against beasts",
+        "realmlord.gear.effect.swift": "Swift: quicker on foot",
+        "realmlord.gear.effect.stalwart": "Stalwart: resists being knocked back",
+        "realmlord.gear.effect.vigor": "Vigor: more health",
     })

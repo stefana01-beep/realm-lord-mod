@@ -19,6 +19,18 @@
    "weight": 2,
    "minCount": 1,
    "maxCount": 1
+  },
+  {
+   "type": "realmlord:black_bear",
+   "weight": 5,
+   "minCount": 1,
+   "maxCount": 1
+  },
+  {
+   "type": "realmlord:leopard",
+   "weight": 3,
+   "minCount": 1,
+   "maxCount": 1
   }
  ]
 }

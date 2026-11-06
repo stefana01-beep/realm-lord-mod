@@ -36,6 +36,22 @@ public class ModEntities {
             () -> EntityType.Builder.<com.realmlord.entity.beast.SnowBearEntity>of(com.realmlord.entity.beast.SnowBearEntity::new, MobCategory.MONSTER)
                     .sized(1.4F, 1.4F).clientTrackingRange(10).build(RealmLord.id("snow_bear").toString()));
 
+    public static final RegistryObject<EntityType<com.realmlord.entity.beast.BlackBearEntity>> BLACK_BEAR = ENTITIES.register("black_bear",
+            () -> EntityType.Builder.<com.realmlord.entity.beast.BlackBearEntity>of(com.realmlord.entity.beast.BlackBearEntity::new, MobCategory.MONSTER)
+                    .sized(1.3F, 1.3F).clientTrackingRange(10).build(RealmLord.id("black_bear").toString()));
+    public static final RegistryObject<EntityType<com.realmlord.entity.beast.LeopardEntity>> LEOPARD = ENTITIES.register("leopard",
+            () -> EntityType.Builder.<com.realmlord.entity.beast.LeopardEntity>of(com.realmlord.entity.beast.LeopardEntity::new, MobCategory.MONSTER)
+                    .sized(0.8F, 0.9F).clientTrackingRange(10).build(RealmLord.id("leopard").toString()));
+    public static final RegistryObject<EntityType<com.realmlord.entity.beast.WolfKingEntity>> WOLF_KING = ENTITIES.register("wolf_king",
+            () -> EntityType.Builder.<com.realmlord.entity.beast.WolfKingEntity>of(com.realmlord.entity.beast.WolfKingEntity::new, MobCategory.MONSTER)
+                    .sized(1.1F, 1.5F).clientTrackingRange(10).build(RealmLord.id("wolf_king").toString()));
+    public static final RegistryObject<EntityType<com.realmlord.entity.beast.TigerKingEntity>> TIGER_KING = ENTITIES.register("tiger_king",
+            () -> EntityType.Builder.<com.realmlord.entity.beast.TigerKingEntity>of(com.realmlord.entity.beast.TigerKingEntity::new, MobCategory.MONSTER)
+                    .sized(1.4F, 1.7F).clientTrackingRange(10).build(RealmLord.id("tiger_king").toString()));
+    public static final RegistryObject<EntityType<com.realmlord.entity.beast.WildOxEntity>> WILD_OX = ENTITIES.register("wild_ox",
+            () -> EntityType.Builder.<com.realmlord.entity.beast.WildOxEntity>of(com.realmlord.entity.beast.WildOxEntity::new, MobCategory.CREATURE)
+                    .sized(0.9F, 1.4F).clientTrackingRange(10).build(RealmLord.id("wild_ox").toString()));
+
     public static final RegistryObject<EntityType<SettlerEntity>> SETTLER = ENTITIES.register("settler",
             () -> EntityType.Builder.<SettlerEntity>of(SettlerEntity::new, MobCategory.MISC)
                     .sized(0.6F, 1.8F).clientTrackingRange(10).build(RealmLord.id("settler").toString()));

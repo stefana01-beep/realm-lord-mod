@@ -13,6 +13,12 @@
    "weight": 8,
    "minCount": 3,
    "maxCount": 5
+  },
+  {
+   "type": "realmlord:wolf_king",
+   "weight": 1,
+   "minCount": 1,
+   "maxCount": 1
   }
  ]
 }

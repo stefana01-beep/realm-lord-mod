@@ -218,6 +218,9 @@ public class ForgeEvents {
     public static void tooltip(net.minecraftforge.event.entity.player.ItemTooltipEvent event) {
         var grade = com.realmlord.loot.Gear.gradeOf(event.getItemStack());
         if (grade != null) event.getToolTip().add(1, com.realmlord.loot.Gear.tooltip(grade));
+        var effect = com.realmlord.loot.Gear.effectOf(event.getItemStack());
+        if (effect != null) event.getToolTip().add(grade != null ? 2 : 1, net.minecraft.network.chat.Component.translatable(effect.key())
+                .withStyle(net.minecraft.ChatFormatting.LIGHT_PURPLE));
     }
 
     /** Every second: construction, residents and the days of every village. */

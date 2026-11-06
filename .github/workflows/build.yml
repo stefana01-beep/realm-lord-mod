@@ -46,6 +46,15 @@ jobs:
             fi
           done
           cd /tmp/vanilla && zip -qr /tmp/vanilla-worldgen.zip data || true
+          mkdir -p /tmp/vtex
+          for j in $(find ~/.gradle/caches/forge_gradle ~/.gradle/caches/minecraft -name "*.jar" -size +5M 2>/dev/null); do
+            if unzip -l "$j" 2>/dev/null | grep -q "assets/minecraft/textures/entity/wolf/wolf.png"; then
+              unzip -q -o "$j" "assets/minecraft/textures/entity/wolf/*" "assets/minecraft/textures/entity/bear/*" "assets/minecraft/textures/entity/cat/*" \
+                "assets/minecraft/textures/entity/hoglin/*" "assets/minecraft/textures/entity/cow/*" "assets/minecraft/textures/entity/horse/*" \
+                "assets/minecraft/textures/entity/fox/*" "assets/minecraft/textures/entity/panda/*" "assets/minecraft/textures/entity/goat/*" -d /tmp/vtex && echo "textures from $j" && break
+            fi
+          done
+          (cd /tmp/vtex && zip -qr /tmp/vanilla-textures.zip assets) || true
 
       - name: Upload jar
         if: success()
@@ -82,6 +91,7 @@ jobs:
           cp /tmp/jars/*.jar . 2>/dev/null || true
           cp /tmp/vanilla-worldgen.zip . 2>/dev/null || true
           cp /tmp/renders.zip . 2>/dev/null || true
+          cp /tmp/vanilla-textures.zip . 2>/dev/null || true
           git add -f build.log *.jar *.zip 2>/dev/null || git add -f build.log *.jar 2>/dev/null || git add -f build.log
           git commit -m "Build log for ${GITHUB_SHA} (${{ job.status }})"
           git push -f origin ci-log-tmp:ci-log

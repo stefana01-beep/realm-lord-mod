@@ -20,6 +20,7 @@ public final class RealmConfig {
     public static final ForgeConfigSpec.IntValue VISIBLE_RESIDENTS;
     public static final ForgeConfigSpec.BooleanValue PROTECT_TERRITORIES;
     public static final ForgeConfigSpec.BooleanValue SAFE_INSIDE_FENCE;
+    public static final ForgeConfigSpec.BooleanValue NOVEL_MOBS_ONLY;
 
     static {
         ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
@@ -44,6 +45,8 @@ public final class RealmConfig {
                 .define("protectTerritories", true);
         SAFE_INSIDE_FENCE = b.comment("Monsters do not spawn inside a village's finished fence.")
                 .define("safeInsideFence", true);
+        NOVEL_MOBS_ONLY = b.comment("The overworld's monsters are the novel's beasts and bandits only: no zombies, skeletons, creepers, spiders, endermen, witches, slimes, phantoms or raiders spawn there.")
+                .define("novelMobsOnly", true);
         b.pop();
 
         b.push("village_creation_quest");
@@ -67,6 +70,10 @@ public final class RealmConfig {
     /** Safe reads: game tests and early code can run before the config file loads. */
     public static boolean protectTerritories() {
         return !SPEC.isLoaded() || PROTECT_TERRITORIES.get();
+    }
+
+    public static boolean novelMobsOnly() {
+        return !SPEC.isLoaded() || NOVEL_MOBS_ONLY.get();
     }
 
     public static boolean safeInsideFence() {

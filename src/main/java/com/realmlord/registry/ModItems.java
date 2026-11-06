@@ -87,6 +87,22 @@ public class ModItems {
             () -> new net.minecraft.world.item.SwordItem(net.minecraft.world.item.Tiers.IRON, 4, -2.6F, new Item.Properties()));
     public static final RegistryObject<Item> BOAR_KING_SPEAR = ITEMS.register("boar_king_spear",
             () -> new net.minecraft.world.item.SwordItem(net.minecraft.world.item.Tiers.DIAMOND, 5, -2.6F, new Item.Properties().rarity(Rarity.RARE)));
+    public static final RegistryObject<Item> LEOPARD_PELT = ITEMS.register("leopard_pelt", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> WHITE_TIGER_PELT = ITEMS.register("white_tiger_pelt", () -> new Item(new Item.Properties().rarity(Rarity.EPIC)));
+    public static final RegistryObject<Item> WOLF_KING_FANG = ITEMS.register("wolf_king_fang", () -> new Item(new Item.Properties().rarity(Rarity.RARE)));
+    public static final RegistryObject<Item> OX_HORN = ITEMS.register("ox_horn", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> FANG_DAGGER = ITEMS.register("fang_dagger",
+            () -> new net.minecraft.world.item.SwordItem(net.minecraft.world.item.Tiers.IRON, 4, -1.8F, new Item.Properties().rarity(Rarity.RARE)));
+    public static final RegistryObject<Item> BLACK_BEAR_SPAWN_EGG = ITEMS.register("black_bear_spawn_egg",
+            () -> new ForgeSpawnEggItem(ModEntities.BLACK_BEAR, 0x1e1a18, 0x6b5a4a, new Item.Properties()));
+    public static final RegistryObject<Item> LEOPARD_SPAWN_EGG = ITEMS.register("leopard_spawn_egg",
+            () -> new ForgeSpawnEggItem(ModEntities.LEOPARD, 0xd9b04a, 0x3a2a1a, new Item.Properties()));
+    public static final RegistryObject<Item> WOLF_KING_SPAWN_EGG = ITEMS.register("wolf_king_spawn_egg",
+            () -> new ForgeSpawnEggItem(ModEntities.WOLF_KING, 0x3a3a40, 0xc8c8d0, new Item.Properties()));
+    public static final RegistryObject<Item> TIGER_KING_SPAWN_EGG = ITEMS.register("tiger_king_spawn_egg",
+            () -> new ForgeSpawnEggItem(ModEntities.TIGER_KING, 0xf0f0f0, 0x202020, new Item.Properties()));
+    public static final RegistryObject<Item> WILD_OX_SPAWN_EGG = ITEMS.register("wild_ox_spawn_egg",
+            () -> new ForgeSpawnEggItem(ModEntities.WILD_OX, 0x3a2416, 0xc8b89a, new Item.Properties()));
     public static final RegistryObject<Item> WILD_BOAR_SPAWN_EGG = ITEMS.register("wild_boar_spawn_egg",
             () -> new ForgeSpawnEggItem(ModEntities.WILD_BOAR, 0x6b4a2e, 0xd9c7a0, new Item.Properties()));
     public static final RegistryObject<Item> BOAR_KING_SPAWN_EGG = ITEMS.register("boar_king_spawn_egg",

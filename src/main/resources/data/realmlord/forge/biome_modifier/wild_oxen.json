@@ -1,0 +1,18 @@
+{
+ "type": "forge:add_spawns",
+ "biomes": [
+  "minecraft:plains",
+  "minecraft:sunflower_plains",
+  "minecraft:savanna",
+  "minecraft:savanna_plateau",
+  "minecraft:meadow"
+ ],
+ "spawners": [
+  {
+   "type": "realmlord:wild_ox",
+   "weight": 8,
+   "minCount": 2,
+   "maxCount": 4
+  }
+ ]
+}

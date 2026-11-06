@@ -35,6 +35,13 @@ public final class Blueprints {
         return of(pool.get(r.nextInt(pool.size())));
     }
 
+    /** A blueprint of grade 1 to maxGrade: mostly Grade 1, a quarter Grade 2, one in eight Grade 3. */
+    public static ItemStack random(RandomSource r, int maxGrade) {
+        int x = r.nextInt(8);
+        List<String> pool = maxGrade >= 3 && x == 0 ? VILLAGE_3 : maxGrade >= 2 && x <= 2 ? VILLAGE_2 : VILLAGE_1;
+        return of(pool.get(r.nextInt(pool.size())));
+    }
+
     public static String buildingOf(ItemStack s) {
         return s.hasTag() ? s.getTag().getString(TAG) : "";
     }

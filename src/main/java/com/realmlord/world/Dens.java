@@ -36,6 +36,11 @@ public final class Dens {
     /** Every minute for each player: find the dens nearby, bring their kings back, and now and then raise a new one. */
     public static void tick(ServerPlayer sp) {
         if (sp.tickCount % 1200 != 300 || sp.isSpectator()) return;
+        check(sp, true);
+    }
+
+    /** Finds and revives the dens near a player, and (if allowed) may raise a new one. */
+    public static void check(ServerPlayer sp, boolean mayCreate) {
         ServerLevel level = sp.serverLevel();
         if (!level.dimension().equals(Level.OVERWORLD)) return;
         WorldState w = WorldState.get(sp.server);
@@ -54,7 +59,7 @@ public final class Dens {
             }
         }
         RandomSource r = sp.getRandom();
-        if (near || r.nextInt(5) != 0) return;
+        if (!mayCreate || near || r.nextInt(5) != 0) return;
         BlockPos spot = findSpot(level, sp.blockPosition(), r);
         if (spot == null) return;
         WorldState.Den d = create(level, spot);

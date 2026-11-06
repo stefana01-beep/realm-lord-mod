@@ -23,7 +23,38 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 /** A mountain tiger of the southern forests: a lone hunter, and the most dangerous beast in them. */
-public class MountainTigerEntity extends Ocelot {
+public class MountainTigerEntity extends Ocelot implements Sized {
+    private static final net.minecraft.network.syncher.EntityDataAccessor<Float> SIZE =
+            net.minecraft.network.syncher.SynchedEntityData.defineId(MountainTigerEntity.class, net.minecraft.network.syncher.EntityDataSerializers.FLOAT);
+
+    @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        entityData.define(SIZE, 1.0F);
+    }
+
+    @Override
+    public float getSize() {
+        return entityData.get(SIZE);
+    }
+
+    @Override
+    public void setSize(float size) {
+        entityData.set(SIZE, size);
+        refreshDimensions();
+    }
+
+    @Override
+    public void onSyncedDataUpdated(net.minecraft.network.syncher.EntityDataAccessor<?> key) {
+        if (SIZE.equals(key)) refreshDimensions();
+        super.onSyncedDataUpdated(key);
+    }
+
+    @Override
+    public net.minecraft.world.entity.EntityDimensions getDimensions(net.minecraft.world.entity.Pose pose) {
+        return super.getDimensions(pose).scale(getSize());
+    }
+
     public MountainTigerEntity(EntityType<? extends Ocelot> type, Level level) {
         super(type, level);
         xpReward = 12;
@@ -36,6 +67,11 @@ public class MountainTigerEntity extends Ocelot {
                 .add(Attributes.ATTACK_DAMAGE, 7.0)
                 .add(Attributes.FOLLOW_RANGE, 28.0)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.4);
+    }
+
+    @Override
+    public float baseScale() {
+        return 1.7F;
     }
 
     @Override

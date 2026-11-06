@@ -24,7 +24,38 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 /** A grey wolf of the wild packs: never tamed, hunts in numbers. */
-public class GreyWolfEntity extends Wolf {
+public class GreyWolfEntity extends Wolf implements Sized {
+    private static final net.minecraft.network.syncher.EntityDataAccessor<Float> SIZE =
+            net.minecraft.network.syncher.SynchedEntityData.defineId(GreyWolfEntity.class, net.minecraft.network.syncher.EntityDataSerializers.FLOAT);
+
+    @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        entityData.define(SIZE, 1.0F);
+    }
+
+    @Override
+    public float getSize() {
+        return entityData.get(SIZE);
+    }
+
+    @Override
+    public void setSize(float size) {
+        entityData.set(SIZE, size);
+        refreshDimensions();
+    }
+
+    @Override
+    public void onSyncedDataUpdated(net.minecraft.network.syncher.EntityDataAccessor<?> key) {
+        if (SIZE.equals(key)) refreshDimensions();
+        super.onSyncedDataUpdated(key);
+    }
+
+    @Override
+    public net.minecraft.world.entity.EntityDimensions getDimensions(net.minecraft.world.entity.Pose pose) {
+        return super.getDimensions(pose).scale(getSize());
+    }
+
     public GreyWolfEntity(EntityType<? extends Wolf> type, Level level) {
         super(type, level);
         xpReward = 5;

@@ -12,7 +12,38 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 /** A wild boar of Gaia's forests: bad-tempered, charges anyone who comes near, good eating. */
-public class WildBoarEntity extends Hoglin {
+public class WildBoarEntity extends Hoglin implements Sized {
+    private static final net.minecraft.network.syncher.EntityDataAccessor<Float> SIZE =
+            net.minecraft.network.syncher.SynchedEntityData.defineId(WildBoarEntity.class, net.minecraft.network.syncher.EntityDataSerializers.FLOAT);
+
+    @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        entityData.define(SIZE, 1.0F);
+    }
+
+    @Override
+    public float getSize() {
+        return entityData.get(SIZE);
+    }
+
+    @Override
+    public void setSize(float size) {
+        entityData.set(SIZE, size);
+        refreshDimensions();
+    }
+
+    @Override
+    public void onSyncedDataUpdated(net.minecraft.network.syncher.EntityDataAccessor<?> key) {
+        if (SIZE.equals(key)) refreshDimensions();
+        super.onSyncedDataUpdated(key);
+    }
+
+    @Override
+    public net.minecraft.world.entity.EntityDimensions getDimensions(net.minecraft.world.entity.Pose pose) {
+        return super.getDimensions(pose).scale(getSize());
+    }
+
     public WildBoarEntity(EntityType<? extends Hoglin> type, Level level) {
         super(type, level);
         setImmuneToZombification(true);

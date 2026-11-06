@@ -34,6 +34,8 @@ public class ModCreativeTabs {
                 out.accept(ModItems.FIRE_OIL.get());
                 for (var it : java.util.List.of(ModItems.BOAR_HIDE, ModItems.BOAR_TUSK, ModItems.BOAR_KING_TUSK, ModItems.WOLF_PELT, ModItems.TIGER_PELT,
                         ModItems.TIGER_BONE, ModItems.BEAR_PAW, ModItems.BRAISED_BEAR_PAW, ModItems.TIGER_BONE_WINE, ModItems.TUSK_SPEAR, ModItems.BOAR_KING_SPEAR,
+                        ModItems.LEOPARD_PELT, ModItems.WHITE_TIGER_PELT, ModItems.WOLF_KING_FANG, ModItems.OX_HORN, ModItems.FANG_DAGGER,
+                        ModItems.BLACK_BEAR_SPAWN_EGG, ModItems.LEOPARD_SPAWN_EGG, ModItems.WOLF_KING_SPAWN_EGG, ModItems.TIGER_KING_SPAWN_EGG, ModItems.WILD_OX_SPAWN_EGG,
                         ModItems.WILD_BOAR_SPAWN_EGG, ModItems.BOAR_KING_SPAWN_EGG, ModItems.GREY_WOLF_SPAWN_EGG, ModItems.MOUNTAIN_TIGER_SPAWN_EGG, ModItems.SNOW_BEAR_SPAWN_EGG))
                     out.accept(it.get());
                 out.accept(ModItems.BANDIT_LEDGER.get());

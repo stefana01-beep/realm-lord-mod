@@ -20,7 +20,38 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 /** A great bear of the northern mountains and snows. Slow to anger, but it will not run. */
-public class SnowBearEntity extends PolarBear {
+public class SnowBearEntity extends PolarBear implements Sized {
+    private static final net.minecraft.network.syncher.EntityDataAccessor<Float> SIZE =
+            net.minecraft.network.syncher.SynchedEntityData.defineId(SnowBearEntity.class, net.minecraft.network.syncher.EntityDataSerializers.FLOAT);
+
+    @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        entityData.define(SIZE, 1.0F);
+    }
+
+    @Override
+    public float getSize() {
+        return entityData.get(SIZE);
+    }
+
+    @Override
+    public void setSize(float size) {
+        entityData.set(SIZE, size);
+        refreshDimensions();
+    }
+
+    @Override
+    public void onSyncedDataUpdated(net.minecraft.network.syncher.EntityDataAccessor<?> key) {
+        if (SIZE.equals(key)) refreshDimensions();
+        super.onSyncedDataUpdated(key);
+    }
+
+    @Override
+    public net.minecraft.world.entity.EntityDimensions getDimensions(net.minecraft.world.entity.Pose pose) {
+        return super.getDimensions(pose).scale(getSize());
+    }
+
     public SnowBearEntity(EntityType<? extends PolarBear> type, Level level) {
         super(type, level);
         xpReward = 10;
@@ -33,6 +64,11 @@ public class SnowBearEntity extends PolarBear {
                 .add(Attributes.ATTACK_DAMAGE, 8.0)
                 .add(Attributes.FOLLOW_RANGE, 20.0)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.6);
+    }
+
+    @Override
+    public float baseScale() {
+        return 1.2F;
     }
 
     @Override

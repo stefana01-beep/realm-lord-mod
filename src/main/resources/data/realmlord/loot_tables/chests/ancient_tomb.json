@@ -1,0 +1,245 @@
+{
+ "type": "minecraft:chest",
+ "pools": [
+  {
+   "rolls": {
+    "type": "minecraft:uniform",
+    "min": 4,
+    "max": 7
+   },
+   "entries": [
+    {
+     "type": "minecraft:item",
+     "name": "realmlord:silver_coin",
+     "weight": 16,
+     "functions": [
+      {
+       "function": "minecraft:set_count",
+       "count": {
+        "type": "minecraft:uniform",
+        "min": 4,
+        "max": 12
+       }
+      }
+     ]
+    },
+    {
+     "type": "minecraft:item",
+     "name": "realmlord:gold_coin",
+     "weight": 4,
+     "functions": [
+      {
+       "function": "minecraft:set_count",
+       "count": {
+        "type": "minecraft:uniform",
+        "min": 1,
+        "max": 2
+       }
+      }
+     ]
+    },
+    {
+     "type": "minecraft:item",
+     "name": "minecraft:gold_ingot",
+     "weight": 10,
+     "functions": [
+      {
+       "function": "minecraft:set_count",
+       "count": {
+        "type": "minecraft:uniform",
+        "min": 2,
+        "max": 6
+       }
+      }
+     ]
+    },
+    {
+     "type": "minecraft:item",
+     "name": "minecraft:emerald",
+     "weight": 6,
+     "functions": [
+      {
+       "function": "minecraft:set_count",
+       "count": {
+        "type": "minecraft:uniform",
+        "min": 1,
+        "max": 4
+       }
+      }
+     ]
+    },
+    {
+     "type": "minecraft:item",
+     "name": "realmlord:fine_silk",
+     "weight": 4,
+     "functions": [
+      {
+       "function": "minecraft:set_count",
+       "count": {
+        "type": "minecraft:uniform",
+        "min": 1,
+        "max": 2
+       }
+      }
+     ]
+    },
+    {
+     "type": "minecraft:item",
+     "name": "realmlord:linen",
+     "weight": 8,
+     "functions": [
+      {
+       "function": "minecraft:set_count",
+       "count": {
+        "type": "minecraft:uniform",
+        "min": 1,
+        "max": 3
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "rolls": {
+    "type": "minecraft:uniform",
+    "min": 2,
+    "max": 3
+   },
+   "entries": [
+    {
+     "type": "minecraft:item",
+     "name": "minecraft:iron_sword",
+     "weight": 3,
+     "functions": [
+      {
+       "function": "realmlord:graded",
+       "grade": "random"
+      }
+     ]
+    },
+    {
+     "type": "minecraft:item",
+     "name": "minecraft:iron_axe",
+     "weight": 3,
+     "functions": [
+      {
+       "function": "realmlord:graded",
+       "grade": "random"
+      }
+     ]
+    },
+    {
+     "type": "minecraft:item",
+     "name": "minecraft:bow",
+     "weight": 3,
+     "functions": [
+      {
+       "function": "realmlord:graded",
+       "grade": "random"
+      }
+     ]
+    },
+    {
+     "type": "minecraft:item",
+     "name": "minecraft:diamond_sword",
+     "weight": 3,
+     "functions": [
+      {
+       "function": "realmlord:graded",
+       "grade": "random"
+      }
+     ]
+    },
+    {
+     "type": "minecraft:item",
+     "name": "minecraft:iron_helmet",
+     "weight": 2,
+     "functions": [
+      {
+       "function": "realmlord:graded",
+       "grade": "random"
+      }
+     ]
+    },
+    {
+     "type": "minecraft:item",
+     "name": "minecraft:iron_chestplate",
+     "weight": 2,
+     "functions": [
+      {
+       "function": "realmlord:graded",
+       "grade": "random"
+      }
+     ]
+    },
+    {
+     "type": "minecraft:item",
+     "name": "minecraft:iron_leggings",
+     "weight": 2,
+     "functions": [
+      {
+       "function": "realmlord:graded",
+       "grade": "random"
+      }
+     ]
+    },
+    {
+     "type": "minecraft:item",
+     "name": "minecraft:iron_boots",
+     "weight": 2,
+     "functions": [
+      {
+       "function": "realmlord:graded",
+       "grade": "random"
+      }
+     ]
+    },
+    {
+     "type": "minecraft:item",
+     "name": "minecraft:chainmail_chestplate",
+     "weight": 2,
+     "functions": [
+      {
+       "function": "realmlord:graded",
+       "grade": "random"
+      }
+     ]
+    },
+    {
+     "type": "minecraft:item",
+     "name": "minecraft:leather_chestplate",
+     "weight": 2,
+     "functions": [
+      {
+       "function": "realmlord:graded",
+       "grade": "random"
+      }
+     ]
+    },
+    {
+     "type": "minecraft:item",
+     "name": "minecraft:diamond_chestplate",
+     "weight": 2,
+     "functions": [
+      {
+       "function": "realmlord:graded",
+       "grade": "random"
+      }
+     ]
+    },
+    {
+     "type": "minecraft:item",
+     "name": "realmlord:blueprint",
+     "weight": 5,
+     "functions": [
+      {
+       "function": "realmlord:blueprint",
+       "max_grade": 3
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

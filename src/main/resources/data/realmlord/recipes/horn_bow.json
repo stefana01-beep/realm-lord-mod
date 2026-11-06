@@ -1,0 +1,19 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  " HX",
+  "H X",
+  " HX"
+ ],
+ "key": {
+  "H": {
+   "item": "realmlord:ox_horn"
+  },
+  "X": {
+   "item": "minecraft:string"
+  }
+ },
+ "result": {
+  "item": "minecraft:bow"
+ }
+}

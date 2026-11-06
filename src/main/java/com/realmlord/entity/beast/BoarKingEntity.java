@@ -26,6 +26,11 @@ public class BoarKingEntity extends WildBoarEntity {
         setPersistenceRequired();
     }
 
+    @Override
+    public float baseScale() {
+        return 1.6F;
+    }
+
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 220.0)
@@ -41,6 +46,7 @@ public class BoarKingEntity extends WildBoarEntity {
     protected void customServerAiStep() {
         super.customServerAiStep();
         bar.setProgress(getHealth() / getMaxHealth());
+        if (getCustomName() != null) bar.setName(getCustomName());
     }
 
     @Override

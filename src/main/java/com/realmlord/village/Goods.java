@@ -102,6 +102,8 @@ public enum Goods {
         if (i == com.realmlord.registry.ModItems.FIRE_OIL.get()) return new Unit(FIRE_OIL, 1);
         if (i == com.realmlord.registry.ModItems.BOAR_HIDE.get() || i == com.realmlord.registry.ModItems.WOLF_PELT.get()) return new Unit(LEATHER, 2);
         if (i == com.realmlord.registry.ModItems.TIGER_PELT.get()) return new Unit(LEATHER, 4);
+        if (i == com.realmlord.registry.ModItems.LEOPARD_PELT.get()) return new Unit(LEATHER, 3);
+        if (i == com.realmlord.registry.ModItems.WHITE_TIGER_PELT.get()) return new Unit(FINE_SILK, 2);
         if (i == com.realmlord.registry.ModItems.TIGER_BONE.get()) return new Unit(HERBS, 5);
         if (i == com.realmlord.registry.ModItems.BEAR_PAW.get()) return new Unit(MEAT, 4);
         if (i == com.realmlord.registry.ModItems.TIGER_BONE_WINE.get()) return new Unit(WINE, 3);

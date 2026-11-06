@@ -171,7 +171,11 @@ public class BanditEntity extends Monster implements RangedAttackMob {
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, MobSpawnType reason, SpawnGroupData data, CompoundTag tag) {
         SpawnGroupData out = super.finalizeSpawn(level, difficulty, reason, data, tag);
         entityData.set(SKIN, random.nextInt(SKINS));
-        configure(random.nextInt(10) < 3 ? Role.ARCHER : Role.SWORDSMAN, 1);
+        boolean wild = reason == MobSpawnType.NATURAL;
+        // Roaming bands: now and then led by a chief.
+        Role role = wild && random.nextInt(20) == 0 ? Role.CHIEF : random.nextInt(10) < 3 ? Role.ARCHER : Role.SWORDSMAN;
+        configure(role, 1);
+        if (wild) getPersistentData().putBoolean("realmlord_wild", true);
         return out;
     }
 
@@ -254,7 +258,8 @@ public class BanditEntity extends Monster implements RangedAttackMob {
 
     @Override
     public boolean removeWhenFarAway(double distance) {
-        return false;
+        // Roaming bandits come and go; those of a camp stay.
+        return getPersistentData().getBoolean("realmlord_wild");
     }
 
     public static boolean isServer(Level level) {
