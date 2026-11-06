@@ -116,6 +116,12 @@ public class TownTests {
         Territory t = VillageTests.village(helper, p, 14400);
         ServerLevel level = helper.getLevel();
         BlockPos at = t.center.offset(20, 0, 0);
+        // Open, level ground, whatever the test world's terrain, so the wolf can see the villager.
+        for (int x = -6; x <= 10; x++)
+            for (int z = -6; z <= 6; z++) {
+                level.setBlock(at.offset(x, -1, z), Blocks.GRASS_BLOCK.defaultBlockState(), 2);
+                for (int y = 0; y < 8; y++) level.setBlock(at.offset(x, y, z), Blocks.AIR.defaultBlockState(), 2);
+            }
         // A wolf (not a "monster" to Minecraft) still teaches the one who kills it.
         GreyWolfEntity wolf = ModEntities.GREY_WOLF.get().create(level);
         wolf.moveTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5);

@@ -316,12 +316,7 @@ public class TerritoryMapScreen extends Screen {
             }).bounds(bx, by - 18, bw, 16).build());
         } else if (pathMode) {
             Paths.Surface s = Paths.Surface.byOrdinal(pathSurface);
-            addRenderableWidget(Button.builder(Component.translatable(pathArea ? "realmlord.path.area_on" : "realmlord.path.area_off"), b -> {
-                pathArea = !pathArea;
-                pathPts.clear();
-                init();
-            }).bounds(bx, by - 126, bw, 16).tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("realmlord.path.area.tip", Paths.MAX_AREA))).build());
-            addRenderableWidget(Button.builder(Component.translatable(pathStairs ? "realmlord.path.stairs_on" : "realmlord.path.stairs_off"), b -> {
+            if (!pathArea) addRenderableWidget(Button.builder(Component.translatable(pathStairs ? "realmlord.path.stairs_on" : "realmlord.path.stairs_off"), b -> {
                 pathStairs = !pathStairs;
                 init();
             }).bounds(bx, by - 108, bw, 16).tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("realmlord.path.stairs.tip"))).build());
@@ -329,7 +324,7 @@ public class TerritoryMapScreen extends Screen {
                 pathSurface = (pathSurface + 1) % Paths.Surface.values().length;
                 init();
             }).bounds(bx, by - 90, bw, 16).build());
-            addRenderableWidget(Button.builder(Component.translatable("realmlord.path.width", pathWidth), b -> {
+            if (!pathArea) addRenderableWidget(Button.builder(Component.translatable("realmlord.path.width", pathWidth), b -> {
                 pathWidth = pathWidth % Paths.MAX_WIDTH + 1;
                 init();
             }).bounds(bx, by - 72, bw, 16).build());
@@ -345,10 +340,12 @@ public class TerritoryMapScreen extends Screen {
                 refreshIn = 20;
                 init();
             }).bounds(bx, by - 54, bw, 16).build();
-            lay.active = pathPts.size() >= 2;
+            lay.active = pathPts.size() >= 2 && (!pathArea || areaSize()[0] <= Paths.MAX_AREA && areaSize()[1] <= Paths.MAX_AREA);
+            if (pathArea) lay.setMessage(Component.translatable("realmlord.pave.go"));
             addRenderableWidget(lay);
-            addRenderableWidget(Button.builder(Component.translatable("realmlord.path.undo"), b -> {
-                if (!pathPts.isEmpty()) pathPts.remove(pathPts.size() - 1);
+            addRenderableWidget(Button.builder(Component.translatable(pathArea ? "realmlord.clear.again" : "realmlord.path.undo"), b -> {
+                if (pathArea) pathPts.clear();
+                else if (!pathPts.isEmpty()) pathPts.remove(pathPts.size() - 1);
                 init();
             }).bounds(bx, by - 36, bw, 16).build());
             addRenderableWidget(Button.builder(Component.translatable("realmlord.map.cancel"), b -> {
@@ -381,10 +378,18 @@ public class TerritoryMapScreen extends Screen {
             }
             addRenderableWidget(Button.builder(Component.translatable("realmlord.path.new"), b -> {
                 pathMode = true;
+                pathArea = false;
                 selectedId = -1;
                 pathPts.clear();
                 init();
             }).bounds(bx, by - 72, bw, 16).build());
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.pave.new"), b -> {
+                pathMode = true;
+                pathArea = true;
+                selectedId = -1;
+                pathPts.clear();
+                init();
+            }).bounds(bx, by - 144, bw, 16).tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("realmlord.pave.tip", Paths.MAX_AREA))).build());
             CompoundTag gr = grounds();
             Button level = Button.builder(gr != null ? Component.translatable("realmlord.grounds.stop", Math.round(gr.getDouble("fraction") * 100))
                     : Component.translatable("realmlord.grounds.order"), b -> {
@@ -476,7 +481,13 @@ public class TerritoryMapScreen extends Screen {
             return true;
         }
         if (pathMode && at != null) {
-            if (button == 0 && pathPts.size() < (pathArea ? 2 : Paths.MAX_POINTS)) pathPts.add(new int[]{at.getX(), at.getZ()});
+            if (pathArea && button == 0) {
+                if (pathPts.size() >= 2) pathPts.clear();
+                pathPts.add(new int[]{at.getX(), at.getZ()});
+            } else if (pathArea && button == 1) {
+                pathPts.clear();
+            }
+            else if (button == 0 && pathPts.size() < Paths.MAX_POINTS) pathPts.add(new int[]{at.getX(), at.getZ()});
             else if (button == 1 && !pathPts.isEmpty()) pathPts.remove(pathPts.size() - 1);
             init();
             return true;
@@ -628,9 +639,11 @@ public class TerritoryMapScreen extends Screen {
                 pts[i * 2] = pathPts.get(i)[0];
                 pts[i * 2 + 1] = pathPts.get(i)[1];
             }
-            if (pathArea && pathPts.size() == 2) {
-                int[] a0 = pathPts.get(0), a1 = pathPts.get(1);
-                rect(g, Math.min(a0[0], a1[0]), Math.min(a0[1], a1[1]), Math.abs(a1[0] - a0[0]) + 1, Math.abs(a1[1] - a0[1]) + 1, 0x60FFE07A, 0xFFFFD84D);
+            if (pathArea) {
+                int[] a0 = pathPts.get(0), a1 = pathPts.size() >= 2 ? pathPts.get(1) : hoverAt != null ? new int[]{hoverAt.getX(), hoverAt.getZ()} : a0;
+                int w = Math.abs(a1[0] - a0[0]) + 1, d = Math.abs(a1[1] - a0[1]) + 1;
+                boolean ok = w <= Paths.MAX_AREA && d <= Paths.MAX_AREA;
+                rect(g, Math.min(a0[0], a1[0]), Math.min(a0[1], a1[1]), w, d, ok ? 0x60FFE07A : 0x60FF4040, ok ? 0xFFFFD84D : 0xFFFF4040);
             } else if (!pathArea) polyline(g, pts, pathWidth, 0xC0FFE07A);
             for (int[] p : pathPts) {
                 int px = screenX(p[0] + 0.5), py = screenY(p[1] + 0.5);
@@ -721,6 +734,11 @@ public class TerritoryMapScreen extends Screen {
         double dx = at.getX() - cx, dz = at.getZ() - cz, d = Math.hypot(dx, dz);
         if (d < 1 || Math.abs(d - r) > Math.max(4, ClientMap.step * 3)) return at;
         return new BlockPos(cx + (int) Math.round(dx / d * r), at.getY(), cz + (int) Math.round(dz / d * r));
+    }
+
+    private int[] areaSize() {
+        if (pathPts.size() < 2) return new int[]{0, 0};
+        return new int[]{Math.abs(pathPts.get(1)[0] - pathPts.get(0)[0]) + 1, Math.abs(pathPts.get(1)[1] - pathPts.get(0)[1]) + 1};
     }
 
     private int[] clearSize() {
@@ -819,6 +837,22 @@ public class TerritoryMapScreen extends Screen {
             g.drawString(font, clearOffset == 0 ? Component.translatable("realmlord.clear.level0")
                     : Component.translatable(clearOffset > 0 ? "realmlord.clear.level_up" : "realmlord.clear.level_down", Math.abs(clearOffset)), sx, sy + 22, Ui.INK, false);
             Ui.wrap(g, font, Component.translatable("realmlord.clear.hint"), sx, sy + 36, w, Ui.MUTED);
+            return;
+        } else if (pathMode && pathArea) {
+            Paths.Surface s = Paths.Surface.byOrdinal(pathSurface);
+            int n = pathEstimate();
+            long[] c = Paths.cost(s, n);
+            g.drawString(font, Component.translatable("realmlord.pave.title"), sx, sy, Ui.GOLD, false);
+            if (pathPts.size() >= 2) {
+                int[] a = areaSize();
+                boolean big = a[0] > Paths.MAX_AREA || a[1] > Paths.MAX_AREA;
+                g.drawString(font, Component.translatable("realmlord.clear.size", a[0], a[1], Paths.MAX_AREA), sx, sy + 11, big ? Ui.RED : Ui.INK, false);
+            } else {
+                g.drawString(font, Component.translatable(pathPts.isEmpty() ? "realmlord.clear.corner1" : "realmlord.clear.corner2"), sx, sy + 11, Ui.INK, false);
+            }
+            g.drawString(font, c[0] == 0 && c[1] == 0 ? Component.translatable("realmlord.path.free")
+                    : Component.translatable("realmlord.path.cost", c[0], c[1]), sx, sy + 22, Ui.INK, false);
+            Ui.wrap(g, font, Component.translatable("realmlord.pave.hint"), sx, sy + 36, w, Ui.MUTED);
             return;
         } else if (pathMode) {
             Paths.Surface s = Paths.Surface.byOrdinal(pathSurface);

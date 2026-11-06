@@ -514,4 +514,9 @@ ROUND_TOWN = {
     "realmlord.path.err.area": "A paved area can be at most 48 x 48 blocks.",
     "realmlord.build.err.lane": "Leave a lane of three blocks between buildings, for a path.",
     "realmlord.clear.err.others": "That ground lies in another Lord's territory.",
+    "realmlord.pave.new": "Pave an area",
+    "realmlord.pave.tip": "Pave a square, a market place or a yard: pick two opposite corners on the map, as for clearing ground (up to %1$s x %1$s blocks).",
+    "realmlord.pave.title": "Pave an area",
+    "realmlord.pave.go": "Pave",
+    "realmlord.pave.hint": "Click one corner, then the opposite one; the area follows your mouse until you do. Click again to start over, or right-click to clear. Choose the surface, then Pave. The ground is evened out under it, as for a path.",
 }
