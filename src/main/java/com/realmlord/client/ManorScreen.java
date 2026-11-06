@@ -7,6 +7,7 @@ import com.realmlord.profile.Title;
 import com.realmlord.territory.TerritoryLevel;
 import com.realmlord.territory.TokenGrade;
 import com.realmlord.village.BuildingType;
+import com.realmlord.village.Goods;
 import com.realmlord.village.Job;
 import com.realmlord.village.Market;
 import com.realmlord.village.Occupation;
@@ -400,52 +401,103 @@ public class ManorScreen extends Screen {
         return out;
     }
 
+    /** Market platforms, as in the novel: materials, special items, and two that open later. */
+    private int platform;
+    private static final int GOOD_ROWS = 9;
+
     private void initMarket(CompoundTag v, int x, int y) {
-        for (int r = 0; r < 4; r++) {
-            final int res = r;
-            int ry = y + 58 + r * 18;
-            long[] amounts = {10, 100};
-            for (int k = 0; k < 2; k++) {
-                final long n = amounts[k];
-                addRenderableWidget(Button.builder(Component.translatable("realmlord.market.buy_n", n), b -> send(ManorActionPacket.Action.BUY, res, n))
-                        .bounds(x + 190 + k * 50, ry - 3, 48, 14).tooltip(Tooltip.create(Component.translatable("realmlord.market.cost", Ui.money(Market.buyCost(res, n))))).build());
-                addRenderableWidget(Button.builder(Component.translatable("realmlord.market.sell_n", n), b -> send(ManorActionPacket.Action.SELL, res, n))
-                        .bounds(x + 292 + k * 50, ry - 3, 48, 14).tooltip(Tooltip.create(Component.translatable("realmlord.market.income", Ui.money(Market.sellIncome(res, n))))).build());
-            }
+        String[] names = {"realmlord.market.platform.materials", "realmlord.market.platform.special", "realmlord.market.platform.auction", "realmlord.market.platform.negotiation"};
+        for (int k = 0; k < 4; k++) {
+            final int pk = k;
+            Button b = Button.builder(Component.translatable(names[k]), btn -> {
+                platform = pk;
+                scroll = 0;
+                init();
+            }).bounds(x + 8 + k * 96, y + 38, 94, 14).build();
+            b.active = k < 2 && k != platform;
+            if (k >= 2) b.setTooltip(Tooltip.create(Component.translatable("realmlord.market.platform.locked")));
+            addRenderableWidget(b);
         }
-        List<BuildingType> bps = blueprintRows(v);
-        scroll = Math.max(0, Math.min(scroll, bps.size() - BP_ROWS));
-        for (int i = 0; i < BP_ROWS && i + scroll < bps.size(); i++) {
-            BuildingType bt = bps.get(i + scroll);
-            addRenderableWidget(Button.builder(Component.translatable("realmlord.market.buy"), b -> send(ManorActionPacket.Action.BUY_BLUEPRINT, bt.ordinal(), 0))
-                    .bounds(x + W - 62, y + 152 + i * 16, 52, 14).build());
+        if (platform == 0) {
+            int n = Goods.values().length;
+            scroll = Math.max(0, Math.min(scroll, n - GOOD_ROWS));
+            for (int r = 0; r < GOOD_ROWS && r + scroll < n; r++) {
+                Goods g = Goods.values()[r + scroll];
+                int ry = y + 70 + r * 15;
+                long[][] acts = {{10, 1}, {100, 1}, {10, 0}, {-1, 0}};
+                int[] bx = {222, 264, 310, 352};
+                int[] bw = {40, 44, 40, 40};
+                for (int k = 0; k < 4; k++) {
+                    final long units = acts[k][0];
+                    final boolean buy = acts[k][1] == 1;
+                    Component label = buy ? Component.translatable("realmlord.market.buy_n", units)
+                            : units < 0 ? Component.translatable("realmlord.market.sell_all") : Component.translatable("realmlord.market.sell_n", units);
+                    Component tip = buy ? Component.translatable("realmlord.market.cost", Ui.money(g.buyCost(units)))
+                            : units < 0 ? Component.translatable("realmlord.market.sell_all.tip") : Component.translatable("realmlord.market.income", Ui.money(g.sellIncome(units)));
+                    addRenderableWidget(Button.builder(label, b -> send(buy ? ManorActionPacket.Action.BUY_GOOD : ManorActionPacket.Action.SELL_GOOD, g.ordinal(), units))
+                            .bounds(x + bx[k], ry - 3, bw[k], 13).tooltip(Tooltip.create(tip)).build());
+                }
+            }
+            int by = y + H - 30;
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.storage.open"), b -> send(ManorActionPacket.Action.OPEN_STORAGE, 0, 0))
+                    .bounds(x + 8, by, 120, 16).tooltip(Tooltip.create(Component.translatable("realmlord.storage.open.tip"))).build());
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.storage.hand_in"), b -> send(ManorActionPacket.Action.HAND_IN, 0, 0))
+                    .bounds(x + 132, by, 128, 16).tooltip(Tooltip.create(Component.translatable("realmlord.storage.hand_in.tip"))).build());
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.storage.sell"), b -> send(ManorActionPacket.Action.SELL_STORAGE, 0, 0))
+                    .bounds(x + 264, by, 128, 16).tooltip(Tooltip.create(Component.translatable("realmlord.storage.sell.tip"))).build());
+        } else {
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.market.sell_special"), b -> send(ManorActionPacket.Action.SELL_SPECIAL, 0, 0))
+                    .bounds(x + 8, y + 58, 180, 16).tooltip(Tooltip.create(Component.translatable("realmlord.market.sell_special.tip"))).build());
+            List<BuildingType> bps = blueprintRows(v);
+            scroll = Math.max(0, Math.min(scroll, bps.size() - BP_ROWS));
+            for (int i = 0; i < BP_ROWS && i + scroll < bps.size(); i++) {
+                BuildingType bt = bps.get(i + scroll);
+                addRenderableWidget(Button.builder(Component.translatable("realmlord.market.buy"), b -> send(ManorActionPacket.Action.BUY_BLUEPRINT, bt.ordinal(), 0))
+                        .bounds(x + W - 62, y + 152 + i * 16, 52, 14).build());
+            }
         }
     }
 
     private void renderMarket(GuiGraphics g, CompoundTag v, int x, int y) {
-        Ui.inset(g, x + 6, y + 40, W - 12, 92);
-        g.drawString(font, Component.translatable("realmlord.market.title"), x + 10, y + 43, Ui.GOLD, false);
         Component coins = Component.translatable("realmlord.market.your_coins", Ui.money(v.getLong("coins")));
-        g.drawString(font, coins, x + W - 12 - font.width(coins), y + 43, Ui.INK, false);
-        String[] keys = {"realmlord.panel.territory.food", "realmlord.panel.territory.wood", "realmlord.panel.territory.stone", "realmlord.panel.territory.iron_ore"};
-        long[] stock = {v.getLong("food"), v.getLong("wood"), v.getLong("stone"), v.getLong("ore")};
-        for (int r = 0; r < 4; r++) {
-            int ry = y + 58 + r * 18;
-            g.drawString(font, Component.translatable(keys[r], stock[r]), x + 10, ry, Ui.INK, false);
-            g.drawString(font, Component.translatable("realmlord.market.unit", Market.PRICE[r]), x + 110, ry, Ui.MUTED, false);
+        if (platform == 0) {
+            Ui.inset(g, x + 6, y + 54, W - 12, GOOD_ROWS * 15 + 18);
+            g.drawString(font, Component.translatable("realmlord.market.materials_title"), x + 10, y + 57, Ui.GOLD, false);
+            g.drawString(font, coins, x + W - 12 - font.width(coins), y + 57, Ui.INK, false);
+            ListTag goods = v.getList("goods", Tag.TAG_COMPOUND);
+            int n = Goods.values().length;
+            for (int r = 0; r < GOOD_ROWS && r + scroll < n; r++) {
+                Goods gd = Goods.values()[r + scroll];
+                CompoundTag gt = r + scroll < goods.size() ? goods.getCompound(r + scroll) : new CompoundTag();
+                int ry = y + 70 + r * 15;
+                g.drawString(font, Component.translatable(gd.key()), x + 10, ry, gd.basic() ? Ui.INK : Ui.JADE, false);
+                long stock = gt.getLong("stock");
+                double daily = gt.getDouble("daily");
+                String st = String.valueOf(stock);
+                g.drawString(font, st, x + 128 - font.width(st), ry, Ui.INK, false);
+                if (Math.abs(daily) >= 0.05) {
+                    String d = (daily > 0 ? "+" : "") + (Math.abs(daily) < 1 ? String.format("%.1f", daily) : String.valueOf(Math.round(daily)));
+                    g.drawString(font, d, x + 132, ry, daily > 0 ? 0xFF6FCF97 : Ui.RED, false);
+                }
+                g.drawString(font, Ui.money(gd.price), x + 162, ry, Ui.MUTED, false);
+            }
+            if (n > GOOD_ROWS) g.drawString(font, Component.translatable("realmlord.manor.scroll", scroll + 1, n - GOOD_ROWS + 1), x + 10, y + 70 + GOOD_ROWS * 15, Ui.MUTED, false);
+            g.drawString(font, Component.translatable("realmlord.market.goods_note", v.getInt("stored")), x + 10, y + H - 44, Ui.GREY, false);
+        } else {
+            Ui.inset(g, x + 6, y + 54, W - 12, 78);
+            g.drawString(font, coins, x + W - 12 - font.width(coins), y + 62, Ui.INK, false);
+            Ui.wrap(g, font, Component.translatable("realmlord.market.special_note"), x + 10, y + 80, W - 24, Ui.INK);
+            Ui.inset(g, x + 6, y + 136, W - 12, BP_ROWS * 16 + 18);
+            g.drawString(font, Component.translatable("realmlord.market.blueprints"), x + 10, y + 139, Ui.GOLD, false);
+            List<BuildingType> bps = blueprintRows(v);
+            for (int i = 0; i < BP_ROWS && i + scroll < bps.size(); i++) {
+                BuildingType bt = bps.get(i + scroll);
+                int ry = y + 155 + i * 16;
+                g.drawString(font, Component.translatable("item.realmlord.blueprint.named", Component.translatable(bt.key())), x + 10, ry, Ui.INK, false);
+                g.drawString(font, Ui.money(bt.blueprintPrice()), x + 220, ry, Ui.GOLD, false);
+            }
+            if (bps.size() > BP_ROWS) g.drawString(font, Component.translatable("realmlord.manor.scroll", scroll + 1, bps.size() - BP_ROWS + 1), x + 10, y + 236, Ui.MUTED, false);
         }
-        g.drawString(font, Component.translatable("realmlord.market.tax_note"), x + 10, y + 122, Ui.GREY, false);
-
-        Ui.inset(g, x + 6, y + 136, W - 12, BP_ROWS * 16 + 18);
-        g.drawString(font, Component.translatable("realmlord.market.blueprints"), x + 10, y + 139, Ui.GOLD, false);
-        List<BuildingType> bps = blueprintRows(v);
-        for (int i = 0; i < BP_ROWS && i + scroll < bps.size(); i++) {
-            BuildingType bt = bps.get(i + scroll);
-            int ry = y + 155 + i * 16;
-            g.drawString(font, Component.translatable("item.realmlord.blueprint.named", Component.translatable(bt.key())), x + 10, ry, Ui.INK, false);
-            g.drawString(font, Ui.money(bt.blueprintPrice()), x + 220, ry, Ui.GOLD, false);
-        }
-        if (bps.size() > BP_ROWS) g.drawString(font, Component.translatable("realmlord.manor.scroll", scroll + 1, bps.size() - BP_ROWS + 1), x + 10, y + 236, Ui.MUTED, false);
     }
 
     // ------------------------------------------------------------------ frame

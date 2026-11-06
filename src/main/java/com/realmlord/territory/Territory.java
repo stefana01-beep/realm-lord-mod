@@ -28,6 +28,11 @@ public class Territory {
     public long food, wood, stone, ironOre;
     /** Treasury, in copper (1 gold = 10,000 copper). */
     public long treasury;
+    /** Goods beyond the four basic stores (salt, wine, linen...), by Goods ordinal, and part-made units. */
+    public final long[] goods = new long[com.realmlord.village.Goods.values().length];
+    public final double[] goodsCarry = new double[com.realmlord.village.Goods.values().length];
+    /** The Lord's Manor storehouse: anything else the Lord keeps for later. */
+    public final net.minecraft.world.SimpleContainer storage = new net.minecraft.world.SimpleContainer(54);
     /** People's Thoughts and Security (the novel's "Law and Order"), 0-100. */
     public int peopleThoughts = 70;
     public int security = 65;
@@ -107,6 +112,13 @@ public class Territory {
         t.putString("freeChoices", String.join(",", freeChoices.stream().map(com.realmlord.village.BuildingType::id).toList()));
         t.putString("freeBuilds", String.join(",", freeBuilds.stream().map(com.realmlord.village.BuildingType::id).toList()));
         t.putBoolean("settled", settled);
+        CompoundTag g = new CompoundTag();
+        for (var good : com.realmlord.village.Goods.values()) {
+            if (goods[good.ordinal()] != 0) g.putLong(good.id, goods[good.ordinal()]);
+            if (goodsCarry[good.ordinal()] != 0) g.putDouble(good.id + "_carry", goodsCarry[good.ordinal()]);
+        }
+        t.put("goods", g);
+        t.put("storage", storage.createTag());
         return t;
     }
 
@@ -129,6 +141,12 @@ public class Territory {
         r.stone = t.getLong("stone");
         r.ironOre = t.getLong("ironOre");
         r.treasury = t.getLong("treasury");
+        CompoundTag g = t.getCompound("goods");
+        for (var good : com.realmlord.village.Goods.values()) {
+            r.goods[good.ordinal()] = g.getLong(good.id);
+            r.goodsCarry[good.ordinal()] = g.getDouble(good.id + "_carry");
+        }
+        r.storage.fromTag(t.getList("storage", net.minecraft.nbt.Tag.TAG_COMPOUND));
         r.peopleThoughts = t.contains("thoughts") ? t.getInt("thoughts") : 70;
         r.security = t.contains("security") ? t.getInt("security") : 65;
         net.minecraft.nbt.ListTag rs = t.getList("residents", net.minecraft.nbt.Tag.TAG_COMPOUND);

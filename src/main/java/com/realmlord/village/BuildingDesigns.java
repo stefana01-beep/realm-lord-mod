@@ -338,47 +338,70 @@ public final class BuildingDesigns {
 
     // ------------------------------------------------------------------ homes
 
-    /** A walled courtyard with a house across the back (room for twenty) and a well in the yard. */
+    /** Straw beds: plain, cheap bedding for ordinary folk (yellow beds look like straw). */
+    static final Block STRAW_BED = Blocks.YELLOW_BED;
+
+    /**
+     * A walled residential courtyard for twenty people, the old siheyuan way: a hall across the
+     * back and a wing down each side, all facing a yard with a well. Straw beds sleep 13 in the
+     * hall and 5 in each wing.
+     */
     private static void courtyard(Canvas c, int w, int d) {
         c.fill(0, -1, 0, w - 1, -1, d - 1, Blocks.GRASS_BLOCK.defaultBlockState());
         for (int x = 0; x < w; x++)
             for (int z = 0; z < d; z++) {
-                boolean edge = x == 0 || z == 0 || x == w - 1 || z == d - 1;
-                if (edge) {
+                if (x == 0 || z == 0 || x == w - 1 || z == d - 1) {
                     c.set(x, -1, z, PLINTH);
                     c.set(x, 0, z, Blocks.STONE_BRICK_WALL);
                     c.set(x, 1, z, Blocks.STONE_BRICK_WALL);
                 }
             }
+        // The gate.
         c.set(w / 2, 0, 0, AIR);
         c.set(w / 2, 1, 0, AIR);
-        c.set(w / 2, -1, 0, Blocks.DIRT_PATH);
-        // House across the back.
-        int hz0 = d - 5;
-        for (int x = 1; x < w - 1; x++)
-            for (int z = hz0; z < d - 1; z++) {
-                boolean edge = x == 1 || x == w - 2 || z == hz0 || z == d - 2;
+        for (int z = 0; z <= d - 7; z++) c.set(w / 2, -1, z, Blocks.DIRT_PATH);
+        // The hall across the back: beds side by side, heads to the back wall.
+        int hz0 = d - 6, hz1 = d - 2;
+        house(c, 1, hz0, w - 2, hz1);
+        c.door(w / 2, 0, hz0, Blocks.SPRUCE_DOOR, Direction.NORTH);
+        c.set(w / 2 - 3, 1, hz0, WINDOW);
+        c.set(w / 2 + 3, 1, hz0, WINDOW);
+        for (int x = 2; x <= w - 3; x++) c.bed(x, 0, hz1 - 2, STRAW_BED, Direction.SOUTH);
+        // The side wings: beds heads to the outer walls.
+        int wz0 = 2, wz1 = d - 7;
+        house(c, 1, wz0, 5, wz1);
+        house(c, w - 6, wz0, w - 2, wz1);
+        int mid = (wz0 + wz1) / 2;
+        c.door(5, 0, mid, Blocks.SPRUCE_DOOR, Direction.EAST);
+        c.door(w - 6, 0, mid, Blocks.SPRUCE_DOOR, Direction.WEST);
+        for (int z = wz0 + 1; z <= wz1 - 1; z++) {
+            c.bed(3, 0, z, STRAW_BED, Direction.WEST);
+            c.bed(w - 4, 0, z, STRAW_BED, Direction.EAST);
+        }
+        // A water butt in the yard, a lantern by the gate.
+        c.set(6, 0, wz0 + 1, Blocks.WATER_CAULDRON.defaultBlockState().setValue(net.minecraft.world.level.block.LayeredCauldronBlock.LEVEL, 3));
+        c.set(w / 2 + 2, 0, 1, Blocks.LANTERN);
+        c.set(w / 2 - 2, 0, 1, Blocks.POPPY);
+    }
+
+    /** A plain timber house: plank floor, white walls on a beam, posts at the corners, tiled roof with eaves. */
+    private static void house(Canvas c, int x0, int z0, int x1, int z1) {
+        for (int x = x0; x <= x1; x++)
+            for (int z = z0; z <= z1; z++) {
+                boolean edge = x == x0 || x == x1 || z == z0 || z == z1;
                 c.set(x, -1, z, FLOOR);
                 for (int y = 0; y < 3; y++) c.set(x, y, z, edge ? (y == 2 ? BEAM : WALL) : AIR);
             }
-        for (int x : new int[]{1, w - 2})
-            for (int z : new int[]{hz0, d - 2})
+        for (int x : new int[]{x0, x1})
+            for (int z : new int[]{z0, z1})
                 for (int y = 0; y < 3; y++) c.set(x, y, z, POST);
-        c.door(w / 2, 0, hz0, Blocks.SPRUCE_DOOR, Direction.NORTH);
-        c.set(w / 2 - 2, 1, hz0, WINDOW);
-        c.set(w / 2 + 2, 1, hz0, WINDOW);
-        for (int x = 2; x < w - 2; x += 2) if (x != w / 2) c.bed(x, 0, d - 3, Blocks.RED_BED, Direction.SOUTH);
-        for (int x = 0; x < w; x++)
-            for (int z = hz0 - 1; z < d; z++) {
-                boolean rim = x == 0 || x == w - 1 || z == hz0 - 1 || z == d - 1;
+        for (int x = x0 - 1; x <= x1 + 1; x++)
+            for (int z = z0 - 1; z <= z1 + 1; z++) {
+                boolean rim = x == x0 - 1 || x == x1 + 1 || z == z0 - 1 || z == z1 + 1;
                 c.set(x, 3, z, rim ? TILE_SLAB : TILE);
             }
-        for (int x = 1; x < w - 1; x++) c.set(x, 4, hz0 + 1, TILE_SLAB);
-        // Well and garden.
-        c.set(2, 0, 2, Blocks.COBBLESTONE_WALL);
-        c.set(2, -1, 2, Blocks.WATER);
-        c.set(w - 3, 0, 2, Blocks.POPPY);
-        c.set(w - 3, 0, 3, Blocks.OXEYE_DAISY);
+        if (x1 - x0 >= z1 - z0) for (int x = x0; x <= x1; x++) c.set(x, 4, (z0 + z1) / 2, TILE_SLAB);
+        else for (int z = z0; z <= z1; z++) c.set((x0 + x1) / 2, 4, z, TILE_SLAB);
     }
 
     // ------------------------------------------------------------------ fields
@@ -703,48 +726,70 @@ public final class BuildingDesigns {
         int r = b.fenceRadius > 0 ? b.fenceRadius : t.radius() - 2;
         b.fenceRadius = r;
         List<int[]> cols = fenceColumns(t.center, r);
-        if (b.fenceYs == null || b.fenceYs.length != cols.size()) {
-            int[] ys = new int[cols.size()];
-            for (int i = 0; i < cols.size(); i++) {
+        int n = cols.size();
+        if (b.fenceYs == null || b.fenceYs.length != n) {
+            int[] raw = new int[n];
+            for (int i = 0; i < n; i++) {
                 int x = cols.get(i)[0], z = cols.get(i)[1];
                 if (!level.isLoaded(new BlockPos(x, 64, z))) return null;
-                ys[i] = groundAt(level, x, z);
+                raw[i] = groundAt(level, x, z);
+            }
+            // A post on a lone bump or in a lone dip follows its neighbours instead.
+            int[] ys = new int[n];
+            for (int i = 0; i < n; i++) {
+                int[] win = new int[5];
+                for (int k = -2; k <= 2; k++) win[k + 2] = raw[Math.floorMod(i + k, n)];
+                java.util.Arrays.sort(win);
+                ys[i] = win[2];
             }
             b.fenceYs = ys;
+            b.fenceFill = null;
+        }
+        if (b.fenceFill == null || b.fenceFill.length != n) {
+            // Where the ground falls away under a post, earth is packed beneath its footing.
+            int[] fill = new int[n];
+            for (int i = 0; i < n; i++) {
+                int x = cols.get(i)[0], z = cols.get(i)[1], y = b.fenceYs[i];
+                if (!level.isLoaded(new BlockPos(x, 64, z))) return null;
+                int k = 0;
+                while (k < 8) {
+                    BlockState s = level.getBlockState(new BlockPos(x, y - 2 - k, z));
+                    if (!s.isAir() && s.getFluidState().isEmpty() && !s.canBeReplaced()) break;
+                    k++;
+                }
+                fill[i] = k;
+            }
+            b.fenceFill = fill;
         }
         BlockState plank = Blocks.OAK_PLANKS.defaultBlockState();
         BlockState fence = Blocks.OAK_FENCE.defaultBlockState();
-        List<Placement> ground = new ArrayList<>(), lower = new ArrayList<>(), upper = new ArrayList<>(), rail = new ArrayList<>();
-        for (int i = 0; i < cols.size(); i++) {
+        BlockState earth = Blocks.DIRT.defaultBlockState();
+        List<Placement> out = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
             int x = cols.get(i)[0], z = cols.get(i)[1], y = b.fenceYs[i];
+            // The rail runs no lower than one below either neighbour's, so no gaps open between posts.
+            int neighbour = Math.max(b.fenceYs[Math.floorMod(i - 1, n)], b.fenceYs[Math.floorMod(i + 1, n)]);
+            int rail = Math.max(y, neighbour - 1) + 2;
             double deg = bearing(t.center, x, z);
             boolean gate = b.isGate(deg);
-            ground.add(new Placement(new BlockPos(x, y - 1, z), plank));
+            for (int k = b.fenceFill[i]; k >= 1; k--) out.add(new Placement(new BlockPos(x, y - 1 - k, z), earth));
+            out.add(new Placement(new BlockPos(x, y - 1, z), plank));
             if (gate) {
                 double rad = Math.toRadians(deg);
                 Direction facing = Direction.getNearest(Math.cos(rad), 0, Math.sin(rad));
-                lower.add(new Placement(new BlockPos(x, y, z), Blocks.OAK_FENCE_GATE.defaultBlockState().setValue(FenceGateBlock.FACING, facing)));
-                upper.add(new Placement(new BlockPos(x, y + 1, z), AIR));
+                out.add(new Placement(new BlockPos(x, y, z), Blocks.OAK_FENCE_GATE.defaultBlockState().setValue(FenceGateBlock.FACING, facing)));
+                for (int yy = y + 1; yy < rail; yy++) out.add(new Placement(new BlockPos(x, yy, z), AIR));
             } else {
-                lower.add(new Placement(new BlockPos(x, y, z), fence));
-                upper.add(new Placement(new BlockPos(x, y + 1, z), fence));
+                for (int yy = y; yy < rail; yy++) out.add(new Placement(new BlockPos(x, yy, z), fence));
             }
-            rail.add(new Placement(new BlockPos(x, y + 2, z), plank));
-        }
-        // Post by post around the ring, each post bottom to top.
-        List<Placement> out = new ArrayList<>();
-        for (int i = 0; i < cols.size(); i++) {
-            out.add(ground.get(i));
-            out.add(lower.get(i));
-            out.add(upper.get(i));
-            out.add(rail.get(i));
+            out.add(new Placement(new BlockPos(x, rail, z), plank));
         }
         return out;
     }
 
     /** Height of the first free block above the ground, ignoring leaves, plants and old fence. */
     private static int groundAt(ServerLevel level, int x, int z) {
-        int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+        int y = Village.groundAt(level, x, z);
         for (int k = 0; k < 6; k++) {
             BlockState below = level.getBlockState(new BlockPos(x, y - 1, z));
             Block bl = below.getBlock();

@@ -227,6 +227,79 @@ public class LaborTests {
         VillageTests.done(helper, p, t);
     }
 
+    @GameTest(template = "empty", timeoutTicks = 300, batch = "labor_market")
+    public static void bedsMarketStorehouseAndTrees(GameTestHelper helper) {
+        ServerPlayer p = RealmTests.lord(helper, CombatClass.GENERAL);
+        Territory t = VillageTests.village(helper, p, 5600);
+        ServerLevel level = helper.getLevel();
+        // A residential courtyard sleeps twenty on straw beds.
+        Building yard = new Building();
+        yard.id = t.nextBuildingId++;
+        yard.type = BuildingType.SMALL_RESIDENTIAL_COURTYARD;
+        yard.origin = t.center.offset(40, 0, 40);
+        var design = com.realmlord.village.BuildingDesigns.design(level, t, yard);
+        long beds = design.stream().filter(pl -> pl.state().getBlock() == Blocks.YELLOW_BED
+                && pl.state().getValue(net.minecraft.world.level.block.BedBlock.PART) == net.minecraft.world.level.block.state.properties.BedPart.HEAD).count();
+        helper.assertTrue(beds >= 20, "the courtyard should hold 20 beds, has " + beds);
+        // The manor hall has ten.
+        int gy = t.center.getY() - 1;
+        for (int x = -9; x <= 9; x++)
+            for (int z = -9; z <= 9; z++) {
+                level.setBlock(new BlockPos(t.center.getX() + x, gy, t.center.getZ() + z), Blocks.STONE.defaultBlockState(), 2);
+                for (int y = 1; y < 14; y++) level.setBlock(new BlockPos(t.center.getX() + x, gy + y, t.center.getZ() + z), Blocks.AIR.defaultBlockState(), 2);
+            }
+        com.realmlord.territory.Founding.buildManor(level, t.center, net.minecraft.core.Direction.NORTH);
+        int manorBeds = Residents.beds(level, t).size();
+        helper.assertTrue(manorBeds >= 10, "the manor should sleep ten, has " + manorBeds + " beds");
+        helper.assertTrue(Residents.bedOf(level, t, t.residents.get(0)) != null, "the first resident should have a bed");
+
+        // Workshops make goods: the Mill grinds grain, the Mulberry Shed yields silk.
+        VillageTests.built(t, BuildingType.MILL);
+        VillageTests.built(t, BuildingType.MULBERRY_SHED);
+        t.food = 1000;
+        com.realmlord.village.Goods.produce(t);
+        com.realmlord.village.Goods.produce(t);
+        helper.assertTrue(com.realmlord.village.Goods.FLOUR.stock(t) == 200 && t.food == 800, "mill: flour " + com.realmlord.village.Goods.FLOUR.stock(t) + ", grain " + t.food);
+        helper.assertTrue(com.realmlord.village.Goods.FINE_SILK.stock(t) == 1, "two days of the shed should give a roll of silk");
+        // The market buys and sells them at the novel's prices, less 20% on sales.
+        com.realmlord.village.Coins.give(p, 10_000);
+        long before = com.realmlord.village.Coins.count(p);
+        helper.assertTrue(Village.sellGood(p, t, com.realmlord.village.Goods.FINE_SILK, 1), "could not sell silk");
+        helper.assertTrue(com.realmlord.village.Coins.count(p) - before == 4000, "a roll of fine silk sells for 50 silver less tax");
+        helper.assertTrue(Village.buyGood(p, t, com.realmlord.village.Goods.SALT, 100), "could not buy salt");
+        helper.assertTrue(com.realmlord.village.Goods.SALT.stock(t) == 100, "salt not stored");
+        // Handing in from the pack, and the storehouse keeps the rest.
+        p.getInventory().add(new ItemStack(Items.OAK_LOG, 10));
+        p.getInventory().add(new ItemStack(Items.BEEF, 5));
+        long wood = t.wood;
+        com.realmlord.village.Goods.handIn(t, p.getInventory());
+        helper.assertTrue(t.wood - wood == 20 && com.realmlord.village.Goods.MEAT.stock(t) == 5, "hand-in: wood +" + (t.wood - wood));
+        t.storage.setItem(0, new ItemStack(Items.SADDLE));
+        Territory copy = Territory.load(t.save());
+        helper.assertTrue(copy.storage.getItem(0).is(Items.SADDLE) && copy.goods[com.realmlord.village.Goods.SALT.ordinal()] == 100, "storehouse or goods lost on saving");
+        // Graded gear sells on the Special Items platform.
+        p.getInventory().add(com.realmlord.loot.Gear.make(Items.IRON_SWORD, com.realmlord.territory.TokenGrade.BRONZE, level.getRandom()));
+        helper.assertTrue(Village.sellSpecial(p) == 1600, "a Bronze-grade weapon sells for 20 silver less tax");
+
+        // Mangroves are trees, not a cliff: the ground under them is what counts.
+        BlockPos pad = t.center.offset(30, 0, -30);
+        for (int x = -2; x < 22; x++)
+            for (int z = -2; z < 22; z++) {
+                level.setBlock(new BlockPos(pad.getX() + x, gy, pad.getZ() + z), Blocks.MUD.defaultBlockState(), 2);
+                for (int y = 1; y < 24; y++) level.setBlock(new BlockPos(pad.getX() + x, gy + y, pad.getZ() + z), Blocks.AIR.defaultBlockState(), 2);
+            }
+        for (int[] tr : new int[][]{{2, 2}, {4, 2}, {2, 4}}) {
+            for (int y = 1; y <= 3; y++) level.setBlock(new BlockPos(pad.getX() + tr[0] + 1, gy + y, pad.getZ() + tr[1]), Blocks.MANGROVE_ROOTS.defaultBlockState(), 2);
+            for (int y = 1; y <= 14; y++) level.setBlock(new BlockPos(pad.getX() + tr[0], gy + y, pad.getZ() + tr[1]), Blocks.MANGROVE_LOG.defaultBlockState(), 2);
+            for (int dx = -2; dx <= 2; dx++)
+                for (int dz = -2; dz <= 2; dz++)
+                    level.setBlock(new BlockPos(pad.getX() + tr[0] + dx, gy + 15, pad.getZ() + tr[1] + dz), Blocks.MANGROVE_LEAVES.defaultBlockState(), 2);
+        }
+        String err = Village.checkPlacement(level, t, BuildingType.BATHROOM, new BlockPos(pad.getX(), gy + 1, pad.getZ()), 0);
+        helper.assertTrue(err == null, "ground under mangroves should be buildable: " + err);
+        VillageTests.done(helper, p, t);
+    }
+
     private static Building site(Territory t, BuildingType type, int dx) {
         Building b = new Building();
         b.id = t.nextBuildingId++;

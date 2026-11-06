@@ -23,7 +23,7 @@ public final class Haul {
         if (s.is(Items.COBBLESTONE) || s.is(Items.STONE) || s.is(Items.COBBLED_DEEPSLATE) || s.is(Items.STONE_BRICKS)
                 || s.is(Items.ANDESITE) || s.is(Items.DIORITE) || s.is(Items.GRANITE)) return new int[]{STONE, 1};
         if (s.is(Items.RAW_IRON) || s.is(Items.IRON_ORE) || s.is(Items.DEEPSLATE_IRON_ORE)) return new int[]{ORE, 1};
-        if (s.is(Items.WHEAT)) return new int[]{FOOD, 10};
+        if (s.is(Items.WHEAT)) return new int[]{FOOD, 1};
         return null;
     }
 

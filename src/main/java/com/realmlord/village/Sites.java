@@ -37,13 +37,13 @@ public final class Sites {
     private Sites() {}
 
     /** Clearing reaches this high above the footprint; shaping fills this deep below it. */
-    public static final int HEIGHT = 14, DEPTH = 6;
+    public static final int HEIGHT = 16, DEPTH = 12;
     /** A site left this long with builders nearby but nothing done is taken over by the village. */
     public static final long STALL_TICKS = 600;
     /** Share of a building's wood and stone that taking it down returns. */
     public static final double SALVAGE = 0.75;
 
-    public enum Kind { CLEAR, FILL, PLACE, REMOVE }
+    public enum Kind { CLEAR, FILL, PLACE, REMOVE, REPAIR }
 
     public record Op(Kind kind, BlockPos pos, BlockState state, int index) {}
 
@@ -122,12 +122,38 @@ public final class Sites {
         int target = target(b, design.size());
         while (b.placed < target) {
             BuildingDesigns.Placement p = design.get(b.placed);
-            if (!level.isLoaded(p.pos()) || level.getBlockState(p.pos()) == p.state()) {
+            // Never skip a block whose ground is not loaded: wait for it instead, so no gaps are left.
+            if (!level.isLoaded(p.pos())) return null;
+            if (level.getBlockState(p.pos()) == p.state()) {
                 b.placed++;
                 continue;
             }
             return new Op(Kind.PLACE, p.pos(), p.state(), b.placed);
         }
+        if (b.placed >= design.size() && b.progress >= b.workNeeded) return nextRepair(level, b, design);
+        return null;
+    }
+
+    /**
+     * The last look over a finished site: anything missing or knocked out of place (a block
+     * that could not go in, something that grew or fell into the way) is put right before the
+     * building counts as done.
+     */
+    private static Op nextRepair(ServerLevel level, Building b, List<BuildingDesigns.Placement> design) {
+        for (int i = Math.max(0, b.verifyCursor); i < design.size(); i++) {
+            BuildingDesigns.Placement p = design.get(i);
+            if (!level.isLoaded(p.pos())) {
+                b.verifyCursor = i;
+                return null;
+            }
+            BlockState now = level.getBlockState(p.pos());
+            boolean same = p.state().isAir() ? now.isAir() : now.getBlock() == p.state().getBlock();
+            if (!same) {
+                b.verifyCursor = i;
+                return new Op(Kind.REPAIR, p.pos(), p.state(), i);
+            }
+        }
+        b.verified = true;
         return null;
     }
 
@@ -172,15 +198,21 @@ public final class Sites {
                 level.setBlock(op.pos(), op.state(), Block.UPDATE_ALL);
                 sound(level, op.pos(), op.state(), false);
             }
-            case PLACE -> {
-                if (op.index() != b.placed) return true;
+            case PLACE, REPAIR -> {
+                if (op.kind() == Kind.PLACE && op.index() != b.placed) return true;
                 BlockState want = op.state();
                 if (worker != null && !want.getCollisionShape(level, op.pos()).isEmpty() && occupied(level, op.pos())) return false;
                 BlockState was = level.getBlockState(op.pos());
-                if (!was.isAir() && was.getBlock() != want.getBlock()) keepDrops(level, t, r, op.pos(), was);
+                if (isNaturalLog(was)) {
+                    // A tree in the way comes down whole, not just the block that is needed.
+                    for (BlockPos log : tree(level, op.pos())) take(level, t, r, log, worker);
+                } else if (!was.isAir() && was.getBlock() != want.getBlock()) {
+                    keepDrops(level, t, r, op.pos(), was);
+                }
                 level.setBlock(op.pos(), want, Block.UPDATE_ALL);
                 if (!want.isAir()) sound(level, op.pos(), want, false);
-                b.placed++;
+                if (op.kind() == Kind.PLACE) b.placed++;
+                else b.verifyCursor = op.index() + 1;
             }
             case REMOVE -> {
                 if (op.index() != b.placed - 1) return true;

@@ -239,8 +239,19 @@ public class VillageTests {
         BlockPos east = fencePost(t, fence, 0), north = fencePost(t, fence, 270);
         helper.assertTrue(level.getBlockState(east).getBlock() instanceof net.minecraft.world.level.block.FenceGateBlock, "no gate at the east: " + level.getBlockState(east));
         helper.assertTrue(level.getBlockState(north).is(Blocks.OAK_FENCE) && level.getBlockState(north.above()).is(Blocks.OAK_FENCE), "north post not two fences high");
-        helper.assertTrue(level.getBlockState(north.below()).is(Blocks.OAK_PLANKS) && level.getBlockState(north.above(2)).is(Blocks.OAK_PLANKS),
-                "north post should have a plank in the ground and a plank rail: " + level.getBlockState(north.below()) + " / " + level.getBlockState(north.above(2)));
+        BlockPos top = north.above(2);
+        while (level.getBlockState(top).is(Blocks.OAK_FENCE) && top.getY() < north.getY() + 8) top = top.above();
+        helper.assertTrue(level.getBlockState(north.below()).is(Blocks.OAK_PLANKS) && level.getBlockState(top).is(Blocks.OAK_PLANKS),
+                "north post should have a plank in the ground and a plank rail: " + level.getBlockState(north.below()) + " / " + level.getBlockState(top));
+        // No gaps: every post of the ring stands, fence or gate, from its footing to its rail.
+        var cols = com.realmlord.village.BuildingDesigns.fenceColumns(t.center, fence.fenceRadius);
+        int gaps = 0;
+        for (int i = 0; i < cols.size(); i++) {
+            var post = new BlockPos(cols.get(i)[0], fence.fenceYs[i], cols.get(i)[1]);
+            var st = level.getBlockState(post);
+            if (!(st.is(Blocks.OAK_FENCE) || st.getBlock() instanceof net.minecraft.world.level.block.FenceGateBlock)) gaps++;
+        }
+        helper.assertTrue(gaps == 0, gaps + " posts missing from the fence");
         // Moving the gates changes the posts at once.
         Village.setGates(level, t, new int[]{270});
         helper.assertTrue(level.getBlockState(north).getBlock() instanceof net.minecraft.world.level.block.FenceGateBlock, "gate not moved to the north");

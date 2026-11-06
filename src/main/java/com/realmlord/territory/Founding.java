@@ -194,8 +194,43 @@ public final class Founding {
             set(level, post.getX(), y0, post.getZ(), Blocks.STRIPPED_MANGROVE_LOG.defaultBlockState());
             set(level, post.getX(), y0 + 1, post.getZ(), Blocks.LANTERN.defaultBlockState());
         }
+        furnish(level, c, front);
         // The manor seal.
         level.setBlock(c, ModBlocks.LORDS_MANOR.get().defaultBlockState(), Block.UPDATE_ALL);
+    }
+
+    /**
+     * Straw beds in the manor hall for the first ten residents, as in the novel's early village
+     * where the refugees sleep in the Lord's Manor: seven along the back wall, two on each side.
+     */
+    public static void furnish(ServerLevel level, BlockPos c, Direction front) {
+        Direction back = front.getOpposite(), side = front.getClockWise();
+        java.util.List<BlockPos[]> beds = new java.util.ArrayList<>();
+        for (int i = -3; i <= 3; i++) beds.add(new BlockPos[]{c.relative(back, 2).relative(side, i), c.relative(back, 3).relative(side, i)});
+        for (int s = -1; s <= 1; s += 2)
+            for (int f = 0; f <= 1; f++) {
+                BlockPos foot = c.relative(front, f).relative(side, 2 * s);
+                beds.add(new BlockPos[]{foot, foot.relative(side, s)});
+            }
+        for (BlockPos[] b : beds) {
+            if (!level.getBlockState(b[0]).isAir() || !level.getBlockState(b[1]).isAir()) continue;
+            Direction head = Direction.fromDelta(b[1].getX() - b[0].getX(), 0, b[1].getZ() - b[0].getZ());
+            if (head == null) continue;
+            BlockState foot = Blocks.YELLOW_BED.defaultBlockState().setValue(net.minecraft.world.level.block.BedBlock.FACING, head)
+                    .setValue(net.minecraft.world.level.block.BedBlock.PART, net.minecraft.world.level.block.state.properties.BedPart.FOOT);
+            level.setBlock(b[0], foot, Block.UPDATE_CLIENTS);
+            level.setBlock(b[1], foot.setValue(net.minecraft.world.level.block.BedBlock.PART, net.minecraft.world.level.block.state.properties.BedPart.HEAD), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    /** Beds for a manor built before there were any: finds its door to know which way it faces. */
+    public static void furnishOld(ServerLevel level, BlockPos c) {
+        for (Direction d : Direction.Plane.HORIZONTAL) {
+            if (level.getBlockState(c.relative(d, 4)).getBlock() instanceof DoorBlock) {
+                furnish(level, c, d);
+                return;
+            }
+        }
     }
 
     private static void set(ServerLevel level, int x, int y, int z, BlockState s) {

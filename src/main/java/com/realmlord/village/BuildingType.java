@@ -16,7 +16,7 @@ public enum BuildingType {
     SIMPLE_FENCE(1, false, null, 0, 100, 0, 24, 0, 0, Style.FENCE, 1, 1),
     DINING_HALL(1, true, null, 0, 30, 20, 12, 9, 7, Style.HALL, 1, 1),
     BATHROOM(1, true, null, 0, 10, 10, 6, 5, 5, Style.HUT, 1, 1),
-    SMALL_RESIDENTIAL_COURTYARD(1, true, null, 0, 40, 20, 12, 9, 9, Style.COURTYARD, 1, 10),
+    SMALL_RESIDENTIAL_COURTYARD(1, true, null, 0, 40, 20, 12, 17, 15, Style.COURTYARD, 1, 10),
     BLACKSMITH_WORKSHOP(1, true, Occupation.BLACKSMITH, 0, 20, 10, 12, 7, 7, Style.WORKSHOP, 1, 1),
     GROCERY_SHOP(1, true, Occupation.GROCER, 0, 20, 10, 12, 7, 6, Style.SHOP, 1, 1),
     LOGGING_FIELD(1, false, null, 0, 30, 0, 6, 11, 11, Style.LOGGING, 1, 1),

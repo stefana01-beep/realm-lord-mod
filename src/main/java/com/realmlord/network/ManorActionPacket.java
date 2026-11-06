@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 
 /** Client to server: buttons on the Manor screen. */
 public class ManorActionPacket {
-    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT, DEMOLISH, CREW }
+    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT, DEMOLISH, CREW, BUY_GOOD, SELL_GOOD, SELL_SPECIAL, HAND_IN, SELL_STORAGE, OPEN_STORAGE }
 
     private final Action action;
     private final int a;
@@ -75,6 +75,35 @@ public class ManorActionPacket {
             }
             case SELL -> {
                 if (!Village.sell(p, t, a, Math.max(1, Math.min(10_000, b)))) Notify.player(p, "realmlord.market.not_enough");
+            }
+            case BUY_GOOD -> {
+                if (!Village.buyGood(p, t, com.realmlord.village.Goods.byOrdinal(a), Math.max(1, Math.min(100_000, b)))) Notify.player(p, "realmlord.market.cannot_afford");
+            }
+            case SELL_GOOD -> {
+                var g = com.realmlord.village.Goods.byOrdinal(a);
+                long units = b < 0 && g != null ? g.stock(t) : Math.max(1, Math.min(100_000, b));
+                if (units <= 0 || !Village.sellGood(p, t, g, units)) Notify.player(p, "realmlord.market.not_enough");
+            }
+            case SELL_SPECIAL -> {
+                long got = Village.sellSpecial(p);
+                Notify.player(p, got > 0 ? Component.translatable("realmlord.market.sold_special", com.realmlord.village.Coins.format(got))
+                        : Component.translatable("realmlord.market.nothing_special"));
+            }
+            case HAND_IN -> {
+                int n = com.realmlord.village.Goods.handIn(t, p.getInventory());
+                Notify.player(p, Component.translatable("realmlord.storage.handed_in", n));
+            }
+            case SELL_STORAGE -> {
+                long got = com.realmlord.village.Goods.sellAll(t.storage);
+                com.realmlord.village.Coins.give(p, got);
+                Notify.player(p, Component.translatable("realmlord.storage.sold", com.realmlord.village.Coins.format(got)));
+            }
+            case OPEN_STORAGE -> {
+                p.openMenu(new net.minecraft.world.SimpleMenuProvider(
+                        (id, inv, pl) -> net.minecraft.world.inventory.ChestMenu.sixRows(id, inv, t.storage),
+                        Component.translatable("realmlord.storage.title", t.name)));
+                data.touch();
+                return;
             }
             case BUY_BLUEPRINT -> {
                 BuildingType type = BuildingType.byOrdinal(a);

@@ -33,6 +33,7 @@ public final class Residents {
 
     public static void sync(ServerLevel level, Territory t) {
         if (!level.isLoaded(t.center)) return;
+        if (FURNISHED.add(t.id)) com.realmlord.territory.Founding.furnishOld(level, t.center);
         Set<Integer> show = new HashSet<>();
         for (Resident r : shown(t)) show.add(r.id);
         int spawned = 0;
@@ -90,6 +91,46 @@ public final class Residents {
             default -> { }
         }
         return null;
+    }
+
+    private record Beds(long at, List<BlockPos> heads) {}
+
+    private static final java.util.Map<Integer, Beds> BEDS = new java.util.HashMap<>();
+    private static final java.util.Set<Integer> FURNISHED = new java.util.HashSet<>();
+
+    /**
+     * Every bed in the village, the manor's first and then each courtyard's (the heads, in a
+     * fixed order). Looked up again every half minute.
+     */
+    public static List<BlockPos> beds(ServerLevel level, Territory t) {
+        Beds b = BEDS.get(t.id);
+        if (b != null && level.getGameTime() - b.at() < 600) return b.heads();
+        List<BlockPos> heads = new ArrayList<>();
+        scanBeds(level, t.center.offset(-4, 0, -4), 9, 9, heads);
+        for (Building bd : t.buildings) {
+            if (bd.complete && bd.type.housing() > 0) scanBeds(level, bd.origin, bd.sizeX(), bd.sizeZ(), heads);
+        }
+        BEDS.put(t.id, new Beds(level.getGameTime(), heads));
+        return heads;
+    }
+
+    private static void scanBeds(ServerLevel level, BlockPos o, int sx, int sz, List<BlockPos> out) {
+        for (int x = 0; x < sx; x++)
+            for (int z = 0; z < sz; z++)
+                for (int y = 0; y <= 1; y++) {
+                    BlockPos p = o.offset(x, y, z);
+                    if (!level.isLoaded(p)) continue;
+                    var s = level.getBlockState(p);
+                    if (s.getBlock() instanceof net.minecraft.world.level.block.BedBlock
+                            && s.getValue(net.minecraft.world.level.block.BedBlock.PART) == net.minecraft.world.level.block.state.properties.BedPart.HEAD) out.add(p);
+                }
+    }
+
+    /** A resident's own bed: the n-th bed for the n-th resident, or null if there are not enough. */
+    public static BlockPos bedOf(ServerLevel level, Territory t, Resident r) {
+        List<BlockPos> beds = beds(level, t);
+        int idx = t.residents.indexOf(r);
+        return idx >= 0 && idx < beds.size() ? beds.get(idx) : null;
     }
 
     /** The site a builder is working on: the one the village gave them, else the oldest. */

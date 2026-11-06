@@ -334,6 +334,8 @@ public final class Village {
         t.wood += Math.round(owed[0]);
         t.stone += Math.round(owed[1]);
         t.ironOre += Math.round(owed[2]);
+        // The workshops' day.
+        Goods.produce(t);
         farm(t, day);
         updateCrops(level, t, day);
         // Food
@@ -450,7 +452,7 @@ public final class Village {
         int lo = Integer.MAX_VALUE, hi = Integer.MIN_VALUE;
         for (int x = 0; x < sx; x += Math.max(1, Math.min(2, sx - 1 - x))) {
             for (int z = 0; z < sz; z += Math.max(1, Math.min(2, sz - 1 - z))) {
-                int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, origin.getX() + x, origin.getZ() + z);
+                int y = groundAt(level, origin.getX() + x, origin.getZ() + z);
                 lo = Math.min(lo, y);
                 hi = Math.max(hi, y);
                 if (waterDepth(level, origin.getX() + x, y - 1, origin.getZ() + z) > MAX_FILL_DEPTH) return "realmlord.build.err.water";
@@ -458,9 +460,13 @@ public final class Village {
             }
             if (x == sx - 1) break;
         }
-        if (hi - lo > 6) return "realmlord.build.err.slope";
+        // Builders clear and fill up to this much themselves.
+        if (hi - lo > MAX_SLOPE) return "realmlord.build.err.slope";
         return null;
     }
+
+    /** The greatest rise across a site that builders will cut and fill to level. */
+    public static final int MAX_SLOPE = 10;
 
     /** The deepest water settlers will fill in to build on. */
     public static final int MAX_FILL_DEPTH = 3;
@@ -558,8 +564,32 @@ public final class Village {
         java.util.Map<Integer, Integer> freq = new java.util.HashMap<>();
         for (int x = 0; x < sx; x += Math.max(1, sx / 4))
             for (int z = 0; z < sz; z += Math.max(1, sz / 4))
-                freq.merge(level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, origin.getX() + x, origin.getZ() + z), 1, Integer::sum);
+                freq.merge(groundAt(level, origin.getX() + x, origin.getZ() + z), 1, Integer::sum);
         return freq.entrySet().stream().max(java.util.Map.Entry.comparingByValue()).map(java.util.Map.Entry::getKey).orElse(origin.getY());
+    }
+
+    /**
+     * The height of the first free block above the real ground (or a water surface), looking
+     * through trees, mangrove roots, giant mushrooms, vines and plants, which builders clear away.
+     */
+    public static int groundAt(ServerLevel level, int x, int z) {
+        int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+        for (int k = 0; k < 48; k++) {
+            BlockState b = level.getBlockState(new BlockPos(x, y - 1, z));
+            if (!growth(b)) break;
+            y--;
+        }
+        return y;
+    }
+
+    /** Things that grow on the ground rather than being it. */
+    public static boolean growth(BlockState b) {
+        if (b.isAir()) return true;
+        if (!b.getFluidState().isEmpty()) return false;
+        return b.is(net.minecraft.tags.BlockTags.LOGS) || b.is(net.minecraft.tags.BlockTags.LEAVES)
+                || b.is(Blocks.MANGROVE_ROOTS) || b.is(Blocks.VINE) || b.is(Blocks.MOSS_CARPET) || b.is(Blocks.BAMBOO)
+                || b.is(Blocks.BROWN_MUSHROOM_BLOCK) || b.is(Blocks.RED_MUSHROOM_BLOCK) || b.is(Blocks.MUSHROOM_STEM)
+                || b.is(Blocks.CACTUS) || b.is(Blocks.SUGAR_CANE) || b.is(Blocks.SNOW) || b.canBeReplaced();
     }
 
     /**
@@ -630,7 +660,7 @@ public final class Village {
         }
         if (!site.demolishing && site.stage == Building.BUILD && t.buildings.contains(site)) {
             int size = BuildingDesigns.size(level, t, site);
-            if (site.progress >= site.workNeeded && size >= 0 && site.placed >= size) finish(level, t, site);
+            if (site.progress >= site.workNeeded && size >= 0 && site.placed >= size && site.verified) finish(level, t, site);
         }
     }
 
@@ -816,6 +846,57 @@ public final class Village {
         add(t, resource, -units);
         Coins.give(p, Market.sellIncome(resource, units));
         return true;
+    }
+
+    /** Buys goods for the village at the market. */
+    public static boolean buyGood(ServerPlayer p, Territory t, Goods g, long units) {
+        if (g == null || units <= 0 || !Coins.pay(p, g.buyCost(units))) return false;
+        g.add(t, units);
+        return true;
+    }
+
+    /** Sells the village's goods at the market; the coins go to the Lord, less the 20% tax. */
+    public static boolean sellGood(ServerPlayer p, Territory t, Goods g, long units) {
+        if (g == null || units <= 0 || g.stock(t) < units) return false;
+        g.add(t, -units);
+        Coins.give(p, g.sellIncome(units));
+        return true;
+    }
+
+    /**
+     * The Special Items Trading Platform: graded gear and building blueprints from the Lord's
+     * pack, bought by the market (gear by grade, blueprints at half their price). Returns copper.
+     */
+    public static long sellSpecial(ServerPlayer p) {
+        long copper = 0;
+        var inv = p.getInventory();
+        for (int i = 0; i < inv.getContainerSize(); i++) {
+            net.minecraft.world.item.ItemStack s = inv.getItem(i);
+            long each = specialPrice(s);
+            if (each <= 0) continue;
+            copper += Math.round(each * s.getCount() * (1.0 - Market.SALES_TAX));
+            inv.setItem(i, net.minecraft.world.item.ItemStack.EMPTY);
+        }
+        Coins.give(p, copper);
+        return copper;
+    }
+
+    /** What the market pays for a special item before tax (copper), or 0. */
+    public static long specialPrice(net.minecraft.world.item.ItemStack s) {
+        if (s.isEmpty()) return 0;
+        var grade = com.realmlord.loot.Gear.gradeOf(s);
+        if (grade != null) return switch (grade) {
+            case BRONZE -> 2_000;          // 20 silver
+            case BLACK_IRON -> 10_000;     // 1 gold
+            case SILVER -> 50_000;         // 5 gold
+            case GOLD -> 200_000;          // 20 gold
+        };
+        String building = com.realmlord.loot.Blueprints.buildingOf(s);
+        if (building != null && !building.isEmpty()) {
+            BuildingType bt = BuildingType.byId(building);
+            if (bt != null) return bt.blueprintPrice() / 2;
+        }
+        return 0;
     }
 
     public static boolean buyBlueprint(ServerPlayer p, BuildingType type) {

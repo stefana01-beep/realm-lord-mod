@@ -67,6 +67,38 @@ TEXT = {
     "realmlord.spawn.world_spawn.desc": "Begin where the world begins.",
     "realmlord.cmd.spawn": "Choosing a starting place.",
     "key.realmlord.world_map": "World map",
+    "realmlord.activity.sleeping": "Asleep",
+    # Goods
+    "realmlord.goods.grain": "Grain", "realmlord.goods.wood": "Wood", "realmlord.goods.stone": "Stone", "realmlord.goods.iron_ore": "Iron ore",
+    "realmlord.goods.salt": "Salt", "realmlord.goods.meat": "Meat", "realmlord.goods.fish": "Fish", "realmlord.goods.leather": "Leather",
+    "realmlord.goods.herbs": "Medicinal herbs", "realmlord.goods.flour": "Flour", "realmlord.goods.wine": "Three Flower Wine",
+    "realmlord.goods.pottery": "Pottery", "realmlord.goods.tools": "Iron tools", "realmlord.goods.weapons": "Weapons",
+    "realmlord.goods.linen": "Linen (roll)", "realmlord.goods.fine_silk": "Fine silk (roll)", "realmlord.goods.fire_oil": "Fire oil (barrel)",
+    # The market's platforms
+    "realmlord.market.platform.materials": "Materials",
+    "realmlord.market.platform.special": "Special Items",
+    "realmlord.market.platform.auction": "Auction",
+    "realmlord.market.platform.negotiation": "Negotiation",
+    "realmlord.market.platform.locked": "Not open yet. As in the novel, the Limited Time Auction and the Negotiation Cooperation platforms open as the market grows (town level).",
+    "realmlord.market.materials_title": "Material Trading Platform",
+    "realmlord.market.sell_all": "All",
+    "realmlord.market.sell_all.tip": "Sell the whole stock, less the 20% tax.",
+    "realmlord.market.goods_note": "Green goods come from your workshops (daily change in colour). Storehouse: %s stacks.",
+    "realmlord.market.sell_special": "Sell gear and blueprints in your pack",
+    "realmlord.market.sell_special.tip": "Graded weapons and armour (Bronze 20 silver, Black Iron 1 gold, Silver 5 gold, Gold 20 gold) and building blueprints (half their price), less the 20% tax.",
+    "realmlord.market.special_note": "The Special Items Trading Platform deals in rare things: graded equipment and building blueprints. Sell what you carry, or buy the blueprints your village can build below.",
+    "realmlord.market.sold_special": "The market bought your special items for %s.",
+    "realmlord.market.nothing_special": "You carry nothing the Special Items platform buys.",
+    # The manor storehouse
+    "realmlord.storage.title": "%s Storehouse",
+    "realmlord.storage.open": "Storehouse",
+    "realmlord.storage.open.tip": "The Lord's Manor storehouse: 54 slots to keep anything for later (salvaged materials, tools, loot). Kept with your territory.",
+    "realmlord.storage.hand_in": "Hand in from pack",
+    "realmlord.storage.hand_in.tip": "Puts every log, plank, stone, iron ore, grain, meat, fish, leather and other trade good you carry into the village's stores, where builders and workshops use them and the market can sell them.",
+    "realmlord.storage.sell": "Sell storehouse goods",
+    "realmlord.storage.sell.tip": "Sells every trade good in the storehouse at market prices, less the 20% tax. Other items stay.",
+    "realmlord.storage.handed_in": "%s items handed in to the village stores.",
+    "realmlord.storage.sold": "The storehouse's goods sold for %s.",
     # The cleared bandit camp
     "realmlord.camp.choose": "What becomes of the bandit camp? %s  %s",
     "realmlord.camp.keep_button": "[Keep the camp]",
@@ -131,5 +163,8 @@ def add(L):
     L["realmlord.building.simple_fence.desc"] = (
         "A weak fortification that keeps out wild animals. Rings the whole territory border: each post is an oak "
         "plank set in the ground, two fence blocks and a plank rail on top. You choose where the gates go. +10 Security.")
+    L["realmlord.building.small_residential_courtyard.desc"] = (
+        "A walled courtyard in the old style: a hall across the back and a wing down each side around a yard. "
+        "Straw beds for 20 residents (23 in all), who sleep here at night.")
     L["realmlord.map.place_hint"] = ("Click the map to place it here. Right-click turns it; the yellow edge is the door. "
                                      "Green fits, red does not. Builders will clear and level the ground first.")

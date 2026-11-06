@@ -198,6 +198,8 @@ public class SettlerEntity extends PathfinderMob {
     private Activity activity = Activity.IDLE;
     private BlockPos spot;
     private int spotRadius = 8;
+    /** Their own bed, for the night. */
+    private BlockPos bed;
     private BlockPos wander;
     private int wanderUntil;
     // Building
@@ -235,7 +237,8 @@ public class SettlerEntity extends PathfinderMob {
             refreshName();
         }
         decide();
-        r.activity = activity.key();
+        if (isSleeping() && (activity != Activity.HOME || bed == null)) wake();
+        r.activity = isSleeping() ? "realmlord.activity.sleeping" : activity.key();
         restrictTo(spot, spotRadius);
         equip();
     }
@@ -251,8 +254,9 @@ public class SettlerEntity extends PathfinderMob {
         Activity was = activity;
         if (!level().isDay()) {
             activity = Activity.HOME;
-            spot = com.realmlord.village.Residents.home(t, r);
-            spotRadius = 4;
+            bed = level() instanceof ServerLevel sl ? com.realmlord.village.Residents.bedOf(sl, t, r) : null;
+            spot = bed != null ? bed : com.realmlord.village.Residents.home(t, r);
+            spotRadius = bed != null ? 2 : 4;
         } else if (com.realmlord.village.Haul.load(r.inv) >= 24 || late() && com.realmlord.village.Haul.carriesAnything(r.inv)) {
             activity = Activity.DEPOSIT;
             spot = com.realmlord.village.Residents.manorSpot(t, r);
@@ -352,8 +356,27 @@ public class SettlerEntity extends PathfinderMob {
         }
     }
 
+    /** Lies down in their bed, and stays put until morning. */
+    private void sleepIn(BlockPos head) {
+        var state = level().getBlockState(head);
+        if (!(state.getBlock() instanceof net.minecraft.world.level.block.BedBlock) || state.getValue(net.minecraft.world.level.block.BedBlock.OCCUPIED)) return;
+        getNavigation().stop();
+        startSleeping(head);
+        goalSelector.disableControlFlag(net.minecraft.world.entity.ai.goal.Goal.Flag.MOVE);
+        goalSelector.disableControlFlag(net.minecraft.world.entity.ai.goal.Goal.Flag.LOOK);
+        goalSelector.disableControlFlag(net.minecraft.world.entity.ai.goal.Goal.Flag.JUMP);
+    }
+
+    private void wake() {
+        if (isSleeping()) stopSleeping();
+        goalSelector.enableControlFlag(net.minecraft.world.entity.ai.goal.Goal.Flag.MOVE);
+        goalSelector.enableControlFlag(net.minecraft.world.entity.ai.goal.Goal.Flag.LOOK);
+        goalSelector.enableControlFlag(net.minecraft.world.entity.ai.goal.Goal.Flag.JUMP);
+    }
+
     private boolean busy() {
-        if (terr == null || res == null || spot == null || isCaptive()) return false;
+        if (terr == null || res == null || spot == null || isCaptive() || isSleeping()) return false;
+        if (activity == Activity.HOME && bed != null) return true;
         return switch (activity) {
             case BUILD, CHOP, GATHER, FARM, DEPOSIT -> true;
             default -> horizontalDist(spot) > spotRadius + 2;
@@ -436,6 +459,13 @@ public class SettlerEntity extends PathfinderMob {
                     equip();
                 }
             }
+            case HOME -> {
+                if (bed != null) {
+                    if (approach(bed, 1.6)) sleepIn(bed);
+                } else {
+                    approach(spot, spotRadius);
+                }
+            }
             default -> approach(spot, spotRadius);
         }
     }
@@ -457,7 +487,7 @@ public class SettlerEntity extends PathfinderMob {
         if (!approach(op.pos(), 4.5)) return;
         if (--actIn > 0) return;
         actIn = pace(com.realmlord.village.Job.CONSTRUCTION);
-        if (op.kind() == com.realmlord.village.Sites.Kind.PLACE || op.kind() == com.realmlord.village.Sites.Kind.FILL) {
+        if (op.kind() == com.realmlord.village.Sites.Kind.PLACE || op.kind() == com.realmlord.village.Sites.Kind.FILL || op.kind() == com.realmlord.village.Sites.Kind.REPAIR) {
             net.minecraft.world.item.Item item = op.state().getBlock().asItem();
             if (item != net.minecraft.world.item.Items.AIR) hold(item);
         } else {
@@ -687,6 +717,7 @@ public class SettlerEntity extends PathfinderMob {
     public boolean hurt(DamageSource source, float amount) {
         if (isCaptive() && !source.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY)) return false;
         if (source.is(net.minecraft.world.damagesource.DamageTypes.IN_WALL)) return false;
+        if (isSleeping()) wake();
         return super.hurt(source, amount);
     }
 

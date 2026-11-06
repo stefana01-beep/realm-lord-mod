@@ -35,6 +35,19 @@ public final class Views {
         v.putLong("wood", t.wood);
         v.putLong("stone", t.stone);
         v.putLong("ore", t.ironOre);
+        net.minecraft.nbt.ListTag goods = new net.minecraft.nbt.ListTag();
+        double[] daily = Goods.daily(t);
+        for (Goods g : Goods.values()) {
+            CompoundTag gt = new CompoundTag();
+            gt.putInt("i", g.ordinal());
+            gt.putLong("stock", g.stock(t));
+            gt.putDouble("daily", daily[g.ordinal()]);
+            goods.add(gt);
+        }
+        v.put("goods", goods);
+        int stored = 0;
+        for (int i = 0; i < t.storage.getContainerSize(); i++) if (!t.storage.getItem(i).isEmpty()) stored++;
+        v.putInt("stored", stored);
         v.putLong("treasury", t.treasury);
         v.putLong("tax", Village.dailyTax(t));
         v.putLong("foodUse", Village.foodUse(t));

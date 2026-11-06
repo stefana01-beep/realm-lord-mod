@@ -36,6 +36,11 @@ public class Building {
     // The Simple Fence: its ring, the ground height of each post and where the gates are.
     public int fenceRadius;
     public int[] fenceYs;
+    /** Earth packed under each post where the ground falls away. */
+    public int[] fenceFill;
+    /** Before a building is finished, its whole design is checked against the world (transient). */
+    public transient boolean verified;
+    public transient int verifyCursor;
     /** Gate bearings in degrees, 0 = east, 90 = south. */
     public int[] gates = new int[0];
 
@@ -96,6 +101,7 @@ public class Building {
         t.putInt("crew", crew);
         t.putInt("fenceR", fenceRadius);
         if (fenceYs != null) t.putIntArray("fenceYs", fenceYs);
+        if (fenceFill != null) t.putIntArray("fenceFill", fenceFill);
         t.putIntArray("gates", gates);
         return t;
     }
@@ -129,6 +135,7 @@ public class Building {
         b.crew = t.contains("crew") ? t.getInt("crew") : -1;
         b.fenceRadius = t.getInt("fenceR");
         b.fenceYs = t.contains("fenceYs") ? t.getIntArray("fenceYs") : null;
+        b.fenceFill = t.contains("fenceFill") ? t.getIntArray("fenceFill") : null;
         b.gates = t.contains("gates") ? t.getIntArray("gates") : new int[]{0, 90, 180, 270};
         return b;
     }
