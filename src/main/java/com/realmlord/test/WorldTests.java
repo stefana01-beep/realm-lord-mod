@@ -79,6 +79,27 @@ public class WorldTests {
                 yangtze = Math.min(yangtze, gen.getBaseHeight(wuhan[0] + dx, wuhan[1] + dz, Heightmap.Types.OCEAN_FLOOR_WG, tall, rs));
         RealmLord.LOGGER.info("CHINA TEST tibet={} (temp {}), sea={}, plain={}, sichuan={}, yangtze bed={}, taklamakan temp {} veg {}",
                 tibet, tTemp, sea, plain, sichuan, yangtze, kTemp, kVeg);
+        // What the shaper is given at the plain and at sea, for tuning.
+        var dfs = reg.registryOrThrow(Registries.DENSITY_FUNCTION);
+        for (double[] ll : new double[][]{{115.5, 35.5}, {125, 29}, {104.07, 30.66}}) {
+            int x = bx(ll[0]), z = bz(ll[1]);
+            StringBuilder sb = new StringBuilder("CHINA PROBE " + ll[0] + "," + ll[1] + " target=" + Math.round(ChinaMap.groundY(x, z)));
+            for (String n : new String[]{"offset", "factor", "jaggedness"}) {
+                var f = dfs.get(RealmLord.id("china/" + n));
+                if (f == null) continue;
+                var bound = f.mapAll(new DensityFunction.Visitor() {
+                    public DensityFunction apply(DensityFunction d) {
+                        return d;
+                    }
+                });
+                sb.append(' ').append(n).append('=').append(String.format("%.3f", bound.compute(new DensityFunction.SinglePointContext(x, 64, z))));
+            }
+            for (int y = 40; y <= 120; y += 4) {
+                double fd = router.finalDensity().compute(new DensityFunction.SinglePointContext(x, y, z));
+                sb.append(' ').append(y).append(':').append(String.format("%.2f", fd));
+            }
+            RealmLord.LOGGER.info(sb.toString());
+        }
         helper.assertTrue(tibet > 300, "the Tibetan Plateau should be high, is " + tibet);
         helper.assertTrue(sichuan > 85 && sichuan < 170, "the Sichuan Basin should be raised but low-lying, is " + sichuan);
         helper.assertTrue(yangtze < 63, "the Yangtze at Wuhan should be a river below the sea's level, bed at " + yangtze);
