@@ -268,6 +268,11 @@ public final class ChinaMap {
                 v = detail * (1 - m) + Math.copySign(0.67, detail) * m;
                 v *= 1 - riverAt(bx, bz);
             }
+            case "factor" -> {
+                // A higher factor holds the surface to the real height; low relief means flat land.
+                double rugged = sample(RELIEF, bx, bz);
+                v = detail * (1 + 3.0 * (1 - rugged));
+            }
             case "temperature" -> v = sample(TEMP, bx, bz) + detail * amount;
             case "vegetation" -> v = sample(VEG, bx, bz) + detail * amount;
             default -> v = fallback;

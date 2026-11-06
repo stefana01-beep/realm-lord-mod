@@ -57,7 +57,7 @@ def height_y(elev_m):
     """Real height (m) to the block the surface stands at. Lowlands keep their shape (about one
     block per 9 m near the sea); high ground is squeezed so the Himalaya fit under y 576."""
     land = 64.0 + 440.0 * (1 - np.exp(-np.maximum(elev_m, 0) / 3800.0))
-    sea = np.minimum(61.0, SEA_Y + np.maximum(-50.0, elev_m / 45.0))
+    sea = np.minimum(58.0, SEA_Y + np.maximum(-50.0, elev_m / 30.0))   # at least 5 blocks of water
     return np.where(elev_m > 0, land, sea)
 
 

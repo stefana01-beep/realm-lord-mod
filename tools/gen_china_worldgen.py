@@ -70,6 +70,9 @@ def main():
         if n == "offset":
             # The land's real height; vanilla's own shaping only beyond the map's edges.
             src = china("offset", "minecraft:overworld/ridges", 0.0, src)
+        if n == "factor":
+            # Flat land keeps its real height; only rugged country gets vanilla's full roughness.
+            src = china("factor", src, 0.0)
         if n == "depth":
             # The same slope as vanilla (a surface at y has offset y/128 - 1), up to the taller top.
             src["argument1"] = {"type": "minecraft:y_clamped_gradient", "from_y": MIN_Y, "from_value": 1.5,
