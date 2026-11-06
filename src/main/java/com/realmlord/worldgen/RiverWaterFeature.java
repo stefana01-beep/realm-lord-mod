@@ -43,8 +43,8 @@ public class RiverWaterFeature extends Feature<NoneFeatureConfiguration> {
                 // Water as deep as the banks allow (up to four blocks): the lowest ground a few
                 // blocks out on either side holds it in.
                 int bank = Integer.MAX_VALUE;
-                for (int[] o : new int[][]{{3, 0}, {-3, 0}, {0, 3}, {0, -3}}) {
-                    int bx = x + o[0], bz = z + o[1];
+                for (int[] off : new int[][]{{3, 0}, {-3, 0}, {0, 3}, {0, -3}}) {
+                    int bx = x + off[0], bz = z + off[1];
                     if (ChinaMap.riverDist(bx, bz) <= ChinaMap.halfWidth(s) * 0.85) continue;
                     bank = Math.min(bank, level.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, bx, bz));
                 }
