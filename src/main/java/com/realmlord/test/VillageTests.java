@@ -110,7 +110,7 @@ public class VillageTests {
         Village.day(level, t, t.lastDay + 1);
         helper.assertTrue(t.wood - wood >= 40, "4 loggers should cut at least 40 wood, cut " + (t.wood - wood));
         helper.assertTrue(t.stone - stone >= 10, "2 quarrymen should cut at least 10 stone, cut " + (t.stone - stone));
-        helper.assertTrue(t.food == 100 - t.residents.size(), "each resident eats 1 food a day");
+        helper.assertTrue(t.food == 100 - Village.foodUse(t), "each resident eats 1 food a day (a soldier 2): ate " + (100 - t.food));
         helper.assertTrue(t.treasury > treasury, "no taxes collected");
         // No housing beyond the manor: nobody new can move in.
         helper.assertTrue(t.residents.size() == 10, "immigrants arrived with no housing: " + t.residents.size());

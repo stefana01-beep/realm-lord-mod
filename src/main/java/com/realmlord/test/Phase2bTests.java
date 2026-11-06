@@ -77,14 +77,14 @@ public class Phase2bTests {
         helper.assertTrue(Village.dailyTax(t) > tax0, "a treasurer should raise the taxes");
         helper.assertTrue(Office.appoint(t, Office.STEWARD, minister == a ? b : a) == null && Village.indexes(t)[0] > pol0, "a steward should raise the political index");
         helper.assertTrue("realmlord.job.err.office".equals(Village.canAssign(t, minister, Job.LOGGING, -1)), "an office holder was sent logging");
-        // The militia needs a camp; a camp holds ten, and they drill.
-        Resident farmer = t.residents.get(1);
-        helper.assertTrue("realmlord.militia.err.no_camp".equals(Village.enlist(t, farmer, true)), "a militia without a camp");
-        VillageTests.built(t, BuildingType.MILITARY_CAMP);
+        // A few may take up arms before there is a camp (the first guard among them); a camp holds ten more, and they drill.
         while (t.residents.size() < 30) Village.add(t, Resident.random(level.getRandom(), com.realmlord.village.Occupation.FARMER, 0));
+        for (Resident r : t.residents) if (r.office < 0 && !r.militia) Village.enlist(t, r, true);
+        helper.assertTrue(Village.militiaCount(t) == Village.BASE_MILITIA, "without a camp the militia should stop at " + Village.BASE_MILITIA + ": " + Village.militiaCount(t));
+        VillageTests.built(t, BuildingType.MILITARY_CAMP);
         int enlisted = 0;
-        for (Resident r : t.residents) if (r.office < 0 && Village.enlist(t, r, true) == null) enlisted++;
-        helper.assertTrue(enlisted == 10 && Village.militiaCount(t) == 10, "a camp should hold ten militia, enlisted " + enlisted);
+        for (Resident r : t.residents) if (r.office < 0 && !r.militia && Village.enlist(t, r, true) == null) enlisted++;
+        helper.assertTrue(enlisted == 10 && Village.militiaCount(t) == Village.BASE_MILITIA + 10, "a camp should hold ten more militia, enlisted " + enlisted);
         int force = 0;
         for (Resident r : t.residents) if (r.militia) force += r.force;
         // Hunters bring meat and hides.
