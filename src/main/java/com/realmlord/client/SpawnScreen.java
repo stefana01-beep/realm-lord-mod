@@ -1,6 +1,7 @@
 package com.realmlord.client;
 
-import com.mojang.blaze3d.platform.NativeImage;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.realmlord.RealmLord;
 import com.realmlord.network.ModNetwork;
 import com.realmlord.network.SpawnChoicePacket;
@@ -9,33 +10,50 @@ import com.realmlord.territory.SpawnPicker;
 import com.realmlord.worldgen.ChinaMap;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Where to begin. On the China world the whole map is shown with its recommended regions
- * marked; pick one from the list or click anywhere on land. Elsewhere, the kinds of country
+ * Where to begin. On the China world the map fills the window: the novel's provinces, the
+ * great rivers and ranges, and the recommended places marked in red. Scroll to zoom, drag to
+ * move about, click a marker or anywhere on land to choose. Elsewhere, the kinds of country
  * found around the world spawn are listed with how far away they are.
  */
 public class SpawnScreen extends Screen {
-    private static final ResourceLocation MAP_ID = RealmLord.id("dynamic/china_map");
-    private static DynamicTexture mapTexture;
-    private static int mapW, mapH;
+    private static final ResourceLocation MAP = RealmLord.id("textures/gui/china_map.png");
+    /** Image pixels per map pixel (see tools/gen_china_atlas.py). */
+    private static final int IMAGE_SCALE = 2;
+
+    private record Label(String name, int x, int z, String kind) {}
+
+    private static List<Label> labels;
 
     private final SpawnOptionsPacket data;
     private int selected = 0;
-    /** A place clicked on the map instead of a listed one. */
     private Integer customX, customZ;
 
-    /** The panel shrinks to fit small windows and large GUI scales. */
-    private int W = 440, H = 300;
+    // The view: zoom (1 = whole map) and the image pixel at the centre of the map area.
+    private double zoom = 1, viewU, viewV;
+    private boolean viewSet;
+    private double pressX, pressY;
+    private boolean dragging, pressedOnMap;
+
+    private int W, H;
 
     public SpawnScreen(SpawnOptionsPacket data) {
         super(Component.translatable("realmlord.spawn.title"));
         this.data = data;
     }
+
+    // ------------------------------------------------------------------ layout
 
     private int left() {
         return (width - W) / 2;
@@ -45,64 +63,146 @@ public class SpawnScreen extends Screen {
         return (height - H) / 2;
     }
 
-    /** Width of the list of places on the right (China) or left (other worlds). */
     private int listW() {
-        return data.china ? Math.max(100, Math.min(150, W * 3 / 10)) : Math.max(110, Math.min(180, W * 2 / 5));
+        return data.china ? Mth.clamp(W / 5, 96, 150) : Mth.clamp(W * 2 / 5, 110, 180);
     }
 
-    /** Room below the map for the chosen place's description and the Begin button. */
-    private static final int BELOW = 58;
-
-    // The map keeps its shape and fits both the width and the height left for it.
-    private int mapAreaW() {
-        int byWidth = W - listW() - 30;
-        double aspect = mapW == 0 ? 736 / 524.0 : mapW / (double) mapH;
-        int byHeight = (int) ((H - 24 - BELOW) * aspect);
-        return Math.max(60, Math.min(byWidth, byHeight));
-    }
-
-    private int mapAreaH() {
-        double aspect = mapW == 0 ? 736 / 524.0 : mapW / (double) mapH;
-        return (int) Math.round(mapAreaW() / aspect);
-    }
-
-    /** Height of each place's button, so that the whole list fits. */
-    private int rowH() {
-        int room = H - 24 - 30;
-        return Math.max(12, Math.min(19, room / Math.max(1, data.options.size())));
-    }
+    /** Room under the map for the chosen place's description. */
+    private static final int BELOW = 40;
 
     private int mapX() {
-        return left() + 10;
+        return left() + 6;
     }
 
     private int mapY() {
-        return top() + 24;
+        return top() + 18;
     }
+
+    private int mapW() {
+        return W - listW() - 18;
+    }
+
+    private int mapH() {
+        return H - 18 - BELOW;
+    }
+
+    private int rowH() {
+        int room = H - 18 - 30;
+        return Mth.clamp(room / Math.max(1, data.options.size()), 12, 20);
+    }
+
+    private static int imageW() {
+        return ChinaMap.width() * IMAGE_SCALE;
+    }
+
+    private static int imageH() {
+        return ChinaMap.height() * IMAGE_SCALE;
+    }
+
+    /** Image pixels per screen pixel at the current zoom (the whole map fits at zoom 1). */
+    private double texelsPerPixel() {
+        double fit = Math.max(imageW() / (double) mapW(), imageH() / (double) mapH());
+        return fit / zoom;
+    }
+
+    private void clampView() {
+        double tpp = texelsPerPixel();
+        double halfW = mapW() * tpp / 2, halfH = mapH() * tpp / 2;
+        viewU = halfW * 2 >= imageW() ? imageW() / 2.0 : Mth.clamp(viewU, halfW, imageW() - halfW);
+        viewV = halfH * 2 >= imageH() ? imageH() / 2.0 : Mth.clamp(viewV, halfH, imageH() - halfH);
+    }
+
+    // block <-> image pixel <-> screen
+    private static double imageU(double bx) {
+        return (bx - ChinaMap.originX()) / ChinaMap.pixelSize() * IMAGE_SCALE;
+    }
+
+    private static double imageV(double bz) {
+        return (bz - ChinaMap.originZ()) / ChinaMap.pixelSize() * IMAGE_SCALE;
+    }
+
+    private double screenX(double bx) {
+        return mapX() + mapW() / 2.0 + (imageU(bx) - viewU) / texelsPerPixel();
+    }
+
+    private double screenY(double bz) {
+        return mapY() + mapH() / 2.0 + (imageV(bz) - viewV) / texelsPerPixel();
+    }
+
+    private double blockX(double sx) {
+        double u = viewU + (sx - mapX() - mapW() / 2.0) * texelsPerPixel();
+        return ChinaMap.originX() + u / IMAGE_SCALE * ChinaMap.pixelSize();
+    }
+
+    private double blockZ(double sy) {
+        double v = viewV + (sy - mapY() - mapH() / 2.0) * texelsPerPixel();
+        return ChinaMap.originZ() + v / IMAGE_SCALE * ChinaMap.pixelSize();
+    }
+
+    private boolean overMap(double mx, double my) {
+        return data.china && ChinaMap.ready() && Ui.inside(mx, my, mapX(), mapY(), mapW(), mapH());
+    }
+
+    // ------------------------------------------------------------------ setup
 
     @Override
     protected void init() {
         clearWidgets();
-        W = Math.min(440, width - 8);
-        H = Math.min(300, height - 8);
-        if (data.china) buildMap();
+        W = width - 8;
+        H = height - 8;
+        if (data.china) {
+            loadLabels();
+            // Smooth when the whole map is shrunk to fit.
+            minecraft.getTextureManager().getTexture(MAP).setFilter(true, false);
+            if (!viewSet) {
+                viewU = imageW() / 2.0;
+                viewV = imageH() / 2.0;
+                viewSet = true;
+            }
+            clampView();
+        }
         int lw = listW();
-        int lx = data.china ? left() + W - lw - 10 : left() + 10;
+        int lx = data.china ? left() + W - lw - 6 : left() + 6;
         int rh = rowH();
         for (int i = 0; i < data.options.size(); i++) {
             final int k = i;
             SpawnPicker.Option o = data.options.get(i);
             Component name = Component.translatable(o.key());
-            Button b = Button.builder(Component.literal(font.plainSubstrByWidth(name.getString(), lw - 8)), btn -> {
-                selected = k;
-                customX = customZ = null;
-            }).bounds(lx, top() + 22 + i * rh, lw, rh - 2).build();
-            b.setTooltip(net.minecraft.client.gui.components.Tooltip.create(name));
+            Button b = Button.builder(Component.literal(font.plainSubstrByWidth(name.getString(), lw - 8)), btn -> pick(k))
+                    .bounds(lx, top() + 18 + i * rh, lw, rh - 2).build();
+            b.setTooltip(Tooltip.create(Component.translatable(o.key() + ".desc")));
             addRenderableWidget(b);
         }
-        int bw = Math.min(110, lw);
         addRenderableWidget(Button.builder(Component.translatable("realmlord.spawn.begin"), b -> begin())
-                .bounds(left() + W - bw - 10, top() + H - 24, bw, 18).build());
+                .bounds(left() + W - lw - 6, top() + H - 24, lw, 18).build());
+    }
+
+    private void pick(int k) {
+        selected = k;
+        customX = customZ = null;
+        if (data.china) {
+            // Bring the place into view.
+            SpawnPicker.Option o = data.options.get(k);
+            zoom = Math.max(zoom, 2.5);
+            viewU = imageU(o.x());
+            viewV = imageV(o.z());
+            clampView();
+        }
+    }
+
+    private static void loadLabels() {
+        if (labels != null) return;
+        labels = new ArrayList<>();
+        try (var in = SpawnScreen.class.getResourceAsStream("/realmlord/china/labels.json")) {
+            if (in == null) return;
+            JsonObject root = JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();
+            for (var e : root.getAsJsonArray("labels")) {
+                JsonObject l = e.getAsJsonObject();
+                labels.add(new Label(l.get("name").getAsString(), l.get("x").getAsInt(), l.get("z").getAsInt(), l.get("kind").getAsString()));
+            }
+        } catch (Exception e) {
+            RealmLord.LOGGER.warn("Could not read the China map labels", e);
+        }
     }
 
     private void begin() {
@@ -119,135 +219,157 @@ public class SpawnScreen extends Screen {
         onClose();
     }
 
-    /** Draws the China map once: sea, plains, forest, desert, mountains, snow and the great rivers. */
-    private static void buildMap() {
-        if (mapTexture != null || !ChinaMap.ready()) return;
-        int w = ChinaMap.width(), h = ChinaMap.height();
-        int step = 2;
-        mapW = w / step;
-        mapH = h / step;
-        NativeImage img = new NativeImage(mapW, mapH, false);
-        for (int y = 0; y < mapH; y++)
-            for (int x = 0; x < mapW; x++) {
-                int ix = x * step, iz = y * step;
-                double cont = ChinaMap.pixel(ChinaMap.CONT, ix, iz);
-                double temp = ChinaMap.pixel(ChinaMap.TEMP, ix, iz), veg = ChinaMap.pixel(ChinaMap.VEG, ix, iz);
-                double mtn = ChinaMap.pixel(ChinaMap.MOUNTAIN, ix, iz), river = ChinaMap.pixel(ChinaMap.RIVER, ix, iz);
-                double lift = ChinaMap.pixel(ChinaMap.LIFT, ix, iz);
-                int rgb;
-                if (cont < -0.12) {
-                    double deep = Math.min(1, Math.max(0, (-cont - 0.12) * 1.6));
-                    rgb = mix(0x4C7FB8, 0x23446E, deep);
-                } else if (river > 0.45) {
-                    rgb = 0x3F76B0;
-                } else {
-                    if (temp > 0.35 && veg < -0.35) rgb = 0xD8C28C;          // desert
-                    else if (temp < -0.45) rgb = 0xE6ECEF;                    // snow
-                    else if (veg > 0.35) rgb = 0x3F6E36;                      // forest
-                    else if (veg > -0.1) rgb = 0x79A456;                      // green country
-                    else rgb = 0xA7A86A;                                      // dry grassland
-                    double high = Math.min(1, Math.max(0, Math.max(mtn, lift * 0.8)));
-                    rgb = mix(rgb, temp < -0.2 ? 0xF4F6F8 : 0x8C7B66, high * 0.75);
-                }
-                int r = (rgb >> 16) & 0xFF, g = (rgb >> 8) & 0xFF, b = rgb & 0xFF;
-                img.setPixelRGBA(x, y, 0xFF000000 | (b << 16) | (g << 8) | r);
-            }
-        mapTexture = new DynamicTexture(img);
-        net.minecraft.client.Minecraft.getInstance().getTextureManager().register(MAP_ID, mapTexture);
-    }
+    // ------------------------------------------------------------------ input
 
-    private static int mix(int a, int b, double t) {
-        int r = (int) (((a >> 16) & 0xFF) * (1 - t) + ((b >> 16) & 0xFF) * t);
-        int g = (int) (((a >> 8) & 0xFF) * (1 - t) + ((b >> 8) & 0xFF) * t);
-        int bl = (int) ((a & 0xFF) * (1 - t) + (b & 0xFF) * t);
-        return (r << 16) | (g << 8) | bl;
-    }
-
-    // Map pixel <-> block. The texture's pixel i covers map pixel i*2.
-    private int screenX(double bx) {
-        double ix = (bx - ChinaMap.blockX(0)) / (ChinaMap.blockX(1) - ChinaMap.blockX(0));
-        return mapX() + (int) Math.round(ix / ChinaMap.width() * mapAreaW());
-    }
-
-    private int screenY(double bz) {
-        double iz = (bz - ChinaMap.blockZ(0)) / (ChinaMap.blockZ(1) - ChinaMap.blockZ(0));
-        return mapY() + (int) Math.round(iz / ChinaMap.height() * mapAreaH());
-    }
-
-    private double blockX(double sx) {
-        double ix = (sx - mapX()) / mapAreaW() * ChinaMap.width();
-        return ChinaMap.blockX(ix - 0.5);
-    }
-
-    private double blockZ(double sy) {
-        double iz = (sy - mapY()) / mapAreaH() * ChinaMap.height();
-        return ChinaMap.blockZ(iz - 0.5);
-    }
-
-    private boolean overMap(double mx, double my) {
-        return data.china && mapTexture != null && Ui.inside(mx, my, mapX(), mapY(), mapAreaW(), mapAreaH());
+    @Override
+    public boolean mouseScrolled(double mx, double my, double delta) {
+        if (!overMap(mx, my)) return super.mouseScrolled(mx, my, delta);
+        // Zoom about the point under the cursor.
+        double bx = blockX(mx), bz = blockZ(my);
+        zoom = Mth.clamp(zoom * (delta > 0 ? 1.25 : 0.8), 1, 8);
+        viewU += imageU(bx) - (viewU + (mx - mapX() - mapW() / 2.0) * texelsPerPixel());
+        viewV += imageV(bz) - (viewV + (my - mapY() - mapH() / 2.0) * texelsPerPixel());
+        clampView();
+        return true;
     }
 
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
-        if (button == 0 && overMap(mx, my)) {
-            int bx = (int) Math.round(blockX(mx)), bz = (int) Math.round(blockZ(my));
-            // Clicking near a recommended place picks it.
-            for (int i = 0; i < data.options.size(); i++) {
-                SpawnPicker.Option o = data.options.get(i);
-                if (Math.abs(screenX(o.x()) - mx) <= 4 && Math.abs(screenY(o.z()) - my) <= 4) {
-                    selected = i;
-                    customX = customZ = null;
-                    return true;
-                }
-            }
-            customX = bx;
-            customZ = bz;
+        if (overMap(mx, my) && (button == 0 || button == 1)) {
+            pressX = mx;
+            pressY = my;
+            dragging = false;
+            pressedOnMap = true;
             return true;
         }
         return super.mouseClicked(mx, my, button);
     }
 
     @Override
+    public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
+        if (pressedOnMap) {
+            if (Math.abs(mx - pressX) + Math.abs(my - pressY) > 3) dragging = true;
+            if (dragging) {
+                viewU -= dx * texelsPerPixel();
+                viewV -= dy * texelsPerPixel();
+                clampView();
+            }
+            return true;
+        }
+        return super.mouseDragged(mx, my, button, dx, dy);
+    }
+
+    @Override
+    public boolean mouseReleased(double mx, double my, int button) {
+        if (pressedOnMap) {
+            pressedOnMap = false;
+            if (!dragging && button == 0 && overMap(mx, my)) choose(mx, my);
+            dragging = false;
+            return true;
+        }
+        return super.mouseReleased(mx, my, button);
+    }
+
+    private void choose(double mx, double my) {
+        for (int i = 0; i < data.options.size(); i++) {
+            SpawnPicker.Option o = data.options.get(i);
+            if (Math.abs(screenX(o.x()) - mx) <= 5 && Math.abs(screenY(o.z()) - my) <= 5) {
+                selected = i;
+                customX = customZ = null;
+                return;
+            }
+        }
+        int bx = (int) Math.round(blockX(mx)), bz = (int) Math.round(blockZ(my));
+        if (!ChinaMap.onMap(bx, bz)) return;
+        customX = bx;
+        customZ = bz;
+    }
+
+    // ------------------------------------------------------------------ drawing
+
+    @Override
     public void render(GuiGraphics g, int mx, int my, float pt) {
         renderBackground(g);
         int x = left(), y = top();
         Ui.panel(g, x, y, W, H);
-        Ui.centered(g, font, title, x + W / 2, y + 8, Ui.GOLD);
-        if (data.china) {
-            int ax = mapX(), ay = mapY(), aw = mapAreaW(), ah = mapAreaH();
-            g.fill(ax - 1, ay - 1, ax + aw + 1, ay + ah + 1, 0xFF8C6A2A);
-            if (mapTexture != null) {
-                g.blit(MAP_ID, ax, ay, aw, ah, 0, 0, mapW, mapH, mapW, mapH);
-                for (int i = 0; i < data.options.size(); i++) {
-                    SpawnPicker.Option o = data.options.get(i);
-                    int px = screenX(o.x()), py = screenY(o.z());
-                    boolean sel = customX == null && i == selected;
-                    g.fill(px - 3, py - 3, px + 3, py + 3, 0xFF000000);
-                    g.fill(px - 2, py - 2, px + 2, py + 2, sel ? 0xFFFFD84D : 0xFFC8423B);
-                }
-                if (customX != null) {
-                    int px = screenX(customX), py = screenY(customZ);
-                    g.fill(px - 3, py - 3, px + 3, py + 3, 0xFF000000);
-                    g.fill(px - 2, py - 2, px + 2, py + 2, 0xFFFFFFFF);
-                }
-                if (overMap(mx, my)) {
-                    g.drawString(font, Component.translatable("realmlord.spawn.coords", (int) blockX(mx), (int) blockZ(my)), ax, y + 8, Ui.MUTED, false);
-                }
-            } else {
-                Ui.centered(g, font, Component.translatable("realmlord.map.loading"), ax + aw / 2, ay + ah / 2, Ui.MUTED);
+        Ui.centered(g, font, title, x + (W - listW()) / 2, y + 5, Ui.GOLD);
+        if (data.china && ChinaMap.ready()) drawMap(g, mx, my);
+        drawDescription(g);
+        super.render(g, mx, my, pt);
+    }
+
+    private void drawMap(GuiGraphics g, int mx, int my) {
+        int ax = mapX(), ay = mapY(), aw = mapW(), ah = mapH();
+        g.fill(ax - 1, ay - 1, ax + aw + 1, ay + ah + 1, 0xFF6B4A22);
+        g.fill(ax, ay, ax + aw, ay + ah, 0xFF7FA9C9);
+        double tpp = texelsPerPixel();
+        // The part of the image in view, and where it lands on screen (the whole map may not fill the area).
+        double u0 = viewU - aw * tpp / 2, v0 = viewV - ah * tpp / 2;
+        double cu0 = Math.max(0, u0), cv0 = Math.max(0, v0);
+        double cu1 = Math.min(imageW(), u0 + aw * tpp), cv1 = Math.min(imageH(), v0 + ah * tpp);
+        int sx0 = (int) Math.round(ax + (cu0 - u0) / tpp), sy0 = (int) Math.round(ay + (cv0 - v0) / tpp);
+        int sx1 = (int) Math.round(ax + (cu1 - u0) / tpp), sy1 = (int) Math.round(ay + (cv1 - v0) / tpp);
+        g.enableScissor(ax, ay, ax + aw, ay + ah);
+        g.blit(MAP, sx0, sy0, sx1 - sx0, sy1 - sy0, (float) cu0, (float) cv0, (int) Math.round(cu1 - cu0), (int) Math.round(cv1 - cv0), imageW(), imageH());
+
+        // Names: provinces always, smaller ones once zoomed in.
+        float scale = (float) Mth.clamp(0.55 + zoom * 0.12, 0.6, 1.0);
+        for (Label l : labels) {
+            boolean small = !l.kind().equals("province");
+            if (small && zoom < 1.6 && !l.kind().equals("sea")) continue;
+            int color = switch (l.kind()) {
+                case "province" -> 0xFF4A2C12;
+                case "place" -> 0xFF9A1E1E;
+                case "sea" -> 0xFF2D5A86;
+                default -> 0xFF6E6A62;
+            };
+            label(g, l.name(), screenX(l.x()), screenY(l.z()), small ? scale * 0.85F : scale, color);
+        }
+        // Recommended places.
+        for (int i = 0; i < data.options.size(); i++) {
+            SpawnPicker.Option o = data.options.get(i);
+            int px = (int) Math.round(screenX(o.x())), py = (int) Math.round(screenY(o.z()));
+            boolean sel = customX == null && i == selected;
+            int r = sel ? 4 : 3;
+            g.fill(px - r - 1, py - r - 1, px + r + 1, py + r + 1, 0xFF2A1A0A);
+            g.fill(px - r, py - r, px + r, py + r, sel ? 0xFFFFD84D : 0xFFC8423B);
+            if (sel || zoom >= 2.5) {
+                String name = Component.translatable(o.key()).getString();
+                label(g, name, px, py - 9, scale * 0.9F, sel ? 0xFF7A1010 : 0xFF5A1A1A);
             }
         }
-        // What is chosen, and why one might.
-        int dx = data.china ? x + 10 : x + listW() + 20, dy = data.china ? mapY() + mapAreaH() + 6 : y + 24;
-        int dw = data.china ? W - listW() - 30 : W - listW() - 30;
+        if (customX != null) {
+            int px = (int) Math.round(screenX(customX)), py = (int) Math.round(screenY(customZ));
+            g.fill(px - 4, py - 4, px + 4, py + 4, 0xFF000000);
+            g.fill(px - 3, py - 3, px + 3, py + 3, 0xFFFFFFFF);
+        }
+        g.disableScissor();
+        if (overMap(mx, my)) {
+            g.drawString(font, Component.translatable("realmlord.spawn.coords", (int) blockX(mx), (int) blockZ(my)), ax + 3, ay + ah - 11, 0xFF2A1A0A, false);
+        }
+    }
+
+    private void label(GuiGraphics g, String text, double cx, double cy, float scale, int color) {
+        g.pose().pushPose();
+        g.pose().translate(cx, cy, 0);
+        g.pose().scale(scale, scale, 1);
+        int w = font.width(text);
+        g.drawString(font, text, -w / 2, -4, color, false);
+        g.pose().popPose();
+    }
+
+    private void drawDescription(GuiGraphics g) {
+        int x = left(), y = top();
+        int dx = data.china ? x + 8 : x + listW() + 16;
+        int dy = data.china ? mapY() + mapH() + 4 : y + 20;
+        int dw = data.china ? mapW() : W - listW() - 24;
         if (customX != null) {
             g.drawString(font, Component.translatable("realmlord.spawn.custom", customX, customZ), dx, dy, Ui.GOLD, false);
-            Ui.wrap(g, font, Component.translatable("realmlord.spawn.custom.desc"), dx, dy + 12, dw, Ui.INK);
+            Ui.wrap(g, font, Component.translatable("realmlord.spawn.custom.desc"), dx, dy + 11, dw, Ui.INK);
         } else if (!data.options.isEmpty()) {
             SpawnPicker.Option o = data.options.get(Math.min(selected, data.options.size() - 1));
             g.drawString(font, Component.translatable(o.key()), dx, dy, Ui.GOLD, false);
-            int ny = Ui.wrap(g, font, Component.translatable(o.key() + ".desc"), dx, dy + 12, dw, Ui.INK);
+            int ny = Ui.wrap(g, font, Component.translatable(o.key() + ".desc"), dx, dy + 11, dw, Ui.INK);
             if (!data.china) {
                 int ddx = o.x() - data.spawnX, ddz = o.z() - data.spawnZ;
                 int dist = (int) Math.round(Math.sqrt((double) ddx * ddx + (double) ddz * ddz));
@@ -256,11 +378,10 @@ public class SpawnScreen extends Screen {
             }
         }
         if (data.china) {
-            // The hint goes under the list when there is room.
-            int listEnd = top() + 22 + data.options.size() * rowH() + 4;
-            if (top() + H - 30 - listEnd >= 30) Ui.wrap(g, font, Component.translatable("realmlord.spawn.hint"), x + W - listW() - 10, listEnd, listW(), Ui.MUTED);
+            int listEnd = top() + 18 + data.options.size() * rowH() + 4;
+            int room = top() + H - 28 - listEnd;
+            if (room >= 30) Ui.wrap(g, font, Component.translatable("realmlord.spawn.hint"), x + W - listW() - 6, listEnd, listW(), Ui.MUTED);
         }
-        super.render(g, mx, my, pt);
     }
 
     private static String direction(int dx, int dz) {

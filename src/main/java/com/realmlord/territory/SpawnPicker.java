@@ -40,6 +40,7 @@ public final class SpawnPicker {
 
     /** The China world's recommended regions: key and block position. */
     private static final Object[][] CHINA = {
+            {"shanhai", -1091, 5077},
             {"central_plains", 40, 30},
             {"guanzhong", -1143, 170},
             {"sichuan", -2729, 1574},
@@ -144,6 +145,8 @@ public final class SpawnPicker {
             for (int i = 0; i < steps; i++) {
                 double a = 2 * Math.PI * i / steps;
                 int bx = x + (int) Math.round(Math.cos(a) * r), bz = z + (int) Math.round(Math.sin(a) * r);
+                // Far places have not been generated yet: make the ground before looking at it.
+                level.getChunk(bx >> 4, bz >> 4);
                 int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, bx, bz);
                 BlockPos ground = new BlockPos(bx, y - 1, bz);
                 var s = level.getBlockState(ground);

@@ -1,0 +1,212 @@
+{
+ "image": [
+  1472,
+  1048
+ ],
+ "labels": [
+  {
+   "name": "Beijiang",
+   "x": 3328,
+   "z": -2640,
+   "kind": "province"
+  },
+  {
+   "name": "Chuanbei",
+   "x": -1812,
+   "z": 3103,
+   "kind": "province"
+  },
+  {
+   "name": "Chuannan",
+   "x": -1254,
+   "z": 4262,
+   "kind": "province"
+  },
+  {
+   "name": "Donghai",
+   "x": 2329,
+   "z": 644,
+   "kind": "province"
+  },
+  {
+   "name": "Guanxi",
+   "x": -1710,
+   "z": -310,
+   "kind": "province"
+  },
+  {
+   "name": "Heidong",
+   "x": -5194,
+   "z": -390,
+   "kind": "province"
+  },
+  {
+   "name": "Jiangchuan",
+   "x": 1072,
+   "z": 2773,
+   "kind": "province"
+  },
+  {
+   "name": "Jiangnan",
+   "x": 2478,
+   "z": 2154,
+   "kind": "province"
+  },
+  {
+   "name": "Jin Country",
+   "x": 4901,
+   "z": -4723,
+   "kind": "province"
+  },
+  {
+   "name": "Jingchu",
+   "x": -45,
+   "z": 1436,
+   "kind": "province"
+  },
+  {
+   "name": "Jingdu",
+   "x": 1026,
+   "z": -1741,
+   "kind": "province"
+  },
+  {
+   "name": "Lingnan",
+   "x": 309,
+   "z": 4341,
+   "kind": "province"
+  },
+  {
+   "name": "Ludong",
+   "x": 1855,
+   "z": -697,
+   "kind": "province"
+  },
+  {
+   "name": "Minnan",
+   "x": 1806,
+   "z": 3384,
+   "kind": "province"
+  },
+  {
+   "name": "Mongolia",
+   "x": -472,
+   "z": -3173,
+   "kind": "province"
+  },
+  {
+   "name": "Qiongzhou",
+   "x": -896,
+   "z": 6131,
+   "kind": "province"
+  },
+  {
+   "name": "Shu",
+   "x": -2926,
+   "z": 1615,
+   "kind": "province"
+  },
+  {
+   "name": "Taiyuan",
+   "x": -49,
+   "z": -1189,
+   "kind": "province"
+  },
+  {
+   "name": "Tibet",
+   "x": -7963,
+   "z": 1121,
+   "kind": "province"
+  },
+  {
+   "name": "Wannan",
+   "x": 1565,
+   "z": 1101,
+   "kind": "province"
+  },
+  {
+   "name": "West Turk",
+   "x": -8777,
+   "z": -2855,
+   "kind": "province"
+  },
+  {
+   "name": "Xiangnan",
+   "x": -238,
+   "z": 2766,
+   "kind": "province"
+  },
+  {
+   "name": "Yizhou",
+   "x": 2784,
+   "z": 4381,
+   "kind": "province"
+  },
+  {
+   "name": "Yunnan",
+   "x": -3656,
+   "z": 3943,
+   "kind": "province"
+  },
+  {
+   "name": "Zhongyuan",
+   "x": 384,
+   "z": 273,
+   "kind": "province"
+  },
+  {
+   "name": "Lianzhou Basin",
+   "x": -1042,
+   "z": 4819,
+   "kind": "place"
+  },
+  {
+   "name": "Korea",
+   "x": 4836,
+   "z": -1105,
+   "kind": "foreign"
+  },
+  {
+   "name": "Vietnam",
+   "x": -2231,
+   "z": 5574,
+   "kind": "foreign"
+  },
+  {
+   "name": "India",
+   "x": -10731,
+   "z": 4023,
+   "kind": "foreign"
+  },
+  {
+   "name": "Outer Mongolia",
+   "x": -3078,
+   "z": -4922,
+   "kind": "foreign"
+  },
+  {
+   "name": "Japan",
+   "x": 7670,
+   "z": -549,
+   "kind": "foreign"
+  },
+  {
+   "name": "Yellow Sea",
+   "x": 3599,
+   "z": -350,
+   "kind": "sea"
+  },
+  {
+   "name": "East Sea",
+   "x": 3924,
+   "z": 2036,
+   "kind": "sea"
+  },
+  {
+   "name": "South Sea",
+   "x": 668,
+   "z": 6409,
+   "kind": "sea"
+  }
+ ]
+}

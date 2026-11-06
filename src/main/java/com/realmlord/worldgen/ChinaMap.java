@@ -52,6 +52,22 @@ public final class ChinaMap {
         }
     }
 
+    /** Block position of the map's top-left corner, and blocks per map pixel. */
+    public static int originX() {
+        load();
+        return x0;
+    }
+
+    public static int originZ() {
+        load();
+        return z0;
+    }
+
+    public static int pixelSize() {
+        load();
+        return px;
+    }
+
     public static int width() {
         load();
         return w;

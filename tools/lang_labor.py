@@ -48,7 +48,7 @@ TEXT = {
     "realmlord.spawn.coords": "%s, %s",
     "realmlord.spawn.custom": "Your own choice (%s, %s)",
     "realmlord.spawn.custom.desc": "Anywhere on land. You will arrive on the nearest dry ground.",
-    "realmlord.spawn.hint": "Choose a region on the right, or click anywhere on the map.",
+    "realmlord.spawn.hint": "Scroll to zoom and drag to move the map. Click a red marker or anywhere on land, then press Begin here.",
     "realmlord.spawn.distance": "%s blocks %s, at %s, %s",
     "realmlord.spawn.arrived": "You arrive at %s, %s. This is now where you wake.",
     "realmlord.spawn.err.placed": "You have already chosen where to begin.",
@@ -69,6 +69,9 @@ TEXT = {
 }
 
 CHINA = {
+    "shanhai": ("Lianzhou Basin (Shanhai)",
+                "Where Ouyang Shuo founded Shanhai Village in the novel: a warm, fertile basin in the far south, ringed by mountains "
+                "and opening onto the sea. Far from the great powers, with room to grow."),
     "central_plains": ("Central Plains (Luoyang)",
                        "The heart of the land on the Yellow River: wide, flat, fertile farmland that is easy to build on. Open on every side, so easy to reach and hard to defend."),
     "guanzhong": ("Guanzhong (Chang'an)",

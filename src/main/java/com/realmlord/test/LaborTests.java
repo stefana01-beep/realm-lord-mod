@@ -137,7 +137,12 @@ public class LaborTests {
         var options = SpawnPicker.options(level);
         helper.assertTrue(!options.isEmpty(), "no starting places offered");
         helper.assertTrue(!Profiles.get(p).isPlaced(), "a new player has not chosen yet");
-        SpawnPicker.Option o = options.get(0);
+        // The farthest place offered, whose ground has not been generated yet.
+        var spawn = level.getSharedSpawnPos();
+        SpawnPicker.Option o = options.stream().max(java.util.Comparator.comparingDouble(
+                (SpawnPicker.Option k) -> Math.hypot(k.x() - spawn.getX(), k.z() - spawn.getZ()))).orElseThrow();
+        helper.assertTrue(com.realmlord.worldgen.ChinaMap.sample(com.realmlord.worldgen.ChinaMap.CONT, -1091, 5077) > -0.05,
+                "Shanhai in the Lianzhou Basin should be on land");
         String err = SpawnPicker.choose(p, o.x(), o.z(), false);
         helper.assertTrue(err == null, "could not begin at " + o.key() + ": " + err);
         helper.assertTrue(Profiles.get(p).isPlaced(), "choice not remembered");
