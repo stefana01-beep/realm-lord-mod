@@ -54,6 +54,9 @@ public class Territory {
     public boolean settled;
     /** Settlers who would live here but have no bed yet; they move in as beds free up. */
     public int waitingSettlers;
+    /** The manor standing now (see Residence: 1 the refugees' hall, 2 and 3 the Lord's residence), and the way its door faces (-1 unknown). */
+    public int manorTier = 1;
+    public int manorFront = -1;
 
     public com.realmlord.village.Resident resident(int id) {
         for (var r : residents) if (r.id == id) return r;
@@ -114,6 +117,8 @@ public class Territory {
         t.putDouble("immCarry", immigrantCarry);
         t.putInt("hungry", hungryDays);
         t.putInt("waiting", waitingSettlers);
+        t.putInt("manorTier", manorTier);
+        t.putInt("manorFront", manorFront);
         t.putString("freeChoices", String.join(",", freeChoices.stream().map(com.realmlord.village.BuildingType::id).toList()));
         t.putString("freeBuilds", String.join(",", freeBuilds.stream().map(com.realmlord.village.BuildingType::id).toList()));
         t.putBoolean("settled", settled);
@@ -169,6 +174,8 @@ public class Territory {
         r.immigrantCarry = t.getDouble("immCarry");
         r.hungryDays = t.getInt("hungry");
         r.waitingSettlers = t.getInt("waiting");
+        r.manorTier = t.contains("manorTier") ? t.getInt("manorTier") : 1;
+        r.manorFront = t.contains("manorFront") ? t.getInt("manorFront") : -1;
         for (String s : t.getString("freeChoices").split(",")) {
             var bt = com.realmlord.village.BuildingType.byId(s);
             if (bt != null) r.freeChoices.add(bt);

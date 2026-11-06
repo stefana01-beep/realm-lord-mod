@@ -33,7 +33,7 @@ public final class Residents {
 
     public static void sync(ServerLevel level, Territory t) {
         if (!level.isLoaded(t.center)) return;
-        if (FURNISHED.add(t.id)) com.realmlord.territory.Founding.furnishOld(level, t.center);
+        if (FURNISHED.add(t.id) && t.manorTier <= 1 && Village.manorHousing(t) > 0) com.realmlord.territory.Founding.furnishOld(level, t.center);
         Set<Integer> show = new HashSet<>();
         for (Resident r : shown(t)) show.add(r.id);
         int spawned = 0;
@@ -79,7 +79,7 @@ public final class Residents {
             }
             case CONSTRUCTION -> {
                 Building b = siteOf(t, r);
-                if (b != null) return b.type.placed() ? b.center() : t.center;
+                if (b != null) return b.footprint() ? b.center() : t.center;
             }
             case LOGGING, QUARRYING, FARMING, MINING -> {
                 Building f = field(t, r);
@@ -106,12 +106,17 @@ public final class Residents {
         Beds b = BEDS.get(t.id);
         if (b != null && level.getGameTime() - b.at() < 600) return b.heads();
         List<BlockPos> heads = new ArrayList<>();
-        scanBeds(level, t.center.offset(-4, 0, -4), 9, 9, heads);
+        if (Village.manorHousing(t) > 0 && t.manorTier <= 1) scanBeds(level, t.center.offset(-4, 0, -4), 9, 9, heads);
         for (Building bd : t.buildings) {
             if (bd.complete && bd.type.housing() > 0) scanBeds(level, bd.origin, bd.sizeX(), bd.sizeZ(), heads);
         }
         BEDS.put(t.id, new Beds(level.getGameTime(), heads));
         return heads;
+    }
+
+    /** Looks the beds up again next time (after the manor is rebuilt). */
+    public static void forgetBeds(Territory t) {
+        BEDS.remove(t.id);
     }
 
     private static void scanBeds(ServerLevel level, BlockPos o, int sx, int sz, List<BlockPos> out) {
@@ -150,7 +155,9 @@ public final class Residents {
     /** A spot in the manor yard, each resident their own. */
     public static BlockPos manorSpot(Territory t, Resident r) {
         double a = (r.id * 137.508) % 360 * Math.PI / 180;
-        int x = t.center.getX() + (int) Math.round(Math.cos(a) * 6.5), z = t.center.getZ() + (int) Math.round(Math.sin(a) * 6.5);
+        // Outside the walls: once the manor is the Lord's residence, the yard beyond it.
+        double rad = t.manorTier >= 2 ? 9.5 : 6.5;
+        int x = t.center.getX() + (int) Math.round(Math.cos(a) * rad), z = t.center.getZ() + (int) Math.round(Math.sin(a) * rad);
         return new BlockPos(x, t.center.getY(), z);
     }
 
@@ -160,8 +167,9 @@ public final class Residents {
      */
     public static BlockPos home(Territory t, Resident r) {
         int idx = t.residents.indexOf(r);
-        if (idx < Village.MANOR_HOUSING) return manorSpot(t, r);
-        idx -= Village.MANOR_HOUSING;
+        int manor = Village.manorHousing(t);
+        if (idx < manor) return manorSpot(t, r);
+        idx -= manor;
         for (Building b : t.buildings) {
             if (!b.complete || b.type.housing() <= 0) continue;
             if (idx < b.type.housing()) {

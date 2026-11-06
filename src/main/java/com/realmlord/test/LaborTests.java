@@ -386,6 +386,73 @@ public class LaborTests {
         VillageTests.done(helper, p, t);
     }
 
+    @GameTest(template = "empty", timeoutTicks = 300, batch = "labor_clearing")
+    public static void clearingAndTheLordsResidence(GameTestHelper helper) {
+        ServerPlayer p = RealmTests.lord(helper, CombatClass.GENERAL);
+        Territory t = VillageTests.village(helper, p, 6400);
+        ServerLevel level = helper.getLevel();
+        int gy = t.center.getY() - 1, cx = t.center.getX(), cz = t.center.getZ();
+        // Flat stone with a rocky hump and a hole in it.
+        for (int x = -10; x <= 40; x++)
+            for (int z = -10; z <= 10; z++) {
+                for (int y = -4; y <= 0; y++) level.setBlock(new BlockPos(cx + x, gy + y, cz + z), Blocks.STONE.defaultBlockState(), 2);
+                for (int y = 1; y < 16; y++) level.setBlock(new BlockPos(cx + x, gy + y, cz + z), Blocks.AIR.defaultBlockState(), 2);
+            }
+        for (int x = 24; x <= 27; x++)
+            for (int z = -2; z <= 2; z++)
+                for (int y = 1; y <= 3; y++) level.setBlock(new BlockPos(cx + x, gy + y, cz + z), Blocks.STONE.defaultBlockState(), 2);
+        for (int x = 31; x <= 32; x++)
+            for (int y = -1; y <= 0; y++) level.setBlock(new BlockPos(cx + x, gy + y, cz), Blocks.AIR.defaultBlockState(), 2);
+
+        helper.assertTrue("realmlord.build.err.manor".equals(Village.startClearing(p, t, cx - 3, cz - 3, cx + 3, cz + 3, 0)), "the manor yard should not be cleared");
+        helper.assertTrue("realmlord.clear.err.big".equals(Village.startClearing(p, t, cx + 10, cz - 30, cx + 10 + Village.MAX_CLEARING, cz + 30, 0)), "too large an area was allowed");
+        String err = Village.startClearing(p, t, cx + 20, cz - 6, cx + 35, cz + 6, 0);
+        helper.assertTrue(err == null, "could not order a clearing: " + err);
+        Building c = t.buildings.get(t.buildings.size() - 1);
+        helper.assertTrue(c.type == BuildingType.CLEARING && c.origin.getY() == gy + 1 && c.sizeX() == 16 && c.sizeZ() == 13,
+                "clearing laid out wrongly at y " + c.origin.getY() + ", " + c.sizeX() + " x " + c.sizeZ());
+        helper.assertTrue(Village.checkPlacement(level, t, BuildingType.BATHROOM, new BlockPos(cx + 22, gy + 1, cz - 2), 0) != null, "a building was allowed on ground being cleared");
+        long stone = t.stone;
+        c.progress = c.workNeeded;
+        for (int i = 0; i < 20 && c.stage != Building.BUILD; i++) Sites.work(level, t, c, 2000);
+        helper.assertTrue(level.getBlockState(new BlockPos(cx + 25, gy + 1, cz)).isAir() && level.getBlockState(new BlockPos(cx + 26, gy + 3, cz + 1)).isAir(), "the hump was not cut away");
+        helper.assertTrue(!level.getBlockState(new BlockPos(cx + 31, gy, cz)).isAir() && !level.getBlockState(new BlockPos(cx + 32, gy - 1, cz)).isAir(), "the hole was not filled");
+        helper.assertTrue(t.stone - stone >= 40, "the rock cut away should go to the stores: +" + (t.stone - stone));
+        helper.assertTrue(Village.shift(t, Job.CONSTRUCTION, 2) > 0 || Village.count(t, Job.CONSTRUCTION) > 0, "no builders");
+        Village.construct(level, t, 20);
+        Village.construct(level, t, 20);
+        helper.assertTrue(t.building(c.id) == null, "a finished clearing should be done with");
+
+        // The Lord's residence: rebuilt at Grade 2, with nothing lost and no residents' beds.
+        for (int x = -9; x <= 9; x++)
+            for (int z = -9; z <= 9; z++) {
+                level.setBlock(new BlockPos(cx + x, gy, cz + z), Blocks.GRASS_BLOCK.defaultBlockState(), 2);
+                for (int y = 1; y < 18; y++) level.setBlock(new BlockPos(cx + x, gy + y, cz + z), Blocks.AIR.defaultBlockState(), 2);
+            }
+        com.realmlord.territory.Founding.buildManor(level, t.center, net.minecraft.core.Direction.NORTH);
+        BlockPos box = t.center.offset(2, 0, 2);
+        level.setBlock(box, Blocks.CHEST.defaultBlockState(), 3);
+        if (level.getBlockEntity(box) instanceof net.minecraft.world.Container ct) ct.setItem(0, new ItemStack(Items.DIAMOND, 3));
+        helper.assertTrue(Village.housing(t) == Village.MANOR_HOUSING, "the Grade 1 manor should house ten");
+        t.level = com.realmlord.territory.TerritoryLevel.VILLAGE_2;
+        helper.assertTrue(com.realmlord.territory.Residence.upgrade(level, t) && t.manorTier == 2, "the manor was not rebuilt");
+        helper.assertTrue(!com.realmlord.territory.Residence.upgrade(level, t), "rebuilt twice");
+        helper.assertTrue(t.storage.countItem(Items.DIAMOND) == 3, "what was kept in the old manor was lost");
+        helper.assertTrue(Village.housing(t) == 0 && Residents.beds(level, t).isEmpty(), "residents should no longer sleep in the manor");
+        helper.assertTrue(level.getBlockState(t.center).is(com.realmlord.registry.ModBlocks.LORDS_MANOR.get()), "the manor seal is gone");
+        // Facing north: u is east (+x), v is north (-z).
+        helper.assertTrue(level.getBlockState(t.center.offset(-4, 5, 5)).is(Blocks.RED_BED), "no bed for the Lord upstairs");
+        helper.assertTrue(level.getBlockState(t.center.offset(-5, 0, 0)).is(Blocks.CHEST), "no storeroom chests");
+        helper.assertTrue(level.getBlockState(t.center.offset(4, 0, -4)).is(Blocks.SPRUCE_STAIRS), "no stairs up");
+        helper.assertTrue(level.getBlockState(t.center.offset(0, 0, -6)).is(Blocks.DARK_OAK_DOOR), "the door should still face north");
+        t.level = com.realmlord.territory.TerritoryLevel.VILLAGE_3;
+        helper.assertTrue(com.realmlord.territory.Residence.upgrade(level, t) && t.manorTier == 3, "the Grade 3 residence was not built");
+        helper.assertTrue(level.getBlockState(t.center.offset(3, 0, 2)).is(Blocks.ENCHANTING_TABLE), "no enchanting table in the Grade 3 study");
+        Territory copy = Territory.load(t.save());
+        helper.assertTrue(copy.manorTier == 3 && copy.manorFront == net.minecraft.core.Direction.NORTH.get2DDataValue(), "manor state lost on saving");
+        VillageTests.done(helper, p, t);
+    }
+
     private static Building site(Territory t, BuildingType type, int dx) {
         Building b = new Building();
         b.id = t.nextBuildingId++;

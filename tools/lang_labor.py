@@ -181,6 +181,7 @@ def add(L):
     L["realmlord.map.place_hint"] = ("Click the map to place it here. Right-click turns it; the yellow edge is the door. "
                                      "Green fits, red does not. Builders will clear and level the ground first.")
     L.update(ROUND_PATHS)
+    L.update(ROUND_CLEARING)
 
 
 ROUND_PATHS = {
@@ -231,4 +232,29 @@ ROUND_PATHS = {
     "realmlord.goods.sand": "Sand",
     "realmlord.goods.clay": "Clay",
     "realmlord.goods.earth": "Earth",
+}
+
+
+ROUND_CLEARING = {
+    "realmlord.building.clearing": "Clearing",
+    "realmlord.building.clearing.desc": "Ground the builders clear and level.",
+    "realmlord.clear.new": "Clear & level ground",
+    "realmlord.clear.title": "Clear & level",
+    "realmlord.clear.corner1": "Click the first corner",
+    "realmlord.clear.corner2": "Click the opposite corner",
+    "realmlord.clear.size": "Area: %s x %s (max %s)",
+    "realmlord.clear.level0": "Level: the usual ground height",
+    "realmlord.clear.level_up": "Level: %s above the usual ground",
+    "realmlord.clear.level_down": "Level: %s below the usual ground",
+    "realmlord.clear.lower": "Lower",
+    "realmlord.clear.raise": "Raise",
+    "realmlord.clear.go": "Clear area",
+    "realmlord.clear.again": "Pick corners again",
+    "realmlord.clear.hint": "Builders fell the trees, cut away the ground above the level and fill dips below it with earth, keeping everything useful in the stores. The level starts at the usual ground height there. It can't cover buildings, sites or the manor yard, and must stay inside the fence.",
+    "realmlord.clear.cancel_hint": "%s x %s. Calling it off stops the work; what's done stays done.",
+    "realmlord.clear.started": "Builders will clear and level %s x %s blocks at height %s (about %s blocks to cut, %s to fill).",
+    "realmlord.clear.done": "The %s x %s clearing in %s is level.",
+    "realmlord.clear.err.small": "Mark out at least 2 x 2 blocks.",
+    "realmlord.clear.err.big": "That area is too large: 48 x 48 blocks at most.",
+    "realmlord.manor.rebuilt": "The Lord's Manor in %s has been rebuilt as the Lord's residence. The residents now sleep in the residential courtyards.",
 }

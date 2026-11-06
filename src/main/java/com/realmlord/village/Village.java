@@ -125,8 +125,13 @@ public final class Village {
         return n;
     }
 
+    /** Beds for residents in the Lord's Manor: the refugees' straw beds at Grade 1, none once it is the Lord's residence. */
+    public static int manorHousing(Territory t) {
+        return t.level == com.realmlord.territory.TerritoryLevel.VILLAGE_1 ? MANOR_HOUSING : 0;
+    }
+
     public static int housing(Territory t) {
-        int h = MANOR_HOUSING;
+        int h = manorHousing(t);
         for (Building b : t.buildings) if (b.complete) h += b.type.housing();
         return h;
     }
@@ -468,7 +473,7 @@ public final class Village {
                 && origin.getZ() - 1 < m.getZ() + MANOR_YARD && m.getZ() - MANOR_YARD < origin.getZ() + sz + 1) {
             return "realmlord.build.err.manor";
         }
-        for (Building b : t.buildings) if (b.type.placed() && b.overlaps(origin.getX(), origin.getZ(), sx, sz, 1)) return "realmlord.build.err.overlap";
+        for (Building b : t.buildings) if (b.footprint() && b.overlaps(origin.getX(), origin.getZ(), sx, sz, 1)) return "realmlord.build.err.overlap";
         // Ground: settlers fill in shallow water, ponds and marsh, but not deep water; slopes are limited.
         int lo = Integer.MAX_VALUE, hi = Integer.MIN_VALUE;
         for (int x = 0; x < sx; x += Math.max(1, Math.min(2, sx - 1 - x))) {
@@ -586,6 +591,66 @@ public final class Village {
         return null;
     }
 
+    /** Largest area the builders clear and level in one order. */
+    public static final int MAX_CLEARING = 48;
+    /** Work per block cut away or filled in a clearing. */
+    public static final int CLEARING_WORK = 20;
+
+    /**
+     * Orders the builders to clear and level a rectangle of ground (corners inclusive): trees,
+     * plants and rock above the chosen level come away, and dips below it are filled with earth.
+     * The level is the usual ground height there, raised or lowered by offset. Returns an error
+     * key or null.
+     */
+    public static String startClearing(ServerPlayer p, Territory t, int x0, int z0, int x1, int z1, int offset) {
+        ServerLevel level = p.serverLevel();
+        if (!level.dimension().equals(t.dimension)) return "realmlord.build.err.dimension";
+        int ax = Math.min(x0, x1), az = Math.min(z0, z1), sx = Math.abs(x1 - x0) + 1, sz = Math.abs(z1 - z0) + 1;
+        if (sx < 2 || sz < 2) return "realmlord.clear.err.small";
+        if (sx > MAX_CLEARING || sz > MAX_CLEARING) return "realmlord.clear.err.big";
+        int inner = t.radius() - 4;
+        for (int[] c : new int[][]{{ax, az}, {ax + sx - 1, az}, {ax, az + sz - 1}, {ax + sx - 1, az + sz - 1}}) {
+            long dx = c[0] - t.center.getX(), dz = c[1] - t.center.getZ();
+            if (dx * dx + dz * dz > (long) inner * inner) return "realmlord.build.err.border";
+        }
+        BlockPos m = t.center;
+        if (ax <= m.getX() + MANOR_YARD && m.getX() - MANOR_YARD <= ax + sx - 1 && az <= m.getZ() + MANOR_YARD && m.getZ() - MANOR_YARD <= az + sz - 1)
+            return "realmlord.build.err.manor";
+        for (Building b : t.buildings) if (b.footprint() && b.overlaps(ax, az, sx, sz, 0)) return "realmlord.build.err.overlap";
+        List<Integer> heights = new ArrayList<>();
+        int[][] ground = new int[sx][sz];
+        for (int x = 0; x < sx; x++)
+            for (int z = 0; z < sz; z++) {
+                if (!level.isLoaded(new BlockPos(ax + x, 64, az + z))) return "realmlord.path.err.unloaded";
+                ground[x][z] = groundAt(level, ax + x, az + z);
+                heights.add(ground[x][z]);
+            }
+        java.util.Collections.sort(heights);
+        int y = heights.get(heights.size() / 2) + Mth.clamp(offset, -8, 8);
+        long cut = 0, fill = 0;
+        int top = y;
+        for (int[] col : ground)
+            for (int g : col) {
+                cut += Math.max(0, g - y);
+                fill += Math.min(Sites.DEPTH, Math.max(0, y - g));
+                top = Math.max(top, g);
+            }
+        Building b = new Building();
+        b.id = t.nextBuildingId++;
+        b.type = BuildingType.CLEARING;
+        b.origin = new BlockPos(ax, y, az);
+        b.w = sx;
+        b.d = sz;
+        b.stage = Building.CLEAR;
+        // Up to the highest ground, with room for the trees on it.
+        b.clearHeight = Mth.clamp(top - y + 12, 6, 40);
+        b.workNeeded = Math.max(1, (cut + fill + (long) sx * sz / 4) * CLEARING_WORK);
+        b.lastWork = level.getGameTime();
+        t.buildings.add(b);
+        Notify.player(p, Component.translatable("realmlord.clear.started", sx, sz, y, cut, fill));
+        return null;
+    }
+
     /** The most common ground height across a footprint. */
     public static int groundLevel(ServerLevel level, BlockPos origin, int sx, int sz) {
         java.util.Map<Integer, Integer> freq = new java.util.HashMap<>();
@@ -693,8 +758,8 @@ public final class Village {
 
     /** True if a builder is walking about near a site. */
     public static boolean buildersNear(ServerLevel level, Territory t, Building site) {
-        BlockPos c = site.type.placed() ? site.center() : t.center;
-        double reach = site.type.placed() ? 48 : t.radius() + 16;
+        BlockPos c = site.footprint() ? site.center() : t.center;
+        double reach = site.footprint() ? 48 + Math.max(site.sizeX(), site.sizeZ()) / 2.0 : t.radius() + 16;
         for (Resident r : t.residents) {
             if (r.job != Job.CONSTRUCTION || r.militia || r.entity == null || r.workplace != site.id) continue;
             net.minecraft.world.entity.Entity e = level.getEntity(r.entity);
@@ -709,6 +774,15 @@ public final class Village {
     }
 
     private static void finish(ServerLevel level, Territory t, Building b) {
+        if (b.type == BuildingType.CLEARING) {
+            // Once the ground is level there is nothing left to keep track of.
+            t.buildings.remove(b);
+            BuildingDesigns.forget(b);
+            for (Resident r : t.residents) if (r.workplace == b.id) r.workplace = -1;
+            ServerPlayer owner = t.owner == null ? null : level.getServer().getPlayerList().getPlayer(t.owner);
+            if (owner != null) Notify.player(owner, Component.translatable("realmlord.clear.done", b.sizeX(), b.sizeZ(), t.name));
+            return;
+        }
         b.complete = true;
         BuildingDesigns.forget(b);
         b.progress = b.workNeeded;
@@ -738,6 +812,13 @@ public final class Village {
         if (b.demolishing) return;
         if (b.type == BuildingType.PATH) {
             Paths.remove(level, t, b);
+            return;
+        }
+        if (b.type == BuildingType.CLEARING) {
+            // Called off: what is done stays done.
+            for (Resident r : t.residents) if (r.workplace == b.id) r.workplace = -1;
+            t.buildings.remove(b);
+            BuildingDesigns.forget(b);
             return;
         }
         int size = BuildingDesigns.size(level, t, b);
@@ -1021,6 +1102,11 @@ public final class Village {
         catchUp(level, t);
         construct(level, t, 20);
         if (t.waitingSettlers > 0) admitWaiting(level, t);
+        if (com.realmlord.territory.Residence.upgrade(level, t)) {
+            ServerPlayer owner = t.owner == null ? null : server.getPlayerList().getPlayer(t.owner);
+            if (owner != null) Notify.player(owner, Component.translatable("realmlord.manor.rebuilt", t.name));
+            TerritoryData.get(server).touch();
+        }
         Residents.sync(level, t);
     }
 

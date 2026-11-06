@@ -39,6 +39,14 @@ public class Building {
     /** A path: its points (x, z pairs), surface, width, and the columns it covers (x, y, z, earth beneath). */
     public int[] pathPoints, pathCols;
     public int pathSurface, pathWidth = 1;
+    /** A clearing: how high above its level the builders cut away; the layer they have reached (not saved). */
+    public int clearHeight;
+    public transient int clearTop = Integer.MAX_VALUE;
+
+    /** True if the site works a rectangle of ground: a building, or a clearing. */
+    public boolean footprint() {
+        return type.placed() || type == BuildingType.CLEARING;
+    }
     /** Earth packed under each post where the ground falls away. */
     public int[] fenceFill;
     /** Before a building is finished, its whole design is checked against the world (transient). */
@@ -120,6 +128,7 @@ public class Building {
         t.putInt("d", depth());
         t.putInt("fenceR", fenceRadius);
         if (fenceYs != null) t.putIntArray("fenceYs", fenceYs);
+        if (clearHeight > 0) t.putInt("clearHeight", clearHeight);
         if (pathCols != null) {
             t.putIntArray("pathPts", pathPoints);
             t.putIntArray("pathCols", pathCols);
@@ -168,6 +177,7 @@ public class Building {
         }
         b.fenceRadius = t.getInt("fenceR");
         b.fenceYs = t.contains("fenceYs") ? t.getIntArray("fenceYs") : null;
+        b.clearHeight = t.getInt("clearHeight");
         if (t.contains("pathCols")) {
             b.pathPoints = t.getIntArray("pathPts");
             b.pathCols = t.getIntArray("pathCols");

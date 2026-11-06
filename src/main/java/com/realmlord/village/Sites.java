@@ -54,7 +54,7 @@ public final class Sites {
     }
 
     public static boolean loaded(ServerLevel level, Building b) {
-        if (!b.type.placed()) return level.isLoaded(b.origin);
+        if (!b.footprint()) return level.isLoaded(b.origin);
         return level.isLoaded(b.origin) && level.isLoaded(b.origin.offset(b.sizeX() - 1, 0, b.sizeZ() - 1))
                 && level.isLoaded(b.center());
     }
@@ -66,12 +66,12 @@ public final class Sites {
         if (!loaded(level, b)) return null;
         if (b.demolishing) return nextRemove(level, t, b);
         if (b.stage == Building.CLEAR) {
-            Op o = b.type.placed() ? nextClear(level, b) : null;
+            Op o = b.footprint() ? nextClear(level, b) : null;
             if (o != null) return o;
             b.stage = Building.SHAPE;
         }
         if (b.stage == Building.SHAPE) {
-            Op o = b.type.placed() ? nextFill(level, b) : null;
+            Op o = b.footprint() ? nextFill(level, b) : null;
             if (o != null) return o;
             b.stage = Building.BUILD;
         }
@@ -81,14 +81,25 @@ public final class Sites {
     /** Anything standing on the footprint, highest first. */
     private static Op nextClear(ServerLevel level, Building b) {
         int y0 = b.origin.getY();
-        for (int y = y0 + HEIGHT - 1; y >= y0; y--)
+        // Working down layer by layer: start from the layer reached, not the top, every time.
+        for (int y = Math.min(b.clearTop, y0 + height(b) - 1); y >= y0; y--) {
             for (int x = 0; x < b.sizeX(); x++)
                 for (int z = 0; z < b.sizeZ(); z++) {
                     BlockPos p = b.origin.offset(x, y - y0, z);
                     BlockState s = level.getBlockState(p);
-                    if (!s.isAir()) return new Op(Kind.CLEAR, p, s, -1);
+                    if (!s.isAir()) {
+                        b.clearTop = y;
+                        return new Op(Kind.CLEAR, p, s, -1);
+                    }
                 }
+        }
+        b.clearTop = Integer.MAX_VALUE;
         return null;
+    }
+
+    /** How high above its floor a site is cleared. */
+    public static int height(Building b) {
+        return b.type == BuildingType.CLEARING && b.clearHeight > 0 ? b.clearHeight : HEIGHT;
     }
 
     private static boolean solid(BlockState s) {
@@ -235,9 +246,9 @@ public final class Sites {
      */
     public static void work(ServerLevel level, Territory t, Building b, int budget) {
         if (!loaded(level, b)) return;
-        if (!b.demolishing && b.stage == Building.CLEAR && b.type.placed()) {
+        if (!b.demolishing && b.stage == Building.CLEAR && b.footprint()) {
             int y0 = b.origin.getY();
-            for (int y = y0 + HEIGHT - 1; y >= y0 && budget > 0; y--)
+            for (int y = Math.min(b.clearTop, y0 + height(b) - 1); y >= y0 && budget > 0; y--)
                 for (int x = 0; x < b.sizeX() && budget > 0; x++)
                     for (int z = 0; z < b.sizeZ() && budget > 0; z++) {
                         BlockPos p = b.origin.offset(x, y - y0, z);
@@ -246,8 +257,10 @@ public final class Sites {
                         if (isNaturalLog(s)) for (BlockPos log : tree(level, p)) take(level, t, null, log, null);
                         else take(level, t, null, p, null);
                         budget--;
+                        b.clearTop = y;
                     }
             if (budget <= 0) return;
+            b.clearTop = Integer.MAX_VALUE;
             b.stage = Building.SHAPE;
         }
         for (int i = 0; i < budget; i++) {

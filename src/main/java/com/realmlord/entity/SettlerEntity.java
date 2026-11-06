@@ -270,8 +270,8 @@ public class SettlerEntity extends PathfinderMob {
                     com.realmlord.village.Building site = com.realmlord.village.Residents.siteOf(t, r);
                     if (site != null) {
                         activity = Activity.BUILD;
-                        spot = site.type.placed() ? site.center() : (op != null ? op.pos() : t.center);
-                        spotRadius = site.type.placed() ? Math.max(site.sizeX(), site.sizeZ()) / 2 + 4 : 12;
+                        spot = site.footprint() ? site.center() : (op != null ? op.pos() : t.center);
+                        spotRadius = site.footprint() ? Math.max(site.sizeX(), site.sizeZ()) / 2 + 4 : 12;
                     } else idle(t);
                 }
                 case LOGGING -> work(field, Activity.CHOP, 12, t);

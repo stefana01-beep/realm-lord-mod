@@ -140,7 +140,7 @@ public final class Paths {
         long dx = x - t.center.getX(), dz = z - t.center.getZ();
         if (dx * dx + dz * dz > (long) t.radius() * t.radius()) return false;
         if (Math.abs(dx) <= 5 && Math.abs(dz) <= 5) return false;
-        for (Building b : t.buildings) if (b.type.placed() && b.overlaps(x, z, 1, 1, 0)) return false;
+        for (Building b : t.buildings) if (b.footprint() && b.overlaps(x, z, 1, 1, 0)) return false;
         return true;
     }
 

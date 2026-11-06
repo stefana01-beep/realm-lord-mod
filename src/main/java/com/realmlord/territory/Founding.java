@@ -82,6 +82,7 @@ public final class Founding {
         t.dimension = level.dimension();
         t.population = prof.quest().captives > 0 ? prof.quest().captives * 5 : DEFAULT_POPULATION;
         t.foundedTick = level.getGameTime();
+        t.manorFront = front.get2DDataValue();
         data.add(t);
         prof.setTerritoryId(t.id);
         raiseTablet(level, center, front, t.name);
