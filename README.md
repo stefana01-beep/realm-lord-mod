@@ -327,7 +327,7 @@ Scholars, especially historical ones, also raise the Cultural index.
 - **Hunting** is a new job. Hunters go out beyond the border to hunt wild animals, and the village gets meat and hides each day (more from a Hunter by trade).
 
 ### Wild beasts and what they leave
-The wilds now hold the novel's beasts. They roam by day and night, but never inside a finished fence.
+The wilds now hold the novel's beasts. They roam by day and night, but never inside a finished fence. (For levels, the newer beasts and the bosses, see "The wilds of Gaia" below.)
 
 | Beast | Where | Drops |
 |---|---|---|
@@ -361,6 +361,64 @@ On every other lunar new year (Gaia years 3, 5, 7 and so on), the beasts come ag
 ### Hidden buildings
 Some of the novel's buildings stay out of every list until a village earns them. The **Mazu Temple**, to the goddess of the sea, is revealed to a village of Grade 2 or more that lies by the sea. It gives +5 People's Thoughts and +6 Cultural.
 
+## The wilds of Gaia (levels, horses and ruins)
+
+### Novel creatures only
+Minecraft's monsters no longer appear in the overworld: no zombies, skeletons, creepers, spiders, endermen, witches, phantoms, slimes, drowned or raiders. Dungeons with monster spawners are gone too. The wilds belong to the novel's beasts and to bandits, who now roam the open land everywhere (one in twenty bandits is a chief). The Nether and the End keep their own creatures. Turn this off with `novelMobsOnly = false`.
+
+### Levels over every head
+Every beast and bandit shows its level above its head, for example **Lv.12 Grey Wolf**. Each level adds 6% health and 4% damage, and higher-level beasts grow bigger. The farther from the world's centre, the higher the levels: +1 per 1,000 blocks, up to +8.
+
+| Creature | Level | Where | Drops |
+|---|---|---|---|
+| Wild Boar | 1–8 | forests, taiga, jungle, savanna | porkchops, Boar Hide, sometimes a Boar Tusk |
+| Wild Ox (fights back if attacked) | 3–10 | plains, savanna, meadows | beef, leather, sometimes an Ox Horn |
+| Grey Wolf (packs) | 3–12 | taiga, forests, snow, mountains | Wolf Pelt, bones |
+| Bandit (chief +8) | 5–15 | everywhere | coins, gear |
+| Leopard | 8–16 | jungle, savanna, forests, mountains | Leopard Pelt |
+| Black Bear | 10–18 | forests, taiga | Bear Paw, beef, leather |
+| Snow Bear | 12–22 | snow, taiga, mountains | Bear Paw, beef, leather |
+| Mountain Tiger | 14–26 | jungle, forests, mountains | Tiger Pelt, often a Tiger Bone |
+| **Wolf King** (rare boss) | 24–32 | snow, taiga | 3 wolf pelts, Wolf King's Fang, a gold coin, sometimes a blueprint. Calls three grey wolves to his side. |
+| **Boar King** (boss) | 28–36 | dens | as before |
+| **White Tiger King** (rare boss) | 36–45 | jungle, mountains | White Tiger Pelt, 3 tiger bones, 5 gold coins, a blueprint |
+
+The bosses have a health bar. New uses for the drops:
+- **Leopard Pelt:** crafts into 3 leather.
+- **Fang Dagger:** made from the Wolf King's Fang. A fast blade.
+- **Horn Bow:** two ox horns and string make a bow.
+- **White Tiger Pelt:** a rare treasure that sells as fine silk.
+
+### Graded horses
+Every horse has a grade and a breed, shown above its head in the grade's colour, for example **Silver Dawan Horse**. A name you give it with a name tag is kept.
+
+| Grade | Chance | Breed | Speed | Jump | Health |
+|---|---|---|---|---|---|
+| Bronze | 62% | Mongolian Horse | slow | low | 18–22 |
+| Black Iron | 26% | Hequ Horse | good | fair | 22–26 |
+| Silver | 9% | Dawan Horse | fast | high | 26–30 |
+| Gold | 3% | Bloodsweat Horse (the novel's Hanxue BaoMa) | fastest | highest | 30–36 |
+
+Foals take after their parents: two Gold horses give at least a Silver foal, and sometimes better than either parent.
+
+### Ancient ruins
+Pillager outposts, ruined portals, woodland mansions, igloos, witch huts, jungle temples, ocean monuments and ancient cities no longer generate. Shipwrecks, ocean ruins, trail ruins, mineshafts and strongholds remain. Desert temples remain but are about three times rarer. In their place, the land holds ruins from China's past:
+- **Ancient Shrine** (plains, forests, taiga, jungle, savanna, cherry groves): a roofed stone shrine with an altar chest of coins, materials, graded gear and blueprints.
+- **Ruined Watchtower** (hills, mountains, plains, savanna, taiga, meadows): a broken beacon tower held by bandits, with a supply chest at the foot and a richer one at the top.
+- **Ancient Tomb** (deserts, badlands, plains, savanna, forests): a sunken tomb watched by tomb robbers. Its inner treasure chest holds gold, high-grade gear, blueprints up to Grade 3, and sometimes a summoning token.
+
+### Graded gear and effects
+Silver gear found in ruins has a 50% chance of a special effect, and Gold gear always has one. The effect is listed on the tooltip.
+- **Weapons:**
+  - **Lifesteal:** heals you for 15% of the damage you deal.
+  - **Flame:** sets the target on fire.
+  - **Frost:** slows the target.
+  - **Beastbane:** +30% damage against beasts.
+- **Armour:**
+  - **Swift:** faster movement.
+  - **Stalwart:** resists knockback and adds toughness.
+  - **Vigor:** extra health.
+
 ## Server settings
 `config/realmlord-common.toml`:
 - `lordRestriction` (default **off**): the novel's rule that Lords cannot leave their territory except for war. Other dimensions are exempt.
@@ -369,6 +427,7 @@ Some of the novel's buildings stay out of every list until a village earns them.
 - `visibleResidents` (default 48): how many residents walk around a village at once.
 - `protectTerritories` (default **on**): only a territory's Lord and the players they trust may build, break or open chests there; the Lord's Manor chests are the Lord's alone. Operators are exempt.
 - `safeInsideFence` (default **on**): monsters don't spawn inside a finished fence.
+- `novelMobsOnly` (default **on**): no vanilla monsters in the overworld; only the novel's beasts and bandits.
 - `daysToComplete` (10), `goldWithinDays` (3), `silverWithinDays` (5), `blackIronWithinDays` (7.5), and an experience multiplier.
 
 ## Admin commands (op)
@@ -381,6 +440,7 @@ The order follows the novel: Ouyang Shuo summons his first general, sets up the 
 2. **Village grades 1–3** (done):
    - **2a:** a territory map and the China world type, with every building from the novel and its costs, blueprints and specialists; placement and construction; residents with jobs, talents and trade; resource jobs, the farming calendar, the market and upgrades.
    - **2b:** 171 summonable historical figures, companions, the offices, the militia and Barracks, hunters, the wild beasts and their drops, Boar King dens, the beastwave and the Mazu Temple.
+   - **The wilds:** levels on every beast and bandit, graded horses, novel creatures only, three bosses, and ancient shrines, watchtowers and tombs in place of vanilla structures.
    - **Still to come:** the Auction House and special markets (ship blueprints, graded weapons and armour), more hidden buildings, and more figures.
 3. **Town grades 1–3:**
    - More historical generals and ministers, recruited through quests and reputation.
@@ -388,7 +448,7 @@ The order follows the novel: Ouyang Shuo summons his first general, sets up the 
    - Troops beyond the militia.
    - Ships and docks: fishermen take boats out to fish on their own.
    - Mountain-barbarian tribes to defeat or take in.
-   - Ruins and deeper lairs to explore.
+   - Deeper lairs and larger ruins to explore.
 4. **County:**
    - The regular army and formations.
    - Raids between lords.
