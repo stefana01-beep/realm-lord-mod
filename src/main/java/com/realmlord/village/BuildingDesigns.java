@@ -219,7 +219,7 @@ public final class BuildingDesigns {
         BlockPos mid = b.center();
         for (Building f : t.buildings) {
             if (f.type != BuildingType.SIMPLE_FENCE || f.demolishing) continue;
-            int fr = f.fenceRadius > 0 ? f.fenceRadius : t.radius() - 2;
+            int fr = f.fenceRadius > 0 ? f.fenceRadius : t.level.wall();
             double dist = Math.hypot(mid.getX() - t.center.getX(), mid.getZ() - t.center.getZ());
             if (Math.abs(dist - fr) <= 2.5) return true;
         }
@@ -910,7 +910,7 @@ public final class BuildingDesigns {
      * height of every post is fixed when the fence is first laid out, so the design never shifts.
      */
     private static List<Placement> fence(ServerLevel level, Territory t, Building b) {
-        int r = b.fenceRadius > 0 ? b.fenceRadius : t.radius() - 2;
+        int r = b.fenceRadius > 0 ? b.fenceRadius : t.level.wall();
         b.fenceRadius = r;
         List<int[]> cols = fenceColumns(t.center, r);
         int n = cols.size();

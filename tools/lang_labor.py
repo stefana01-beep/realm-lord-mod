@@ -191,6 +191,7 @@ def add(L):
     import gen_figures
     gen_figures.lang(L)
     L.update(PHASE_2B)
+    L.update(ROUND_GROUNDS)
 
 
 ROUND_PATHS = {
@@ -383,4 +384,25 @@ PHASE_2B = {
     "realmlord.hidden.revealed": "A hidden building has been revealed to %2$s: the %1$s!",
     "realmlord.building.mazu_temple": "Mazu Temple",
     "realmlord.building.mazu_temple.desc": "A temple to Mazu, goddess of the sea, revealed only to villages by the sea. Fishermen and sailors put to sea under her protection. +5 People's Thoughts, +6 Cultural.",
+}
+
+
+ROUND_GROUNDS = {
+    "realmlord.building.grounds": "Levelling the Grounds",
+    "realmlord.building.grounds.desc": "The builders bring the whole village ground to the level of the Lord's Manor, out to ten blocks past the Grade 3 wall.",
+    "realmlord.grounds.started": "Your builders have begun levelling the grounds to the manor's floor (height %2$s), out to %1$s blocks from the manor. Hills and trees come away and hollows are filled with the land's own earth. Everything cut is kept in the stores.",
+    "realmlord.grounds.done": "The grounds of %s are level, %s blocks out from the manor.",
+    "realmlord.grounds.stopped": "The levelling has been called off. What is done stays done.",
+    "realmlord.grounds.order": "Level the grounds",
+    "realmlord.grounds.stop": "Stop levelling (%s%%)",
+    "realmlord.grounds.tip": "The builders cut and fill all the ground to the manor's height, out to %s blocks: ten past the Grade 3 wall, even beyond your border. Hollows are filled with dirt under grass, or sandstone under sand in the desert. Buildings, paths, the manor yard and anything you have built are left alone. The more builders, the faster it goes. A wall not yet begun waits until the ground is level.",
+    "realmlord.fence.moved": "The old wall will be taken down (three quarters of it comes back) and the new one raised on the Grade %s ring, %s blocks out.",
+    "realmlord.map.zoom_in": "Zoom in (or scroll, or press +)",
+    "realmlord.map.zoom_out": "Zoom out (or scroll, or press -)",
+    "realmlord.map.fence.ring": "Ring: Grade %s (%s blocks)",
+    "realmlord.map.fence.ring_tip": "Which grade's wall to raise: Grade 1 at 62 blocks, Grade 2 at 78, Grade 3 at 94. Any of them may be built now, even beyond your border. Moving a standing wall takes the old one down.",
+    "realmlord.map.fence.radius": "%s blocks from the manor",
+    "realmlord.map.legend.grounds": "Ground being levelled",
+    "realmlord.map.view_hint": "Click a building to select it; you can then demolish it. Scroll or use + and - to zoom, and drag to move about. Ground you have not loaded nearby shows dark.",
+    "realmlord.build.err.border": "It must stand inside your territory's border (arrow towers, sentry posts and outposts may also stand out on the wall).",
 }

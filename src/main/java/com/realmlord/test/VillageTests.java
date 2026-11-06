@@ -405,9 +405,9 @@ public class VillageTests {
     public static void mapShowsTheTerritory(GameTestHelper helper) {
         ServerPlayer p = RealmTests.lord(helper, CombatClass.GENERAL);
         Territory t = village(helper, p, 4800);
-        helper.assertTrue(t.radius() == 64, "a Grade 1 village should reach 64 blocks, reaches " + t.radius());
+        helper.assertTrue(t.radius() == 88 && t.level.wall() == 62, "a Grade 1 village should reach 88 blocks with its wall at 62, reaches " + t.radius());
         var map = com.realmlord.village.TerritoryMap.draw(helper.getLevel(), t);
-        helper.assertTrue(map.size() * map.step() >= 2 * t.radius(), "map does not cover the territory: " + map.size() + " x " + map.step());
+        helper.assertTrue(map.size() * map.step() >= 2 * com.realmlord.village.Grounds.radius(), "map does not cover the territory: " + map.size() + " x " + map.step());
         helper.assertTrue(map.size() <= com.realmlord.village.TerritoryMap.MAX_SIZE + 1, "map too large: " + map.size());
         int drawn = 0;
         for (int c : map.rgb()) if (c != 0) drawn++;

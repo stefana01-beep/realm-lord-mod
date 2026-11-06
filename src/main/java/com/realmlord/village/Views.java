@@ -60,6 +60,9 @@ public final class Views {
         v.putInt("cx", t.center.getX());
         v.putInt("cz", t.center.getZ());
         v.putInt("radius", t.radius());
+        v.putInt("wall", t.level.wall());
+        v.putInt("grade", Math.max(1, t.level.villageGrade() == 0 ? 3 : t.level.villageGrade()));
+        v.putInt("reach", Village.reach(t));
         // Buildings
         ListTag bs = new ListTag();
         for (Building b : t.buildings) {
@@ -78,6 +81,7 @@ public final class Views {
                 bt.putInt("builders", Village.buildersAt(t, b));
             }
             bt.putInt("stage", b.stage);
+            if (b.type == BuildingType.GROUNDS) bt.putInt("gr", b.clearHeight);
             if (b.type == BuildingType.SIMPLE_FENCE) {
                 bt.putIntArray("gates", b.gates);
                 bt.putInt("fr", b.fenceRadius);

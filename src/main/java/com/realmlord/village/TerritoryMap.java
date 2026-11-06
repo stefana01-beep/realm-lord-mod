@@ -15,7 +15,7 @@ public final class TerritoryMap {
     private TerritoryMap() {}
 
     /** Largest map side in pixels; bigger territories are sampled every few blocks. */
-    public static final int MAX_SIZE = 160;
+    public static final int MAX_SIZE = 256;
 
     public record Map(int x0, int z0, int step, int size, int[] rgb) {}
 
@@ -24,7 +24,7 @@ public final class TerritoryMap {
     }
 
     public static Map draw(ServerLevel level, Territory t) {
-        int r = t.radius() + 8;
+        int r = Math.max(t.radius(), Grounds.radius()) + 8;
         int step = stepFor(r);
         int size = (2 * r) / step + 1;
         int x0 = t.center.getX() - r, z0 = t.center.getZ() - r;

@@ -55,6 +55,8 @@ public class Building {
     public transient boolean quietRefit;
     public static final int NO_FILL = Integer.MIN_VALUE, NO_CUT = Integer.MAX_VALUE;
     public transient int clearTop = Integer.MAX_VALUE;
+    /** Levelling the grounds: how many columns, counted from the manor outwards, are done. */
+    public int groundsCursor;
 
     /** True if the site works a rectangle of ground: a building, or a clearing. */
     public boolean footprint() {
@@ -142,6 +144,7 @@ public class Building {
         t.putInt("fenceR", fenceRadius);
         if (fenceYs != null) t.putIntArray("fenceYs", fenceYs);
         if (clearHeight > 0) t.putInt("clearHeight", clearHeight);
+        if (groundsCursor > 0) t.putInt("groundsCursor", groundsCursor);
         if (clearCols != null) t.putIntArray("clearCols", clearCols);
         if (fenceStyle > 0) t.putInt("fenceStyle", fenceStyle);
         if (pathCols != null) {
@@ -193,6 +196,7 @@ public class Building {
         b.fenceRadius = t.getInt("fenceR");
         b.fenceYs = t.contains("fenceYs") ? t.getIntArray("fenceYs") : null;
         b.clearHeight = t.getInt("clearHeight");
+        b.groundsCursor = t.getInt("groundsCursor");
         b.clearCols = t.contains("clearCols") ? t.getIntArray("clearCols") : null;
         b.fenceStyle = t.getInt("fenceStyle");
         if (t.contains("pathCols")) {

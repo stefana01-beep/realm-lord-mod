@@ -21,6 +21,7 @@ public final class RealmConfig {
     public static final ForgeConfigSpec.BooleanValue PROTECT_TERRITORIES;
     public static final ForgeConfigSpec.BooleanValue SAFE_INSIDE_FENCE;
     public static final ForgeConfigSpec.BooleanValue NOVEL_MOBS_ONLY;
+    public static final ForgeConfigSpec.BooleanValue LEVEL_ON_FOUNDING;
 
     static {
         ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
@@ -47,6 +48,8 @@ public final class RealmConfig {
                 .define("safeInsideFence", true);
         NOVEL_MOBS_ONLY = b.comment("The overworld's monsters are the novel's beasts and bandits only: no zombies, skeletons, creepers, spiders, endermen, witches, slimes, phantoms or raiders spawn there.")
                 .define("novelMobsOnly", true);
+        LEVEL_ON_FOUNDING = b.comment("When a village is founded, its builders level the whole grounds to the manor, out to ten blocks past the Grade 3 wall.")
+                .define("levelOnFounding", true);
         b.pop();
 
         b.push("village_creation_quest");
@@ -70,6 +73,10 @@ public final class RealmConfig {
     /** Safe reads: game tests and early code can run before the config file loads. */
     public static boolean protectTerritories() {
         return !SPEC.isLoaded() || PROTECT_TERRITORIES.get();
+    }
+
+    public static boolean levelOnFounding() {
+        return !SPEC.isLoaded() || LEVEL_ON_FOUNDING.get();
     }
 
     public static boolean novelMobsOnly() {

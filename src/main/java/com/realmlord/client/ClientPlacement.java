@@ -75,6 +75,8 @@ public final class ClientPlacement {
         int cx = v.getInt("cx"), cz = v.getInt("cz"), r = v.getInt("radius");
         int sx = rot % 2 == 0 ? type.width : type.depth, sz = rot % 2 == 0 ? type.depth : type.width;
         int[][] corners = {{0, 0}, {sx - 1, 0}, {0, sz - 1}, {sx - 1, sz - 1}};
+        // Defences may stand out on a wall beyond the border.
+        if (Village.defence(type) && v.contains("reach")) r = Math.max(r, v.getInt("reach"));
         for (int[] c : corners) {
             long dx = o.getX() + c[0] - cx, dz = o.getZ() + c[1] - cz;
             if (dx * dx + dz * dz > (long) r * r) return false;

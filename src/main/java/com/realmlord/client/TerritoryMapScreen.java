@@ -20,7 +20,15 @@ import net.minecraft.network.chat.Component;
  * site, and you. With a building chosen, click the map to place it (right-click turns it).
  */
 public class TerritoryMapScreen extends Screen {
-    private static final int W = 420, H = 262, MAP = 236;
+    private static final int W = 420, H = 284, MAP = 236;
+    /** Zoom steps: how many times closer than the whole map. */
+    private static final double[] ZOOMS = {1, 1.5, 2, 3, 4, 6, 8};
+    private int zoom;
+    /** The top-left corner of the view, in map pixels. */
+    private double viewU = -1, viewV = -1;
+    private int viewSize = -1;
+    /** Which grade's ring the wall is laid out on (1-3). */
+    private int wallGrade;
 
     private BuildingType placing;
     private int rotation;
@@ -45,6 +53,7 @@ public class TerritoryMapScreen extends Screen {
         super(Component.translatable("realmlord.map.title"));
         if (placing == BuildingType.SIMPLE_FENCE) {
             fenceMode = true;
+            wallGrade = currentWallGrade();
             loadGates();
         } else {
             this.placing = placing;
@@ -71,10 +80,31 @@ public class TerritoryMapScreen extends Screen {
     }
 
     private int fenceRadius() {
+        if (fenceMode && wallGrade > 0) return com.realmlord.territory.TerritoryLevel.villageWall(wallGrade);
         CompoundTag f = fence();
         CompoundTag v = ClientVillageData.manor;
         if (f != null && f.getInt("fr") > 0) return f.getInt("fr");
-        return v == null ? 0 : v.getInt("radius") - 2;
+        return v == null ? 0 : v.contains("wall") ? v.getInt("wall") : v.getInt("radius") - 2;
+    }
+
+    /** The grade whose ring the standing wall is on, or the village's own grade. */
+    private static int currentWallGrade() {
+        CompoundTag f = fence();
+        CompoundTag v = ClientVillageData.manor;
+        if (f != null) for (int g = 1; g <= 3; g++) if (com.realmlord.territory.TerritoryLevel.villageWall(g) == f.getInt("fr")) return g;
+        return v == null ? 1 : Math.max(1, Math.min(3, v.getInt("grade")));
+    }
+
+    /** The levelling of the grounds under way, or null. */
+    private static CompoundTag grounds() {
+        CompoundTag v = ClientVillageData.manor;
+        if (v == null) return null;
+        ListTag bs = v.getList("buildings", Tag.TAG_COMPOUND);
+        for (int i = 0; i < bs.size(); i++) {
+            CompoundTag b = bs.getCompound(i);
+            if (b.getInt("type") == BuildingType.GROUNDS.ordinal() && !b.getBoolean("complete")) return b;
+        }
+        return null;
     }
 
     private CompoundTag selected() {
@@ -101,23 +131,94 @@ public class TerritoryMapScreen extends Screen {
         return top() + 18;
     }
 
+    /** How many map pixels the view spans at this zoom. */
+    private int span() {
+        int size = Math.max(1, ClientMap.size);
+        return Math.max(8, Math.min(size, (int) Math.round(size / ZOOMS[zoom])));
+    }
+
+    /** Screen pixels per map pixel. */
     private double scale() {
-        return ClientMap.size > 0 ? MAP / (double) ClientMap.size : 1;
+        return ClientMap.size > 0 ? MAP / (double) span() : 1;
+    }
+
+    /** Keeps the view on the map; a fresh or resized map starts centred on the manor. */
+    private void clampView() {
+        int size = ClientMap.size, sp = span();
+        if (viewSize != size || viewU < 0) {
+            viewU = viewV = (size - sp) / 2.0;
+            viewSize = size;
+        }
+        viewU = Math.max(0, Math.min(size - sp, viewU));
+        viewV = Math.max(0, Math.min(size - sp, viewV));
+    }
+
+    /** Zooms by steps, keeping the point under (mx, my) where it is. */
+    private void zoomBy(int steps, double mx, double my) {
+        int z = Math.max(0, Math.min(ZOOMS.length - 1, zoom + steps));
+        if (z == zoom || !ClientMap.ready) return;
+        clampView();
+        double fx = Math.max(0, Math.min(MAP, mx - mapX())), fy = Math.max(0, Math.min(MAP, my - mapY()));
+        double tu = viewU + fx / scale(), tv = viewV + fy / scale();
+        zoom = z;
+        viewU = tu - fx / scale();
+        viewV = tv - fy / scale();
+        clampView();
     }
 
     /** World block under a screen point, or null outside the map. */
     private BlockPos worldAt(double mx, double my) {
         if (!ClientMap.ready || mx < mapX() || my < mapY() || mx >= mapX() + MAP || my >= mapY() + MAP) return null;
-        double px = (mx - mapX()) / scale(), pz = (my - mapY()) / scale();
+        double px = viewU + (mx - mapX()) / scale(), pz = viewV + (my - mapY()) / scale();
         return new BlockPos(ClientMap.x0 + (int) Math.floor(px * ClientMap.step), 64, ClientMap.z0 + (int) Math.floor(pz * ClientMap.step));
     }
 
     private int screenX(double wx) {
-        return mapX() + (int) Math.round((wx - ClientMap.x0) / ClientMap.step * scale());
+        return mapX() + (int) Math.round(((wx - ClientMap.x0) / ClientMap.step - viewU) * scale());
     }
 
     private int screenY(double wz) {
-        return mapY() + (int) Math.round((wz - ClientMap.z0) / ClientMap.step * scale());
+        return mapY() + (int) Math.round(((wz - ClientMap.z0) / ClientMap.step - viewV) * scale());
+    }
+
+    private boolean overMap(double mx, double my) {
+        return mx >= mapX() && my >= mapY() && mx < mapX() + MAP && my < mapY() + MAP;
+    }
+
+    @Override
+    public boolean mouseScrolled(double mx, double my, double delta) {
+        if (overMap(mx, my) && delta != 0) {
+            zoomBy(delta > 0 ? 1 : -1, mx, my);
+            return true;
+        }
+        return super.mouseScrolled(mx, my, delta);
+    }
+
+    /** Drag the map with the middle button, or with the left when nothing is being placed or drawn. */
+    @Override
+    public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
+        boolean viewing = !fenceMode && !pathMode && !clearMode && placing == null;
+        if (overMap(mx, my) && ClientMap.ready && (button == 2 || button == 0 && viewing) && zoom > 0) {
+            viewU -= dx / scale();
+            viewV -= dy / scale();
+            clampView();
+            return true;
+        }
+        return super.mouseDragged(mx, my, button, dx, dy);
+    }
+
+    @Override
+    public boolean keyPressed(int key, int scan, int mods) {
+        double cx = mapX() + MAP / 2.0, cy = mapY() + MAP / 2.0;
+        if (key == org.lwjgl.glfw.GLFW.GLFW_KEY_EQUAL || key == org.lwjgl.glfw.GLFW.GLFW_KEY_KP_ADD) {
+            zoomBy(1, cx, cy);
+            return true;
+        }
+        if (key == org.lwjgl.glfw.GLFW.GLFW_KEY_MINUS || key == org.lwjgl.glfw.GLFW.GLFW_KEY_KP_SUBTRACT) {
+            zoomBy(-1, cx, cy);
+            return true;
+        }
+        return super.keyPressed(key, scan, mods);
     }
 
     private int sx() {
@@ -133,10 +234,19 @@ public class TerritoryMapScreen extends Screen {
         clearWidgets();
         if (!ClientMap.ready || refreshIn < 0) ModNetwork.toServer(new ManorActionPacket(ManorActionPacket.Action.MAP, 0, 0));
         int bx = left() + MAP + 22, by = top() + H - 24, bw = W - MAP - 32;
+        addRenderableWidget(Button.builder(Component.literal("+"), b -> zoomBy(1, mapX() + MAP / 2.0, mapY() + MAP / 2.0))
+                .bounds(mapX() + MAP - 34, mapY() + 2, 16, 16).tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("realmlord.map.zoom_in"))).build());
+        addRenderableWidget(Button.builder(Component.literal("-"), b -> zoomBy(-1, mapX() + MAP / 2.0, mapY() + MAP / 2.0))
+                .bounds(mapX() + MAP - 18, mapY() + 2, 16, 16).tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("realmlord.map.zoom_out"))).build());
         if (fenceMode) {
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.map.fence.ring", wallGrade,
+                    com.realmlord.territory.TerritoryLevel.villageWall(wallGrade)), b -> {
+                wallGrade = wallGrade % 3 + 1;
+                init();
+            }).bounds(bx, by - 72, bw, 16).tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("realmlord.map.fence.ring_tip"))).build());
             boolean exists = fence() != null;
             addRenderableWidget(Button.builder(Component.translatable(exists ? "realmlord.map.fence.set" : "realmlord.map.fence.lay"), b -> {
-                ModNetwork.toServer(new com.realmlord.network.FenceGatesPacket(gates.stream().mapToInt(Integer::intValue).toArray()));
+                ModNetwork.toServer(new com.realmlord.network.FenceGatesPacket(gates.stream().mapToInt(Integer::intValue).toArray(), wallGrade));
                 fenceMode = false;
                 refreshIn = 20;
                 init();
@@ -237,6 +347,14 @@ public class TerritoryMapScreen extends Screen {
                 pathPts.clear();
                 init();
             }).bounds(bx, by - 72, bw, 16).build());
+            CompoundTag gr = grounds();
+            Button level = Button.builder(gr != null ? Component.translatable("realmlord.grounds.stop", Math.round(gr.getDouble("fraction") * 100))
+                    : Component.translatable("realmlord.grounds.order"), b -> {
+                ModNetwork.toServer(new ManorActionPacket(ManorActionPacket.Action.GROUNDS, 0, 0));
+                refreshIn = 20;
+            }).bounds(bx, by - 108, bw, 16).build();
+            level.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("realmlord.grounds.tip", com.realmlord.village.Grounds.radius())));
+            addRenderableWidget(level);
             addRenderableWidget(Button.builder(Component.translatable("realmlord.clear.new"), b -> {
                 clearMode = true;
                 selectedId = -1;
@@ -278,6 +396,8 @@ public class TerritoryMapScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
+        // The zoom buttons sit over the map: they come first.
+        for (var c : children()) if (c.isMouseOver(mx, my)) return super.mouseClicked(mx, my, button);
         BlockPos at = worldAt(mx, my);
         if (fenceMode && at != null && button == 0) {
             CompoundTag v = ClientVillageData.manor;
@@ -369,7 +489,9 @@ public class TerritoryMapScreen extends Screen {
             g.fill(ax, ay, ax + MAP, ay + MAP, 0xFF1C1612);
             Ui.centered(g, font, Component.translatable("realmlord.map.loading"), ax + MAP / 2, ay + MAP / 2, Ui.MUTED);
         } else {
-            g.blit(ClientMap.ID, ax, ay, MAP, MAP, 0, 0, ClientMap.size, ClientMap.size, ClientMap.size, ClientMap.size);
+            clampView();
+            int sp = span();
+            g.blit(ClientMap.ID, ax, ay, MAP, MAP, (float) viewU, (float) viewV, sp, sp, ClientMap.size, ClientMap.size);
             g.enableScissor(ax, ay, ax + MAP, ay + MAP);
             if (v != null) overlay(g, v);
             player(g);
@@ -417,6 +539,26 @@ public class TerritoryMapScreen extends Screen {
             double a = Math.PI * 2 * i / steps;
             int px = screenX(cx + Math.cos(a) * r), py = screenY(cz + Math.sin(a) * r);
             g.fill(px, py, px + 1, py + 1, 0xFFE8C15A);
+        }
+        // The grounds being levelled
+        CompoundTag gr = grounds();
+        if (gr != null) {
+            int rr = gr.getInt("gr");
+            for (int i = 0; i < 360; i += 2) {
+                double a = Math.PI * 2 * i / 360;
+                int px = screenX(cx + Math.cos(a) * rr), py = screenY(cz + Math.sin(a) * rr);
+                g.fill(px, py, px + 1, py + 1, 0xFF40C0E0);
+            }
+            double done = gr.getDouble("fraction");
+            if (done > 0) {
+                // Roughly how far out the work has reached, ring by ring.
+                int reached = (int) Math.round(rr * Math.sqrt(done));
+                for (int i = 0; i < 360; i += 3) {
+                    double a = Math.PI * 2 * i / 360;
+                    int px = screenX(cx + Math.cos(a) * reached), py = screenY(cz + Math.sin(a) * reached);
+                    g.fill(px, py, px + 1, py + 1, 0xFF7FE6FF);
+                }
+            }
         }
         // Lord's Manor yard
         int m = Village.MANOR_YARD;
@@ -606,7 +748,8 @@ public class TerritoryMapScreen extends Screen {
         if (fenceMode) {
             g.drawString(font, Component.translatable("realmlord.building.simple_fence"), sx, sy, Ui.GOLD, false);
             g.drawString(font, Component.translatable("realmlord.map.fence.gates", gates.size()), sx, sy + 11, Ui.INK, false);
-            Ui.wrap(g, font, Component.translatable("realmlord.map.fence.hint"), sx, sy + 25, w, Ui.MUTED);
+            g.drawString(font, Component.translatable("realmlord.map.fence.radius", fenceRadius()), sx, sy + 22, Ui.INK, false);
+            Ui.wrap(g, font, Component.translatable("realmlord.map.fence.hint"), sx, sy + 36, w, Ui.MUTED);
         } else if (clearMode) {
             g.drawString(font, Component.translatable("realmlord.clear.title"), sx, sy, Ui.GOLD, false);
             if (corner1 != null && corner2 != null) {
@@ -643,26 +786,27 @@ public class TerritoryMapScreen extends Screen {
             legend(g, sx, sy + 35, 0xFFE8C15A, "realmlord.map.legend.built");
             legend(g, sx, sy + 46, 0xFFE89B3A, "realmlord.map.legend.site");
             legend(g, sx, sy + 57, 0xFFFFFFFF, "realmlord.map.legend.you");
+            legend(g, sx, sy + 68, 0xFF40C0E0, "realmlord.map.legend.grounds");
             CompoundTag sel = selected();
             if (sel != null) {
                 BuildingType bt = BuildingType.byOrdinal(sel.getInt("type"));
                 boolean path = bt == BuildingType.PATH;
                 if (bt == BuildingType.CLEARING) {
-                    g.drawString(font, Component.translatable(bt.key()), sx, sy + 74, Ui.GOLD, false);
-                    g.drawString(font, Component.translatable("realmlord.map.state.site", Math.round(sel.getDouble("fraction") * 100)), sx, sy + 85, Ui.INK, false);
-                    Ui.wrap(g, font, Component.translatable("realmlord.clear.cancel_hint", sel.getInt("sx"), sel.getInt("sz")), sx, sy + 97, w, Ui.MUTED);
+                    g.drawString(font, Component.translatable(bt.key()), sx, sy + 85, Ui.GOLD, false);
+                    g.drawString(font, Component.translatable("realmlord.map.state.site", Math.round(sel.getDouble("fraction") * 100)), sx, sy + 96, Ui.INK, false);
+                    Ui.wrap(g, font, Component.translatable("realmlord.clear.cancel_hint", sel.getInt("sx"), sel.getInt("sz")), sx, sy + 108, w, Ui.MUTED);
                     return;
                 }
                 g.drawString(font, path ? Component.translatable("realmlord.path.named", Component.translatable(Paths.Surface.byOrdinal(sel.getInt("mat")).key()), sel.getInt("w"))
-                        : Component.translatable(bt.key()), sx, sy + 74, Ui.GOLD, false);
+                        : Component.translatable(bt.key()), sx, sy + 85, Ui.GOLD, false);
                 Component state = sel.getBoolean("demolish") ? Component.translatable("realmlord.map.state.demolishing")
                         : sel.getBoolean("complete") ? Component.translatable("realmlord.map.state.built")
                         : Component.translatable("realmlord.map.state.site", Math.round(sel.getDouble("fraction") * 100));
-                g.drawString(font, state, sx, sy + 85, Ui.INK, false);
-                if (path) Ui.wrap(g, font, Component.translatable("realmlord.path.remove_hint", sel.getInt("blocks")), sx, sy + 97, w, Ui.MUTED);
-                else if (sel.getBoolean("complete")) Ui.wrap(g, font, Component.translatable("realmlord.map.salvage", bt.wood * 3 / 4, bt.stone * 3 / 4), sx, sy + 97, w, Ui.MUTED);
+                g.drawString(font, state, sx, sy + 96, Ui.INK, false);
+                if (path) Ui.wrap(g, font, Component.translatable("realmlord.path.remove_hint", sel.getInt("blocks")), sx, sy + 108, w, Ui.MUTED);
+                else if (sel.getBoolean("complete")) Ui.wrap(g, font, Component.translatable("realmlord.map.salvage", bt.wood * 3 / 4, bt.stone * 3 / 4), sx, sy + 108, w, Ui.MUTED);
             } else {
-                Ui.wrap(g, font, Component.translatable("realmlord.map.view_hint"), sx, sy + 74, w, Ui.MUTED);
+                Ui.wrap(g, font, Component.translatable("realmlord.map.view_hint"), sx, sy + 85, w, Ui.MUTED);
             }
         }
     }

@@ -50,7 +50,9 @@ public enum BuildingType {
     // ---------------------------------------------------------------- laid on the map, any grade
     PATH(1, false, null, 0, 0, 0, 1, 0, 0, Style.PATH, 0, 0),
     /** Ground the builders clear and level on the Lord's order. */
-    CLEARING(1, false, null, 0, 0, 0, 1, 0, 0, Style.CLEARING, 0, 0);
+    CLEARING(1, false, null, 0, 0, 0, 1, 0, 0, Style.CLEARING, 0, 0),
+    /** The whole village ground levelled to the manor, out to ten blocks past the Grade 3 wall. */
+    GROUNDS(1, false, null, 0, 0, 0, 1, 0, 0, Style.CLEARING, 0, 0);
 
     public enum Style { PATH, CLEARING, FENCE, HALL, HUT, COURTYARD, WORKSHOP, SHOP, LOGGING, QUARRY, FARM, MINE, CAMP, TEMPLE, DOJO, GRANARY, TOWER, OUTPOST, SHED }
 
@@ -97,7 +99,7 @@ public enum BuildingType {
 
     /** Placed by the player on the map (the fence is built around the border instead). */
     public boolean placed() {
-        return this != SIMPLE_FENCE && this != PATH && this != CLEARING;
+        return this != SIMPLE_FENCE && this != PATH && this != CLEARING && this != GROUNDS;
     }
 
     /** Not one of the novel's buildings: kept out of the building lists (paths are laid from the map). */
@@ -107,7 +109,7 @@ public enum BuildingType {
     }
 
     public boolean hidden() {
-        return this == PATH || this == CLEARING;
+        return this == PATH || this == CLEARING || this == GROUNDS;
     }
 
     // ---------------------------------------------------------------- what it does once built
@@ -177,7 +179,7 @@ public enum BuildingType {
             case POTTERY_WORKSHOP, WINE_WORKSHOP -> new int[]{0, 4, 0, 0};
             case MILL, MULBERRY_SHED -> new int[]{0, 3, 0, 0};
             case STABLE -> new int[]{0, 0, 0, 3};
-            case PATH, CLEARING -> new int[]{0, 0, 0, 0};
+            case PATH, CLEARING, GROUNDS -> new int[]{0, 0, 0, 0};
             case BARRACKS -> new int[]{0, 0, 0, 6};
             case MAZU_TEMPLE -> new int[]{2, 2, 6, 0};
         };

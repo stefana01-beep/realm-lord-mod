@@ -9,9 +9,9 @@ import com.realmlord.profile.Title;
  * Radius is the mod's own: how far the territory's border reaches, in blocks.
  */
 public enum TerritoryLevel {
-    VILLAGE_1("village", 1, 0, Title.NONE, 0, 64),
-    VILLAGE_2("village", 2, 200, Title.BARON_2, 0, 80),
-    VILLAGE_3("village", 3, 500, Title.BARON_1, 0, 96),
+    VILLAGE_1("village", 1, 0, Title.NONE, 0, 88),
+    VILLAGE_2("village", 2, 200, Title.BARON_2, 0, 104),
+    VILLAGE_3("village", 3, 500, Title.BARON_1, 0, 120),
     TOWN_1("town", 1, 1_000, Title.VISCOUNT_3, 30, 128),
     TOWN_2("town", 2, 2_000, Title.VISCOUNT_2, 0, 144),
     TOWN_3("town", 3, 5_000, Title.VISCOUNT_1, 0, 160),
@@ -37,6 +37,19 @@ public enum TerritoryLevel {
         this.title = title;
         this.minIndex = minIndex;
         this.radius = radius;
+    }
+
+    /** Land the territory keeps beyond its wall, as in the novel: fields and approaches outside the fence. */
+    public static final int OUTSIDE_WALL = 26;
+
+    /** Where this grade's wall stands: 62, 78 and 94 blocks out for a Grade 1, 2 and 3 village. */
+    public int wall() {
+        return radius - OUTSIDE_WALL;
+    }
+
+    /** The wall radius of village grade 1-3. */
+    public static int villageWall(int grade) {
+        return values()[Math.max(0, Math.min(2, grade - 1))].wall();
     }
 
     public String kindKey() {

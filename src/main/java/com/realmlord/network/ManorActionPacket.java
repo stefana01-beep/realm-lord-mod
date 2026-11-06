@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 
 /** Client to server: buttons on the Manor screen. */
 public class ManorActionPacket {
-    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT, DEMOLISH, CREW, BUY_GOOD, SELL_GOOD, SELL_SPECIAL, HAND_IN, SELL_STORAGE, OPEN_STORAGE, TAKE_GOOD }
+    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT, DEMOLISH, CREW, BUY_GOOD, SELL_GOOD, SELL_SPECIAL, HAND_IN, SELL_STORAGE, OPEN_STORAGE, TAKE_GOOD, GROUNDS }
 
     private final Action action;
     private final int a;
@@ -58,6 +58,17 @@ public class ManorActionPacket {
             case SHIFT_JOB -> {
                 Job job = Job.byId(a);
                 if (job != Job.IDLE && job != Job.STAFF) Village.shift(t, job, (int) Math.max(-50, Math.min(50, b)));
+            }
+            case GROUNDS -> {
+                // Begin levelling the grounds, or call it off (what is done stays done).
+                Building g = com.realmlord.village.Grounds.of(t);
+                if (g != null) {
+                    Village.demolish(p.serverLevel(), t, g);
+                    Notify.player(p, Component.translatable("realmlord.grounds.stopped"));
+                } else {
+                    com.realmlord.village.Grounds.start(p.serverLevel(), t);
+                    Notify.player(p, Component.translatable("realmlord.grounds.started", com.realmlord.village.Grounds.radius(), t.center.getY()));
+                }
             }
             case BUILD_FENCE -> {
                 String err = Village.start(p, t, BuildingType.SIMPLE_FENCE, t.center, 0);

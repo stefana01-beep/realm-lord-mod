@@ -621,8 +621,12 @@ public final class Village {
         int sx = rotation % 2 == 0 ? type.width : type.depth;
         int sz = rotation % 2 == 0 ? type.depth : type.width;
         int[][] corners = {{0, 0}, {sx - 1, 0}, {0, sz - 1}, {sx - 1, sz - 1}};
+        if (!level.dimension().equals(t.dimension)) return "realmlord.build.err.border";
+        boolean defence = defence(type);
         for (int[] c : corners) {
-            if (!t.contains(level.dimension(), origin.offset(c[0], 0, c[1]))) return "realmlord.build.err.border";
+            BlockPos at = origin.offset(c[0], 0, c[1]);
+            // Arrow towers, sentry posts and outposts may stand on a wall that lies beyond the border.
+            if (defence ? t.distanceTo(at) > reach(t) : !t.contains(level.dimension(), at)) return "realmlord.build.err.border";
         }
         BlockPos m = t.center;
         if (origin.getX() - 1 < m.getX() + MANOR_YARD && m.getX() - MANOR_YARD < origin.getX() + sx + 1
@@ -633,7 +637,7 @@ public final class Village {
         // Nothing may block a gateway; only towers may stand on the fence.
         for (Building f : t.buildings) {
             if (f.type != BuildingType.SIMPLE_FENCE || f.demolishing) continue;
-            int fr = f.fenceRadius > 0 ? f.fenceRadius : t.radius() - 2;
+            int fr = f.fenceRadius > 0 ? f.fenceRadius : t.level.wall();
             for (int x = 0; x < sx; x++)
                 for (int z = 0; z < sz; z++) {
                     int wx = origin.getX() + x, wz = origin.getZ() + z;
@@ -643,6 +647,10 @@ public final class Village {
                     if (type.style != BuildingType.Style.TOWER) return "realmlord.build.err.on_fence";
                 }
         }
+        // Grounds being levelled: the site will stand on the levelled ground, whatever is there now.
+        boolean levelled = true;
+        for (int[] c : corners) levelled &= Grounds.covers(t, origin.getX() + c[0], origin.getZ() + c[1]);
+        if (levelled) return null;
         // Ground: settlers fill in shallow water, ponds and marsh, but not deep water; slopes are limited.
         int lo = Integer.MAX_VALUE, hi = Integer.MIN_VALUE;
         for (int x = 0; x < sx; x += Math.max(1, Math.min(2, sx - 1 - x))) {
@@ -711,6 +719,14 @@ public final class Village {
 
     /** As {@link #start(ServerPlayer, Territory, BuildingType, BlockPos, int)}; gates (degrees) for the fence. */
     public static String start(ServerPlayer p, Territory t, BuildingType type, BlockPos origin, int rotation, int[] gates) {
+        return start(p, t, type, origin, rotation, gates, 0);
+    }
+
+    /**
+     * As above; for the fence, wallGrade (1-3) picks which grade's ring it is raised on (62, 78
+     * or 94 blocks out), whatever the village's own grade, and 0 the village's own.
+     */
+    public static String start(ServerPlayer p, Territory t, BuildingType type, BlockPos origin, int rotation, int[] gates, int wallGrade) {
         ServerLevel level = p.serverLevel();
         boolean free = t.freeBuilds.contains(type);
         String err = checkCost(p, t, type, free);
@@ -745,12 +761,15 @@ public final class Village {
         if (type.placed()) {
             // The builders clear and level the ground themselves; nothing is put down yet.
             int y = groundLevel(level, origin, b.sizeX(), b.sizeZ());
+            Building grounds = Grounds.of(t);
+            if (grounds != null && Grounds.covers(t, origin.getX(), origin.getZ())
+                    && Grounds.covers(t, origin.getX() + b.sizeX() - 1, origin.getZ() + b.sizeZ() - 1)) y = grounds.origin.getY();
             b.origin = new BlockPos(origin.getX(), y, origin.getZ());
             b.stage = Building.CLEAR;
         } else {
             b.origin = t.center;
             b.stage = Building.BUILD;
-            b.fenceRadius = t.radius() - 2;
+            b.fenceRadius = wallGrade > 0 ? TerritoryLevel.villageWall(wallGrade) : t.level.wall();
             b.gates = gates == null ? new int[]{0, 90, 180, 270} : cleanGates(gates);
             b.fenceStyle = fenceStyle(t);
         }
@@ -759,6 +778,19 @@ public final class Village {
         Notify.player(p, Component.translatable("realmlord.build.started", Component.translatable(type.key()), type.hours,
                 count(t, Job.CONSTRUCTION)));
         return null;
+    }
+
+    /** Defences: as many as the Lord likes, and they may stand out on the wall. */
+    public static boolean defence(BuildingType type) {
+        return type.style == BuildingType.Style.TOWER || type.style == BuildingType.Style.OUTPOST;
+    }
+
+    /**
+     * How far out the builders may clear and level: the border, or ten blocks past where the
+     * Grade 3 wall will stand, whichever is further (the wall and its ground may lie beyond the border).
+     */
+    public static int reach(Territory t) {
+        return Math.max(t.radius() - 3, Grounds.radius());
     }
 
     /** Largest area the builders clear and level in one order. */
@@ -778,7 +810,7 @@ public final class Village {
         int ax = Math.min(x0, x1), az = Math.min(z0, z1), sx = Math.abs(x1 - x0) + 1, sz = Math.abs(z1 - z0) + 1;
         if (sx < 2 || sz < 2) return "realmlord.clear.err.small";
         if (sx > MAX_CLEARING || sz > MAX_CLEARING) return "realmlord.clear.err.big";
-        int inner = t.radius() - 4;
+        int inner = reach(t) - 1;
         for (int[] c : new int[][]{{ax, az}, {ax + sx - 1, az}, {ax, az + sz - 1}, {ax + sx - 1, az + sz - 1}}) {
             long dx = c[0] - t.center.getX(), dz = c[1] - t.center.getZ();
             if (dx * dx + dz * dz > (long) inner * inner) return "realmlord.build.err.border";
@@ -842,6 +874,10 @@ public final class Village {
     /** How far beyond a clearing its edges are sloped. */
     public static final int SKIRT = 8;
 
+    public static long colKeyOf(int x, int z) {
+        return colKey(x, z);
+    }
+
     private static long colKey(int x, int z) {
         return ((long) x << 32) ^ (z & 0xffffffffL);
     }
@@ -852,7 +888,7 @@ public final class Village {
      */
     public static java.util.Set<Long> keptColumns(Territory t, int x0, int z0, int sx, int sz) {
         java.util.Set<Long> out = new java.util.HashSet<>();
-        int cx = t.center.getX(), cz = t.center.getZ(), inner = t.radius() - 3;
+        int cx = t.center.getX(), cz = t.center.getZ(), inner = reach(t);
         Building fence = null;
         for (Building b : t.buildings) if (b.type == BuildingType.SIMPLE_FENCE && !b.demolishing) fence = b;
         for (int x = x0; x < x0 + sx; x++)
@@ -861,7 +897,7 @@ public final class Village {
                 double dist = Math.sqrt(dx * dx + dz * dz);
                 boolean kept = dist > inner || (Math.abs(dx) <= MANOR_YARD && Math.abs(dz) <= MANOR_YARD);
                 if (!kept && fence != null) {
-                    int fr = fence.fenceRadius > 0 ? fence.fenceRadius : t.radius() - 2;
+                    int fr = fence.fenceRadius > 0 ? fence.fenceRadius : t.level.wall();
                     kept = dist >= fr - 3 && dist <= fr + 2;
                 }
                 if (!kept) {
@@ -973,6 +1009,12 @@ public final class Village {
     }
 
     private static void work(ServerLevel level, Territory t, Building site, double work, int ticks) {
+        if (site.type == BuildingType.GROUNDS) {
+            // Builders work it by hand where they stand; the rest of the crew's work goes on all round.
+            Grounds.sweep(level, t, site, (int) Math.max(20, Math.round(work * ticks * 2)));
+            if (Grounds.done(site) && t.buildings.contains(site)) finish(level, t, site);
+            return;
+        }
         if (!site.demolishing) site.progress = Math.min(site.workNeeded, site.progress + Math.round(work * ticks));
         // Builders on the site do the work by hand; otherwise the village gets on with it.
         boolean byHand = buildersNear(level, t, site) && level.getGameTime() - site.lastWork < Sites.STALL_TICKS;
@@ -1004,6 +1046,19 @@ public final class Village {
     }
 
     private static void finish(ServerLevel level, Territory t, Building b) {
+        if (b.type == BuildingType.GROUNDS) {
+            t.buildings.remove(b);
+            for (Resident r : t.residents) if (r.workplace == b.id) r.workplace = -1;
+            // A wall still waiting is laid out afresh on the level ground.
+            for (Building f : t.buildings) {
+                if (f.type != BuildingType.SIMPLE_FENCE || f.placed > 0 || f.complete) continue;
+                f.fenceYs = null;
+                f.fenceFill = null;
+                BuildingDesigns.forget(f);
+            }
+            tell(level, t, Component.translatable("realmlord.grounds.done", t.name, b.clearHeight));
+            return;
+        }
         if (b.type == BuildingType.CLEARING) {
             // Once the ground is level there is nothing left to keep track of.
             t.buildings.remove(b);
@@ -1052,7 +1107,7 @@ public final class Village {
             Paths.remove(level, t, b);
             return;
         }
-        if (b.type == BuildingType.CLEARING) {
+        if (b.type == BuildingType.CLEARING || b.type == BuildingType.GROUNDS) {
             // Called off: what is done stays done.
             for (Resident r : t.residents) if (r.workplace == b.id) r.workplace = -1;
             t.buildings.remove(b);
@@ -1118,6 +1173,31 @@ public final class Village {
         fence.verifyCursor = 0;
         fence.progress = fence.workNeeded;
         fence.stage = Building.BUILD;
+    }
+
+    /**
+     * Puts the wall on another grade's ring. A wall not yet begun is simply laid out again; one
+     * already standing is taken down (three quarters of it comes back) and the new one ordered.
+     * Returns an error key or null.
+     */
+    public static String moveWall(ServerPlayer p, Territory t, int wallGrade, int[] gates) {
+        Building fence = null;
+        for (Building b : t.buildings) if (b.type == BuildingType.SIMPLE_FENCE && !b.demolishing) fence = b;
+        int r = TerritoryLevel.villageWall(wallGrade);
+        if (fence == null) return start(p, t, BuildingType.SIMPLE_FENCE, t.center, 0, gates, wallGrade);
+        if (fence.fenceRadius == r) return null;
+        if (!fence.complete && fence.placed == 0) {
+            fence.fenceRadius = r;
+            fence.fenceYs = null;
+            fence.fenceFill = null;
+            if (gates != null) fence.gates = cleanGates(gates);
+            BuildingDesigns.forget(fence);
+            return null;
+        }
+        String err = checkCost(p, t, BuildingType.SIMPLE_FENCE, t.freeBuilds.contains(BuildingType.SIMPLE_FENCE));
+        if (err != null) return err;
+        demolish(p.serverLevel(), t, fence);
+        return start(p, t, BuildingType.SIMPLE_FENCE, t.center, 0, gates != null ? gates : fence.gates, wallGrade);
     }
 
     /** Moves the fence's gates; the builders change the wall over. */

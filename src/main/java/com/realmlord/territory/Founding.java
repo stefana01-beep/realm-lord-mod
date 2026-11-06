@@ -88,6 +88,10 @@ public final class Founding {
         raiseTablet(level, center, front, t.name);
         bringSettlers(level, player, center, prof.quest().captives);
         com.realmlord.village.Village.settle(t, level.getRandom(), prof.quest().captives);
+        if (com.realmlord.RealmConfig.levelOnFounding()) {
+            com.realmlord.village.Grounds.start(level, t);
+            Notify.player(player, Component.translatable("realmlord.grounds.started", com.realmlord.village.Grounds.radius(), center.getY()));
+        }
         if (com.realmlord.quest.QuestLogic.deliverSpoils(prof.quest(), t)) {
             prof.markDirty();
             Notify.player(player, Component.translatable("realmlord.found.spoils", t.food, t.wood, t.stone, t.ironOre));

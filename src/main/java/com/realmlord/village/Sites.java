@@ -43,7 +43,7 @@ public final class Sites {
     /** Share of a building's wood and stone that taking it down returns. */
     public static final double SALVAGE = 0.75;
 
-    public enum Kind { CLEAR, FILL, PLACE, REMOVE, REPAIR }
+    public enum Kind { CLEAR, FILL, PLACE, REMOVE, REPAIR, SURFACE }
 
     public record Op(Kind kind, BlockPos pos, BlockState state, int index) {}
 
@@ -63,6 +63,9 @@ public final class Sites {
 
     /** The next block job on a site, or null if there is nothing to do yet. */
     public static Op next(ServerLevel level, Territory t, Building b) {
+        if (b.type == BuildingType.GROUNDS) return b.demolishing ? null : Grounds.next(level, t, b);
+        // A wall not yet begun waits for the grounds to be levelled, so it stands on the finished ground.
+        if (b.type == BuildingType.SIMPLE_FENCE && !b.demolishing && b.placed == 0 && Grounds.active(t)) return null;
         if (!loaded(level, b)) return null;
         if (b.demolishing) return nextRemove(level, t, b);
         if (b.stage == Building.CLEAR) {
@@ -145,7 +148,7 @@ public final class Sites {
         return b.type == BuildingType.CLEARING && b.clearHeight > 0 ? b.clearHeight : HEIGHT;
     }
 
-    private static boolean solid(BlockState s) {
+    static boolean solid(BlockState s) {
         return !s.isAir() && !s.canBeReplaced() && s.getFluidState().isEmpty();
     }
 
@@ -248,6 +251,13 @@ public final class Sites {
                     take(level, t, r, op.pos(), worker);
                 }
             }
+            case SURFACE -> {
+                BlockState was = level.getBlockState(op.pos());
+                if (was.getBlock() == op.state().getBlock()) return true;
+                keepDrops(level, t, r, op.pos(), was);
+                level.setBlock(op.pos(), op.state(), Block.UPDATE_ALL);
+                sound(level, op.pos(), op.state(), false);
+            }
             case FILL -> {
                 if (solid(level.getBlockState(op.pos()))) return true;
                 // Earth dug from other sites goes back into the ground first.
@@ -327,7 +337,7 @@ public final class Sites {
         level.destroyBlock(p, false, breaker);
     }
 
-    private static void keepDrops(ServerLevel level, Territory t, Resident r, BlockPos p, BlockState s) {
+    static void keepDrops(ServerLevel level, Territory t, Resident r, BlockPos p, BlockState s) {
         BlockEntity be = level.getBlockEntity(p);
         for (ItemStack drop : Block.getDrops(s, level, p, be)) toStores(t, drop);
     }
