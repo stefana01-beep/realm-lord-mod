@@ -112,6 +112,8 @@ public final class ChinaMap {
 
     /** A channel at a block position, smoothly interpolated between pixels. */
     public static double sample(int channel, double bx, double bz) {
+        load();
+        if (!loaded) return 0;
         double fx = (bx - x0) / px - 0.5, fz = (bz - z0) / px - 0.5;
         int ix = (int) Math.floor(fx), iz = (int) Math.floor(fz);
         double tx = fx - ix, tz = fz - iz;
