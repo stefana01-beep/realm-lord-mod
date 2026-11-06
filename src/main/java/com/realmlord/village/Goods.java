@@ -176,6 +176,7 @@ public enum Goods {
             for (Recipe r : RECIPES) {
                 if (r.building() != b.type) continue;
                 if (b.type.staff() != null && Village.staffOf(t, b) == null) continue;
+                if (!Workshops.makingStock(b)) continue;
                 double scale = 1.0;
                 if (r.input() != null) {
                     long have = r.input().stock(t);
@@ -199,6 +200,7 @@ public enum Goods {
             for (Recipe r : RECIPES) {
                 if (r.building() != b.type) continue;
                 if (b.type.staff() != null && Village.staffOf(t, b) == null) continue;
+                if (!Workshops.makingStock(b)) continue;
                 out[r.output().ordinal()] += r.out();
                 if (r.input() != null) out[r.input().ordinal()] -= r.in();
             }

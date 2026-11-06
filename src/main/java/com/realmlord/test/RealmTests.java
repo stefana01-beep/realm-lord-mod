@@ -251,7 +251,9 @@ public class RealmTests {
         helper.assertTrue(q.camp != null, "no bandit camp chosen");
 
         // Build the camp right here instead of 200 blocks away.
+        helper.assertTrue(q.inLands, "the camp should lie in the Bandit Lands");
         q.camp = helper.absolutePos(new BlockPos(8, 1, 8));
+        q.inLands = false;
         ServerLevel level = helper.getLevel();
         BanditCamp.build(level, p, q);
         helper.assertTrue(q.campBuilt, "camp not built");

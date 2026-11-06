@@ -119,9 +119,11 @@ public final class Founding {
      */
     public static void bringSettlers(ServerLevel level, ServerPlayer player, BlockPos center, int captives) {
         java.util.UUID owner = player.getUUID();
-        for (SettlerEntity s : level.getEntities(ModEntities.SETTLER.get(), e -> owner.equals(e.getOwner()) && e.getHome() == null)) {
-            s.discard();
-        }
+        // Wherever they were freed (the Bandit Lands, or the old overworld camps), they now simply turn up at the village.
+        for (ServerLevel l : level.getServer().getAllLevels())
+            for (SettlerEntity s : l.getEntities(ModEntities.SETTLER.get(), e -> owner.equals(e.getOwner()) && e.getHome() == null)) {
+                s.discard();
+            }
         // The village's residents now appear from its records (see Residents.sync).
     }
 
@@ -130,6 +132,12 @@ public final class Founding {
      * roof, and the manor seal at its heart.
      */
     public static void buildManor(ServerLevel level, BlockPos c, Direction front) {
+        buildManorBlocks(level, c, front);
+        // Windows filled edge to edge: every pane joined to its neighbours.
+        com.realmlord.village.Sites.connectAll(level, c.offset(-8, -1, -8), c.offset(8, 14, 8));
+    }
+
+    private static void buildManorBlocks(ServerLevel level, BlockPos c, Direction front) {
         int x0 = c.getX(), y0 = c.getY(), z0 = c.getZ();
         BlockState air = Blocks.AIR.defaultBlockState();
         // Level the yard: clear above, fill below.

@@ -22,6 +22,7 @@ public class NamingScreen extends Screen {
 
     @Override
     protected void init() {
+        if (Ui.fit(this, W, H)) return;
         int x = (width - W) / 2, y = (height - H) / 2;
         String was = box != null ? box.getValue() : !req.name.isEmpty() ? req.name
                 : Component.translatable("realmlord.territory.default_name", minecraft.player == null ? "" : minecraft.player.getGameProfile().getName()).getString();
@@ -65,5 +66,11 @@ public class NamingScreen extends Screen {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    @Override
+    public void removed() {
+        super.removed();
+        Ui.restoreScale();
     }
 }

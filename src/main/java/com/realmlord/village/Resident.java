@@ -34,6 +34,9 @@ public class Resident {
     /** A fighter's level, won by drilling and by kills: more health and harder blows. */
     public int soldierLevel = 1;
     public long soldierXp;
+    /** Learning at a school, the dojo or a workshop (its building id), or -1; and the half days of lessons so far. */
+    public int trainingAt = -1;
+    public int trainingDays;
     /** A historical figure's id (see Figures), or empty. */
     public String figure = "";
     /** Walking with the Lord as a companion. */
@@ -174,6 +177,8 @@ public class Resident {
         t.putBoolean("militia", militia);
         t.putInt("slv", soldierLevel);
         t.putLong("sxp", soldierXp);
+        t.putInt("trainAt", trainingAt);
+        t.putInt("trainDays", trainingDays);
         if (!figure.isEmpty()) t.putString("figure", figure);
         t.putBoolean("follows", follows);
         t.putInt("office", office);
@@ -207,6 +212,8 @@ public class Resident {
         r.militia = t.getBoolean("militia");
         r.soldierLevel = Math.max(1, t.getInt("slv"));
         r.soldierXp = t.getLong("sxp");
+        r.trainingAt = t.contains("trainAt") ? t.getInt("trainAt") : -1;
+        r.trainingDays = t.getInt("trainDays");
         r.figure = t.getString("figure");
         r.follows = t.getBoolean("follows");
         r.office = t.contains("office") ? t.getInt("office") : -1;

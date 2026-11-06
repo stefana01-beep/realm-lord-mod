@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /** Snapshots of a territory and its residents, sent to the client for the screens. */
@@ -61,6 +62,7 @@ public final class Views {
         v.putInt("cz", t.center.getZ());
         v.putInt("radius", t.radius());
         v.putInt("wall", t.level.wall());
+        v.putInt("speed", Village.speed);
         v.putInt("grade", Math.max(1, t.level.villageGrade() == 0 ? 3 : t.level.villageGrade()));
         v.putInt("reach", Village.reach(t));
         // Buildings
@@ -140,9 +142,12 @@ public final class Views {
         // Talents and named residents
         ListTag rs = new ListTag();
         for (Resident r : t.residents) {
-            if (!r.isTalent()) continue;
+            if (!r.isTalent() && !r.militia && !r.isFigure()) continue;
             CompoundTag rt = new CompoundTag();
             rt.putInt("id", r.id);
+            rt.putBoolean("fig", r.isFigure());
+            rt.putBoolean("mil", r.militia);
+            rt.putInt("slv", r.soldierLevel);
             rt.putString("name", r.name);
             rt.putInt("grade", r.grade);
             rt.putInt("occ", r.occupation.ordinal());
@@ -236,6 +241,94 @@ public final class Views {
             staff.add(st);
         }
         v.put("staff", staff);
+        return v;
+    }
+
+    /** Buildings with a window of their own: workshops, schools, the dojo, anything with a master. */
+    public static boolean managed(Building b) {
+        return b.complete && !b.demolishing && (b.type.staff() != null || !Workshops.modes(b.type).isEmpty() || Workshops.places(b.type) > 0);
+    }
+
+    /**
+     * A building's window: its master, what it makes (and the choices), and its learners and who
+     * else could learn there. With no building, the list of buildings that have windows.
+     */
+    public static CompoundTag building(ServerPlayer p, Territory t, Building b) {
+        CompoundTag v = new CompoundTag();
+        v.putInt("territory", t.id);
+        if (b == null) {
+            ListTag list = new ListTag();
+            for (Building o : t.buildings) {
+                if (!managed(o)) continue;
+                CompoundTag c = new CompoundTag();
+                c.putInt("id", o.id);
+                c.putInt("type", o.type.ordinal());
+                Resident m = Village.staffOf(t, o);
+                if (m != null) c.putString("staff", m.name);
+                c.putInt("learners", Workshops.learners(t, o).size());
+                c.putInt("places", Workshops.places(o.type));
+                Workshops.Mode mode = Workshops.mode(o);
+                if (mode != null) c.putString("mode", mode.key());
+                list.add(c);
+            }
+            v.put("list", list);
+            return v;
+        }
+        v.putInt("id", b.id);
+        v.putInt("type", b.type.ordinal());
+        Resident m = Village.staffOf(t, b);
+        if (m != null) {
+            v.putString("staff", m.name);
+            v.putInt("staffRank", m.rank);
+        }
+        if (b.type.staff() != null) v.putInt("staffOcc", b.type.staff().ordinal());
+        ListTag modes = new ListTag();
+        for (Workshops.Mode md : Workshops.modes(b.type)) {
+            CompoundTag c = new CompoundTag();
+            c.putString("key", md.key());
+            if (md.input() != null) {
+                c.putString("in", md.input().key());
+                c.putDouble("inN", md.in());
+            }
+            if (md.output() != null) c.putString("out", md.output().key());
+            c.putDouble("outN", md.out());
+            c.putBoolean("items", md.makesItems());
+            modes.add(c);
+        }
+        v.put("modes", modes);
+        v.putInt("mode", b.mode);
+        int places = Workshops.places(b.type);
+        v.putInt("places", places);
+        if (places > 0) {
+            Occupation teaches = Workshops.teaches(b.type);
+            v.putInt("teaches", teaches.ordinal());
+            ListTag ls = new ListTag();
+            for (Resident r : Workshops.learners(t, b)) {
+                CompoundTag c = new CompoundTag();
+                c.putInt("id", r.id);
+                c.putString("name", r.name);
+                c.putInt("half", r.trainingDays);
+                c.putInt("need", Workshops.daysToLearn(b.type, r) * 2);
+                c.putInt("occ", r.occupation.ordinal());
+                ls.add(c);
+            }
+            v.put("learners", ls);
+            ListTag cs = new ListTag();
+            List<Resident> cands = new ArrayList<>();
+            for (Resident r : t.residents) if (Workshops.canLearn(t, r) && !(r.occupation == teaches && r.rank >= 2)) cands.add(r);
+            // Those already of the trade first (they rise a rank), then commoners, then the rest.
+            cands.sort(java.util.Comparator.comparing((Resident r) -> r.occupation != teaches).thenComparing(r -> r.isTalent()).thenComparing(r -> r.name));
+            for (Resident r : cands) {
+                CompoundTag c = new CompoundTag();
+                c.putInt("id", r.id);
+                c.putString("name", r.name);
+                c.putInt("occ", r.occupation.ordinal());
+                c.putInt("rank", r.rank);
+                c.putInt("job", r.job.ordinal());
+                cs.add(c);
+            }
+            v.put("candidates", cs);
+        }
         return v;
     }
 }

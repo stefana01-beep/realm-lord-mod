@@ -267,7 +267,7 @@ public final class Sites {
             }
             case PLACE, REPAIR -> {
                 if (op.kind() == Kind.PLACE && op.index() != b.placed) return true;
-                BlockState want = op.state();
+                BlockState want = connected(level, op.pos(), op.state());
                 if (worker != null && !want.getCollisionShape(level, op.pos()).isEmpty() && occupied(level, op.pos())) return false;
                 BlockState was = level.getBlockState(op.pos());
                 if (isNaturalLog(was)) {
@@ -368,6 +368,28 @@ public final class Sites {
             case Haul.STONE -> t.stone += units;
             case Haul.ORE -> t.ironOre += units;
             default -> t.food += units;
+        }
+    }
+
+    /**
+     * Glass panes, bars, fences and walls joined up to what is already beside them, so a window
+     * is filled edge to edge rather than a thin post with gaps a beast could reach through.
+     */
+    public static BlockState connected(ServerLevel level, BlockPos p, BlockState s) {
+        Block b = s.getBlock();
+        if (b instanceof net.minecraft.world.level.block.CrossCollisionBlock || b instanceof net.minecraft.world.level.block.WallBlock
+                || b instanceof net.minecraft.world.level.block.StairBlock) {
+            return Block.updateFromNeighbourShapes(s, level, p);
+        }
+        return s;
+    }
+
+    /** Joins up every pane, bar, fence and wall in a box (after a structure is set down all at once). */
+    public static void connectAll(ServerLevel level, BlockPos from, BlockPos to) {
+        for (BlockPos p : BlockPos.betweenClosed(from, to)) {
+            BlockState s = level.getBlockState(p);
+            BlockState c = connected(level, p, s);
+            if (c != s) level.setBlock(p, c, Block.UPDATE_CLIENTS);
         }
     }
 

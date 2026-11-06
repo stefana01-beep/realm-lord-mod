@@ -38,6 +38,7 @@ public class RoleScreen extends Screen {
 
     @Override
     protected void init() {
+        if (Ui.fit(this, W, H)) return;
         clearWidgets();
         int x = left(), y = top();
         if (step == 0) {
@@ -139,5 +140,11 @@ public class RoleScreen extends Screen {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    @Override
+    public void removed() {
+        super.removed();
+        Ui.restoreScale();
     }
 }

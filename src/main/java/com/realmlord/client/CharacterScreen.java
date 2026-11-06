@@ -29,7 +29,7 @@ public class CharacterScreen extends Screen {
 
     private int tab;
     private final List<Button> plus = new ArrayList<>();
-    private Button submit, claim, abandon, keepCamp, salvageCamp;
+    private Button submit, claim, abandon, keepCamp, salvageCamp, travel;
     private boolean confirmAbandon;
 
     public CharacterScreen(int tab) {
@@ -47,6 +47,7 @@ public class CharacterScreen extends Screen {
 
     @Override
     protected void init() {
+        if (Ui.fit(this, W, H)) return;
         clearWidgets();
         plus.clear();
         int x = left(), y = top();
@@ -83,6 +84,10 @@ public class CharacterScreen extends Screen {
             salvageCamp = addRenderableWidget(Button.builder(Component.translatable("realmlord.camp.salvage_button"),
                     b -> ModNetwork.toServer(new ProfileActionPacket(ProfileActionPacket.Action.CAMP_SALVAGE)))
                     .bounds(x + 236, y + H - 26, 96, 18).tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("realmlord.camp.salvage_tip"))).build());
+            boolean there = minecraft.player != null && minecraft.player.level().dimension().location().getPath().equals("bandit_lands");
+            travel = addRenderableWidget(Button.builder(Component.translatable(there ? "realmlord.lands.return_button" : "realmlord.lands.travel_button"),
+                    b -> minecraft.player.connection.sendCommand(there ? "realm camp return" : "realm camp travel"))
+                    .bounds(x + 136, y + H - 26, 120, 18).tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("realmlord.lands.travel_tip", 50))).build());
             abandon = addRenderableWidget(Button.builder(Component.translatable("realmlord.panel.quest.abandon"), b -> {
                 if (!confirmAbandon) {
                     confirmAbandon = true;
@@ -111,6 +116,8 @@ public class CharacterScreen extends Screen {
             claim.visible = lord && st == VillageQuest.Stage.CLEARED.ordinal();
             abandon.visible = lord && (st == VillageQuest.Stage.SUPPLIES.ordinal() || st == VillageQuest.Stage.BANDITS.ordinal());
             keepCamp.visible = salvageCamp.visible = lord && ClientProfileData.campChoicePending;
+            boolean there = minecraft.player != null && minecraft.player.level().dimension().location().getPath().equals("bandit_lands");
+            travel.visible = lord && !keepCamp.visible && (st == VillageQuest.Stage.BANDITS.ordinal() || there);
         }
     }
 
@@ -144,6 +151,8 @@ public class CharacterScreen extends Screen {
         g.drawString(font, minecraft.player.getName(), lx, ly, Ui.GOLD, false);
         Component modeLine = Component.translatable(lord ? "realmlord.panel.lord_line" : "realmlord.panel.adventurer_line", occupationName());
         g.drawString(font, modeLine, lx, ly + 11, Ui.INK, false);
+        Component purse = Component.translatable("realmlord.panel.purse", Ui.money(ClientProfileData.purse));
+        g.drawString(font, purse, x + W - 12 - font.width(purse), ly, Ui.GOLD, false);
 
         int yy = ly + 25;
         if (lord) {
@@ -365,5 +374,11 @@ public class CharacterScreen extends Screen {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    @Override
+    public void removed() {
+        super.removed();
+        Ui.restoreScale();
     }
 }

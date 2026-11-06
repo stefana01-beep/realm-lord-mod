@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 
 /** Client to server: buttons on the Manor screen. */
 public class ManorActionPacket {
-    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT, DEMOLISH, CREW, BUY_GOOD, SELL_GOOD, SELL_SPECIAL, HAND_IN, SELL_STORAGE, OPEN_STORAGE, TAKE_GOOD, GROUNDS, DEPOSIT }
+    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT, DEMOLISH, CREW, BUY_GOOD, SELL_GOOD, SELL_SPECIAL, HAND_IN, SELL_STORAGE, OPEN_STORAGE, TAKE_GOOD, GROUNDS, DEPOSIT, SPEED }
 
     private final Action action;
     private final int a;
@@ -128,6 +128,13 @@ public class ManorActionPacket {
             case BUY_BLUEPRINT -> {
                 BuildingType type = BuildingType.byOrdinal(a);
                 if (type == null || !Village.buyBlueprint(p, type)) Notify.player(p, "realmlord.market.cannot_afford");
+            }
+            case SPEED -> {
+                // For testing: creative players and operators may speed time up.
+                if (p.isCreative() || p.hasPermissions(2)) {
+                    Village.speed = Math.max(1, Math.min(60, a));
+                    Notify.player(p, Component.translatable("realmlord.speed.set", Village.speed));
+                }
             }
             case DEPOSIT -> {
                 // From the purse (and any coins carried) into the manor's treasury, for the market later.

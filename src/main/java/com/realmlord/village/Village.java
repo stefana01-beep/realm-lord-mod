@@ -41,6 +41,11 @@ public final class Village {
     public static final int NOMINAL_BUILDERS = 5;
     /** Half-width of the Lord's Manor yard, which nothing may be built on. */
     public static final int MANOR_YARD = 8;
+    /**
+     * Time sped up for testing (1 = normal): the sun runs this many times as fast and the
+     * village's work keeps pace. Set with /realm speed or the manor's Speed button in creative.
+     */
+    public static int speed = 1;
     /** Companions who may walk with the Lord at once. */
     public static final int MAX_COMPANIONS = 3;
     public static final int MANOR_HOUSING = 10;
@@ -312,7 +317,7 @@ public final class Village {
         int moved = 0;
         if (n > 0) {
             List<Resident> idle = new ArrayList<>();
-            for (Resident r : t.residents) if (r.job == Job.IDLE && !r.militia && canAssign(t, r, job, -1) == null) idle.add(r);
+            for (Resident r : t.residents) if (r.job == Job.IDLE && !r.militia && r.trainingAt < 0 && canAssign(t, r, job, -1) == null) idle.add(r);
             idle.sort(Comparator.comparingDouble((Resident r) -> -r.skillAt(job)).thenComparing(Resident::isTalent));
             for (Resident r : idle) {
                 if (moved >= n || !assign(t, r, job, -1)) break;
@@ -488,6 +493,8 @@ public final class Village {
         t.ironOre += Math.round(owed[2]);
         // The workshops' day, the hunt and the militia's drill.
         Goods.produce(t);
+        Workshops.make(t, rnd);
+        for (String name : Workshops.teach(t, rnd)) tell(level, t, Component.translatable("realmlord.workshop.learned", name, t.name));
         hunt(t);
         drill(t, rnd);
         revealHidden(level, t);
@@ -807,6 +814,14 @@ public final class Village {
      * key or null.
      */
     public static String startClearing(ServerPlayer p, Territory t, int x0, int z0, int x1, int z1, int offset) {
+        return startClearing(p, t, x0, z0, x1, z1, offset, false);
+    }
+
+    /**
+     * As above; graded (slope true), the ground is shaped into an even slope from the usual
+     * ground height at the first corner to that at the second, for a ramp up to raised ground.
+     */
+    public static String startClearing(ServerPlayer p, Territory t, int x0, int z0, int x1, int z1, int offset, boolean slope) {
         ServerLevel level = p.serverLevel();
         if (!level.dimension().equals(t.dimension)) return "realmlord.build.err.dimension";
         int ax = Math.min(x0, x1), az = Math.min(z0, z1), sx = Math.abs(x1 - x0) + 1, sz = Math.abs(z1 - z0) + 1;
@@ -828,25 +843,33 @@ public final class Village {
             }
         if (heights.isEmpty()) return "realmlord.clear.err.nothing";
         java.util.Collections.sort(heights);
-        int y = heights.get(heights.size() / 2) + Mth.clamp(offset, -8, 8);
+        int off = Mth.clamp(offset, -8, 8);
+        int y = heights.get(heights.size() / 2) + off;
+        int ya = slope ? cornerHeight(level, x0, z0) + off : y, yb = slope ? cornerHeight(level, x1, z1) + off : y;
+        double vx = x1 - x0, vz = z1 - z0, vv = Math.max(1, vx * vx + vz * vz);
+        y = Math.min(ya, yb);
         List<int[]> cols = new ArrayList<>();
         long cut = 0, fill = 0;
-        int top = y;
+        int top = Math.max(ya, yb);
         for (int x = -SKIRT; x < sx + SKIRT; x++)
             for (int z = -SKIRT; z < sz + SKIRT; z++) {
                 int wx = ax + x, wz = az + z;
                 if (keep.contains(colKey(wx, wz))) continue;
                 int d = Math.max(Math.max(-x, x - (sx - 1)), Math.max(-z, z - (sz - 1)));
+                // The level here: flat, or along the slope (taken at the nearest point inside the area).
+                int ix = ax + Mth.clamp(x, 0, sx - 1), iz = az + Mth.clamp(z, 0, sz - 1);
+                double f0 = Mth.clamp(((ix - x0) * vx + (iz - z0) * vz) / vv, 0, 1);
+                int ty = slope ? (int) Math.round(ya + (yb - ya) * f0) : y;
                 if (!level.isLoaded(new BlockPos(wx, 64, wz))) continue;
                 int g = groundAt(level, wx, wz);
                 if (d <= 0) {
-                    cols.add(new int[]{wx, wz, y, y});
-                    cut += Math.max(0, g - y);
-                    fill += Math.min(Sites.DEPTH, Math.max(0, y - g));
+                    cols.add(new int[]{wx, wz, ty, ty});
+                    cut += Math.max(0, g - ty);
+                    fill += Math.min(Sites.DEPTH, Math.max(0, ty - g));
                     top = Math.max(top, g);
                 } else {
                     // The edges: cut back and banked up one block per block outwards, so no cliff is left.
-                    int c = g > y + d ? y + d : Building.NO_CUT, f = g < y - d ? y - d : Building.NO_FILL;
+                    int c = g > ty + d ? ty + d : Building.NO_CUT, f = g < ty - d ? ty - d : Building.NO_FILL;
                     if (c == Building.NO_CUT && f == Building.NO_FILL) continue;
                     cols.add(new int[]{wx, wz, c, f});
                     if (c != Building.NO_CUT) {
@@ -871,6 +894,16 @@ public final class Village {
         t.buildings.add(b);
         Notify.player(p, Component.translatable("realmlord.clear.started", sx, sz, y, cut, fill));
         return null;
+    }
+
+    /** The usual ground height around a corner (the middle of a 5 x 5 patch). */
+    private static int cornerHeight(ServerLevel level, int x, int z) {
+        List<Integer> hs = new ArrayList<>();
+        for (int dx = -2; dx <= 2; dx++)
+            for (int dz = -2; dz <= 2; dz++) if (level.isLoaded(new BlockPos(x + dx, 64, z + dz))) hs.add(groundAt(level, x + dx, z + dz));
+        if (hs.isEmpty()) return groundAt(level, x, z);
+        java.util.Collections.sort(hs);
+        return hs.get(hs.size() / 2);
     }
 
     /** How far beyond a clearing its edges are sloped. */
@@ -1493,7 +1526,7 @@ public final class Village {
         if (level == null) return;
         if (!t.settled) settle(t, level.getRandom(), Math.max(0, t.population - 10));
         catchUp(level, t);
-        construct(level, t, 20);
+        construct(level, t, 20 * speed);
         if (t.waitingSettlers > 0) admitWaiting(level, t);
         refitFence(level, t);
         if (com.realmlord.territory.Residence.upgrade(level, t)) {

@@ -59,7 +59,10 @@ public class ResidentActionPacket {
                 Job job = Job.byId(a);
                 String err = job == Job.STAFF ? "realmlord.job.err.no_building" : Village.canAssign(t, r, job, -1);
                 if (err != null) Notify.player(p, err);
-                else Village.assign(t, r, job, -1);
+                else {
+                    com.realmlord.village.Workshops.dismiss(r);
+                    Village.assign(t, r, job, -1);
+                }
             }
             case STAFF -> {
                 if (!owner) return;

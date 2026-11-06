@@ -251,7 +251,13 @@ public class ForgeEvents {
     /** Every second: construction, residents and the days of every village. */
     @SubscribeEvent
     public static void serverTick(TickEvent.ServerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || event.getServer().getTickCount() % 20 != 0) return;
+        if (event.phase != TickEvent.Phase.END) return;
+        int speed = com.realmlord.village.Village.speed;
+        if (speed > 1) {
+            var world = event.getServer().overworld();
+            if (world.getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_DAYLIGHT)) world.setDayTime(world.getDayTime() + speed - 1);
+        }
+        if (event.getServer().getTickCount() % 20 != 0) return;
         TerritoryData data = TerritoryData.get(event.getServer());
         for (Territory t : data.list()) com.realmlord.village.Village.tick(event.getServer(), t);
         data.touch();

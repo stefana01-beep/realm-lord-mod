@@ -43,11 +43,24 @@ public class TerritoryMapScreen extends Screen {
     private boolean pathMode;
     private final java.util.List<int[]> pathPts = new java.util.ArrayList<>();
     private int pathSurface = 1, pathWidth = 2;
+    /** The path follows the land with steps, rather than being evened out. */
+    private boolean pathStairs;
+    /** The clearing is graded into a slope from the first corner to the second. */
+    private boolean clearSlope;
     /** Marking out ground to clear and level: two corners, and the level relative to the usual ground. */
     private boolean clearMode;
     private int[] corner1, corner2;
     private int clearOffset;
     private BlockPos hoverAt;
+
+    /** Opened from the manor panel: closing it goes back there. */
+    private final boolean fromManor = net.minecraft.client.Minecraft.getInstance().screen instanceof ManorScreen;
+
+    @Override
+    public void onClose() {
+        if (fromManor && ClientVillageData.manor != null) minecraft.setScreen(new ManorScreen());
+        else super.onClose();
+    }
 
     public TerritoryMapScreen(BuildingType placing) {
         super(Component.translatable("realmlord.map.title"));
@@ -231,6 +244,7 @@ public class TerritoryMapScreen extends Screen {
 
     @Override
     protected void init() {
+        if (Ui.fit(this, W, H)) return;
         clearWidgets();
         if (!ClientMap.ready || refreshIn < 0) ModNetwork.toServer(new ManorActionPacket(ManorActionPacket.Action.MAP, 0, 0));
         int bx = left() + MAP + 22, by = top() + H - 24, bw = W - MAP - 32;
@@ -267,8 +281,12 @@ public class TerritoryMapScreen extends Screen {
             addRenderableWidget(Button.builder(Component.translatable("realmlord.clear.raise"), b -> {
                 clearOffset = Math.min(8, clearOffset + 1);
             }).bounds(bx + half + 4, by - 72, half, 16).build());
+            addRenderableWidget(Button.builder(Component.translatable(clearSlope ? "realmlord.clear.slope_on" : "realmlord.clear.slope_off"), b -> {
+                clearSlope = !clearSlope;
+                init();
+            }).bounds(bx, by - 90, bw, 16).tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("realmlord.clear.slope.tip"))).build());
             Button go = Button.builder(Component.translatable("realmlord.clear.go"), b -> {
-                ModNetwork.toServer(new com.realmlord.network.ClearAreaPacket(corner1[0], corner1[1], corner2[0], corner2[1], clearOffset));
+                ModNetwork.toServer(new com.realmlord.network.ClearAreaPacket(corner1[0], corner1[1], corner2[0], corner2[1], clearOffset, clearSlope));
                 clearMode = false;
                 corner1 = corner2 = null;
                 refreshIn = 20;
@@ -287,6 +305,10 @@ public class TerritoryMapScreen extends Screen {
             }).bounds(bx, by - 18, bw, 16).build());
         } else if (pathMode) {
             Paths.Surface s = Paths.Surface.byOrdinal(pathSurface);
+            addRenderableWidget(Button.builder(Component.translatable(pathStairs ? "realmlord.path.stairs_on" : "realmlord.path.stairs_off"), b -> {
+                pathStairs = !pathStairs;
+                init();
+            }).bounds(bx, by - 108, bw, 16).tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("realmlord.path.stairs.tip"))).build());
             addRenderableWidget(Button.builder(Component.translatable("realmlord.path.surface", Component.translatable(s.key())), b -> {
                 pathSurface = (pathSurface + 1) % Paths.Surface.values().length;
                 init();
@@ -301,7 +323,7 @@ public class TerritoryMapScreen extends Screen {
                     pts[i * 2] = pathPts.get(i)[0];
                     pts[i * 2 + 1] = pathPts.get(i)[1];
                 }
-                ModNetwork.toServer(new com.realmlord.network.PlacePathPacket(pathSurface, pathWidth, pts));
+                ModNetwork.toServer(new com.realmlord.network.PlacePathPacket(pathSurface, pathWidth, pts, pathStairs));
                 pathMode = false;
                 pathPts.clear();
                 refreshIn = 20;
@@ -363,6 +385,14 @@ public class TerritoryMapScreen extends Screen {
                 init();
             }).bounds(bx, by - 90, bw, 16).build());
             CompoundTag sel = selected();
+            BuildingType selType = sel == null ? null : BuildingType.byOrdinal(sel.getInt("type"));
+            if (sel != null && selType != null && sel.getBoolean("complete") && !sel.getBoolean("demolish")
+                    && (selType.staff() != null || !com.realmlord.village.Workshops.modes(selType).isEmpty() || com.realmlord.village.Workshops.places(selType) > 0)) {
+                int bid = selectedId;
+                addRenderableWidget(Button.builder(Component.translatable("realmlord.workshop.manage"),
+                        b -> ModNetwork.toServer(new com.realmlord.network.BuildingActionPacket(bid, com.realmlord.network.BuildingActionPacket.Action.OPEN, 0)))
+                        .bounds(bx, by - 126, bw, 16).build());
+            }
             boolean isPath = sel != null && (sel.getInt("type") == BuildingType.PATH.ordinal() || sel.getInt("type") == BuildingType.CLEARING.ordinal());
             if (sel != null && (sel.getBoolean("complete") || isPath) && !sel.getBoolean("demolish")) {
                 Button d = Button.builder(Component.translatable(confirmDemolish ? "realmlord.map.demolish.confirm" : "realmlord.map.demolish"), b -> {
@@ -819,5 +849,11 @@ public class TerritoryMapScreen extends Screen {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    @Override
+    public void removed() {
+        super.removed();
+        Ui.restoreScale();
     }
 }

@@ -57,6 +57,13 @@ public final class RealmCommand {
                     com.realmlord.territory.SpawnPicker.offer(c.getSource().getPlayerOrException());
                     return 1;
                 }))
+                .then(Commands.literal("speed").requires(s -> s.hasPermission(2))
+                        .then(Commands.argument("times", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 60)).executes(c -> {
+                            int n = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(c, "times");
+                            com.realmlord.village.Village.speed = n;
+                            c.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.translatable("realmlord.speed.set", n), true);
+                            return n;
+                        })))
                 .then(Commands.literal("beastwave").requires(s -> s.hasPermission(2))
                         .then(Commands.literal("start").executes(c -> {
                             com.realmlord.world.Beastwave.force(c.getSource().getServer(), true);
@@ -109,7 +116,9 @@ public final class RealmCommand {
                 }))
                 .then(Commands.literal("camp")
                         .then(Commands.literal("keep").executes(c -> QuestLogic.decideCamp(c.getSource().getPlayerOrException(), false) ? 1 : 0))
-                        .then(Commands.literal("salvage").executes(c -> QuestLogic.decideCamp(c.getSource().getPlayerOrException(), true) ? 1 : 0)))
+                        .then(Commands.literal("salvage").executes(c -> QuestLogic.decideCamp(c.getSource().getPlayerOrException(), true) ? 1 : 0))
+                        .then(Commands.literal("travel").executes(c -> QuestLogic.travel(c.getSource().getPlayerOrException()) ? 1 : 0))
+                        .then(Commands.literal("return").executes(c -> QuestLogic.returnHome(c.getSource().getPlayerOrException()) ? 1 : 0)))
                 .then(Commands.literal("role").executes(c -> {
                     ServerPlayer p = c.getSource().getPlayerOrException();
                     ModNetwork.send(p, new OpenScreenPacket(Profiles.get(p).hasChosen() ? OpenScreenPacket.CHARACTER : OpenScreenPacket.ROLE));

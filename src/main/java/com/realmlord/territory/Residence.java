@@ -136,6 +136,7 @@ public final class Residence {
         outside(p, tier);
         // The manor seal, at the heart of the hall as before.
         level.setBlock(t.center, com.realmlord.registry.ModBlocks.LORDS_MANOR.get().defaultBlockState(), Block.UPDATE_ALL);
+        com.realmlord.village.Sites.connectAll(level, t.center.offset(-9, -1, -9), t.center.offset(9, 22, 9));
     }
 
     /** Anything kept in the old manor goes to the village storehouse, and anyone inside steps out of the door. */

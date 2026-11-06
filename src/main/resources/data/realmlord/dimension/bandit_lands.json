@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:overworld",
+  "generator": {
+    "type": "minecraft:noise",
+    "settings": "minecraft:overworld",
+    "biome_source": {
+      "type": "minecraft:checkerboard",
+      "biomes": ["minecraft:plains", "minecraft:forest", "minecraft:plains", "minecraft:birch_forest", "minecraft:meadow"],
+      "scale": 3
+    }
+  }
+}

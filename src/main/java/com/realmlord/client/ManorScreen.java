@@ -63,6 +63,7 @@ public class ManorScreen extends Screen {
 
     @Override
     protected void init() {
+        if (Ui.fit(this, W, H)) return;
         clearWidgets();
         CompoundTag v = v();
         if (v == null) return;
@@ -115,6 +116,12 @@ public class ManorScreen extends Screen {
                 .bounds(x + 120, y + 166, 70, 14).tooltip(Tooltip.create(Component.translatable("realmlord.manor.deposit.tip"))).build();
         dep.active = purse > 0;
         addRenderableWidget(dep);
+        if (minecraft.player != null && minecraft.player.isCreative()) {
+            // Testing: run time faster (x1, x5, x20, x60).
+            int now = v.getInt("speed"), next = now >= 60 ? 1 : now >= 20 ? 60 : now >= 5 ? 20 : 5;
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.speed.button", Math.max(1, now)), b -> send(ManorActionPacket.Action.SPEED, next, 0))
+                    .bounds(x + W - 174, y + H - 24, 80, 16).tooltip(Tooltip.create(Component.translatable("realmlord.speed.tip"))).build());
+        }
         Button up = Button.builder(Component.translatable("realmlord.manor.upgrade"), b -> send(ManorActionPacket.Action.UPGRADE, 0, 0))
                 .bounds(x + W - 90, y + H - 24, 80, 16).build();
         up.active = v.getBoolean("canUpgrade");
@@ -353,7 +360,38 @@ public class ManorScreen extends Screen {
     // ------------------------------------------------------------------ people
 
     private static final Job[] SHIFTABLE = {Job.CONSTRUCTION, Job.LOGGING, Job.QUARRYING, Job.FARMING, Job.MINING, Job.ADMINISTRATION};
-    private static final int TALENT_ROWS = 9;
+    private static final int TALENT_ROWS = 8;
+    /** How the talents list is ordered and which of them it shows (kept while the game runs). */
+    private static int talentSort, talentFilter;
+    private static final String[] SORTS = {"grade", "trade", "job", "name"};
+    private static final String[] FILTERS = {"all", "figures", "soldiers", "specialists"};
+
+    /** The talents, filtered and sorted as chosen: historical figures and the best grades first by default. */
+    private static List<CompoundTag> talents(CompoundTag v) {
+        ListTag all = v.getList("talents", Tag.TAG_COMPOUND);
+        List<CompoundTag> out = new ArrayList<>();
+        for (int i = 0; i < all.size(); i++) {
+            CompoundTag r = all.getCompound(i);
+            boolean keep = switch (talentFilter) {
+                case 1 -> r.getBoolean("fig");
+                case 2 -> r.getBoolean("mil");
+                case 3 -> !r.getBoolean("fig") && Occupation.byId(r.getInt("occ")).special;
+                default -> true;
+            };
+            if (keep) out.add(r);
+        }
+        java.util.Comparator<CompoundTag> byGrade = java.util.Comparator.comparing((CompoundTag r) -> !r.getBoolean("fig"))
+                .thenComparing(r -> -r.getInt("grade")).thenComparing(r -> -r.getInt("rank"));
+        java.util.Comparator<CompoundTag> byName = java.util.Comparator.comparing(r -> r.getString("name"));
+        java.util.Comparator<CompoundTag> c = switch (talentSort) {
+            case 1 -> java.util.Comparator.comparingInt((CompoundTag r) -> r.getInt("occ")).thenComparing(byGrade);
+            case 2 -> java.util.Comparator.comparingInt((CompoundTag r) -> r.getInt("job")).thenComparing(byGrade);
+            case 3 -> byName;
+            default -> byGrade;
+        };
+        out.sort(c.thenComparing(byName));
+        return out;
+    }
 
     private void initPeople(CompoundTag v, int x, int y) {
         for (int i = 0; i < SHIFTABLE.length; i++) {
@@ -366,13 +404,25 @@ public class ManorScreen extends Screen {
                         .bounds(x + 110 + k * 22, ry - 3, 20, 14).build());
             }
         }
-        ListTag talents = v.getList("talents", Tag.TAG_COMPOUND);
+        addRenderableWidget(Button.builder(Component.translatable("realmlord.workshop.open_list"),
+                b -> ModNetwork.toServer(new com.realmlord.network.BuildingActionPacket(-1, com.realmlord.network.BuildingActionPacket.Action.OPEN, 0)))
+                .bounds(x + 10, y + 216, 196, 14).tooltip(Tooltip.create(Component.translatable("realmlord.workshop.open_list.tip"))).build());
+        addRenderableWidget(Button.builder(Component.translatable("realmlord.manor.sort." + SORTS[talentSort]), btn -> {
+            talentSort = (talentSort + 1) % SORTS.length;
+            init();
+        }).bounds(x + 214, y + 54, 86, 14).tooltip(Tooltip.create(Component.translatable("realmlord.manor.sort.tip"))).build());
+        addRenderableWidget(Button.builder(Component.translatable("realmlord.manor.filter." + FILTERS[talentFilter]), btn -> {
+            talentFilter = (talentFilter + 1) % FILTERS.length;
+            scroll = 0;
+            init();
+        }).bounds(x + 302, y + 54, W - 312, 14).tooltip(Tooltip.create(Component.translatable("realmlord.manor.filter.tip"))).build());
+        List<CompoundTag> talents = talents(v);
         scroll = Math.max(0, Math.min(scroll, talents.size() - TALENT_ROWS));
         for (int i = 0; i < TALENT_ROWS && i + scroll < talents.size(); i++) {
-            CompoundTag r = talents.getCompound(i + scroll);
+            CompoundTag r = talents.get(i + scroll);
             final int id = r.getInt("id");
             Button b = Button.builder(Component.literal(r.getString("name")), btn -> send(ManorActionPacket.Action.OPEN_RESIDENT, id, 0))
-                    .bounds(x + 214, y + 54 + i * 18, 84, 14).build();
+                    .bounds(x + 214, y + 72 + i * 18, 84, 14).build();
             addRenderableWidget(b);
         }
     }
@@ -396,14 +446,15 @@ public class ManorScreen extends Screen {
         Ui.wrap(g, font, Component.translatable("realmlord.manor.people_hint"), x + 10, y + 194, 192, Ui.GREY);
 
         Ui.inset(g, x + 210, y + 40, W - 216, 172);
-        ListTag talents = v.getList("talents", Tag.TAG_COMPOUND);
+        List<CompoundTag> talents = talents(v);
         g.drawString(font, Component.translatable("realmlord.manor.talents", talents.size()), x + 214, y + 43, Ui.GOLD, false);
         for (int i = 0; i < TALENT_ROWS && i + scroll < talents.size(); i++) {
-            CompoundTag r = talents.getCompound(i + scroll);
-            int ry = y + 57 + i * 18;
+            CompoundTag r = talents.get(i + scroll);
+            int ry = y + 75 + i * 18;
             Occupation occ = Occupation.byId(r.getInt("occ"));
             int grade = r.getInt("grade");
-            Component what = Component.translatable(occ.key());
+            Component what = r.getBoolean("mil") ? Component.translatable("realmlord.manor.soldier", Component.translatable(occ.key()), r.getInt("slv"))
+                    : Component.translatable(occ.key());
             g.drawString(font, what, x + 302, ry - 3, grade >= 0 ? TokenGrade.byId(grade).color : Ui.INK, false);
             Job j = Job.byId(r.getInt("job"));
             Component work = r.contains("work") ? Component.translatable(BuildingType.byOrdinal(r.getInt("work")).key()) : Component.translatable(j.key());
@@ -642,5 +693,11 @@ public class ManorScreen extends Screen {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    @Override
+    public void removed() {
+        super.removed();
+        Ui.restoreScale();
     }
 }

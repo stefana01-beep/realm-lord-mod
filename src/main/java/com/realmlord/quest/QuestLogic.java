@@ -120,10 +120,45 @@ public final class QuestLogic {
 
     // ------------------------------------------------------------------ stage 2: the bandit camp
 
+    /** The Bandit Lands: a wild country of its own where each Lord's bandit camp lies, reached when they are ready. */
+    public static final net.minecraft.resources.ResourceKey<Level> LANDS = net.minecraft.resources.ResourceKey.create(
+            net.minecraft.core.registries.Registries.DIMENSION, com.realmlord.RealmLord.id("bandit_lands"));
+    /** How far from the camp a Lord arrives. */
+    public static final int ARRIVE = 50;
+
+    /** The world the Lord's camp is in. */
+    public static ServerLevel campLevel(net.minecraft.server.MinecraftServer server, VillageQuest q) {
+        ServerLevel lands = q.inLands ? server.getLevel(LANDS) : null;
+        return lands != null ? lands : server.overworld();
+    }
+
     public static void beginBandits(ServerPlayer player) {
         Profile p = Profiles.get(player);
         VillageQuest q = p.quest();
         q.stage = VillageQuest.Stage.BANDITS;
+        ServerLevel lands = player.server.getLevel(LANDS);
+        if (lands != null) {
+            // Each Lord's band holds its own stretch of the Bandit Lands, far from any other's.
+            java.util.UUID u = player.getUUID();
+            int sx = (int) Math.floorMod(u.getLeastSignificantBits(), 1000L) - 500, sz = (int) Math.floorMod(u.getMostSignificantBits(), 1000L) - 500;
+            int bx = sx * 6000, bz = sz * 6000;
+            q.camp = new BlockPos(bx, 64, bz);
+            for (int i = 0; i < 96; i++) {
+                int x = bx + (i % 12) * 160 - 880, z = bz + (i / 12) * 160 - 560;
+                if (BanditCamp.goodSite(lands, x, z)) {
+                    q.camp = new BlockPos(x, 64, z);
+                    break;
+                }
+            }
+            q.inLands = true;
+            q.campBuilt = false;
+            p.markDirty();
+            Notify.player(player, "realmlord.quest.bandits_lands");
+            offerTravel(player);
+            player.playNotifySound(SoundEvents.RAID_HORN.value(), SoundSource.HOSTILE, 0.5F, 1.0F);
+            return;
+        }
+        q.inLands = false;
         ServerLevel level = player.server.overworld();
         BlockPos origin = player.level().dimension().equals(Level.OVERWORLD) ? player.blockPosition() : level.getSharedSpawnPos();
         // Somewhere dry: never on the sea, a lake, a river or a swamp.
@@ -145,6 +180,62 @@ public final class QuestLogic {
         Notify.player(player, Component.translatable("realmlord.quest.bandits",
                 q.camp.getX(), q.camp.getZ(), Component.translatable(directionKey(origin, q.camp)), dist));
         player.playNotifySound(SoundEvents.RAID_HORN.value(), SoundSource.HOSTILE, 0.5F, 1.0F);
+    }
+
+    /** Chat buttons: travel to the Bandit Lands now, or later from the quest tab or /realm camp travel. */
+    public static void offerTravel(ServerPlayer player) {
+        Component go = Component.translatable("realmlord.lands.travel_button").withStyle(s -> s.withColor(ChatFormatting.GOLD)
+                .withClickEvent(new net.minecraft.network.chat.ClickEvent(net.minecraft.network.chat.ClickEvent.Action.RUN_COMMAND, "/realm camp travel"))
+                .withHoverEvent(new net.minecraft.network.chat.HoverEvent(net.minecraft.network.chat.HoverEvent.Action.SHOW_TEXT, Component.translatable("realmlord.lands.travel_tip", ARRIVE))));
+        player.sendSystemMessage(Component.translatable("realmlord.lands.ready", go));
+    }
+
+    /** Takes the Lord to the Bandit Lands, fifty blocks from the camp, remembering where they set out from. */
+    public static boolean travel(ServerPlayer player) {
+        Profile p = Profiles.get(player);
+        VillageQuest q = p.quest();
+        ServerLevel lands = player.server.getLevel(LANDS);
+        if (!q.inLands || lands == null || q.camp == null || q.stage == VillageQuest.Stage.NOT_STARTED || q.stage == VillageQuest.Stage.SUPPLIES
+                || q.stage == VillageQuest.Stage.FAILED) {
+            Notify.player(player, "realmlord.lands.not_now");
+            return false;
+        }
+        if (!player.level().dimension().equals(LANDS)) {
+            q.returnPos = player.blockPosition();
+            q.returnDim = player.level().dimension().location().toString();
+        }
+        double a = Math.floorMod(player.getUUID().hashCode(), 360) * Math.PI / 180;
+        int x = q.camp.getX() + (int) Math.round(Math.cos(a) * ARRIVE), z = q.camp.getZ() + (int) Math.round(Math.sin(a) * ARRIVE);
+        lands.getChunk(x >> 4, z >> 4);
+        int y = lands.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+        float yaw = (float) Math.toDegrees(Math.atan2(q.camp.getZ() - z, q.camp.getX() - x)) - 90F;
+        player.teleportTo(lands, x + 0.5, y, z + 0.5, yaw, 0F);
+        p.markDirty();
+        Notify.player(player, Component.translatable("realmlord.lands.arrived", ARRIVE, Component.translatable(directionKey(new BlockPos(x, y, z), q.camp))));
+        return true;
+    }
+
+    /** Back from the Bandit Lands to where the Lord set out (or the world's spawn). */
+    public static boolean returnHome(ServerPlayer player) {
+        VillageQuest q = Profiles.get(player).quest();
+        if (!player.level().dimension().equals(LANDS)) {
+            Notify.player(player, "realmlord.lands.not_there");
+            return false;
+        }
+        ServerLevel to = null;
+        if (!q.returnDim.isEmpty()) {
+            var key = net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION, new net.minecraft.resources.ResourceLocation(q.returnDim));
+            to = player.server.getLevel(key);
+        }
+        BlockPos at = q.returnPos;
+        if (to == null || at == null) {
+            to = player.server.overworld();
+            at = to.getSharedSpawnPos();
+        }
+        to.getChunk(at.getX() >> 4, at.getZ() >> 4);
+        int y = Math.max(at.getY(), to.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, at.getX(), at.getZ()));
+        player.teleportTo(to, at.getX() + 0.5, y, at.getZ() + 0.5, player.getYRot(), 0F);
+        return true;
     }
 
     public static String directionKey(BlockPos from, BlockPos to) {
@@ -182,7 +273,7 @@ public final class QuestLogic {
                 p.markDirty();
             }
         }
-        if (q.stage == VillageQuest.Stage.BANDITS && q.camp != null && player.level().dimension().equals(Level.OVERWORLD)) {
+        if (q.stage == VillageQuest.Stage.BANDITS && q.camp != null && player.level().dimension().equals(q.inLands ? LANDS : Level.OVERWORLD)) {
             ServerLevel level = player.serverLevel();
             double dx = player.getX() - q.camp.getX(), dz = player.getZ() - q.camp.getZ();
             double d2 = dx * dx + dz * dz;
@@ -231,7 +322,7 @@ public final class QuestLogic {
         glow(player, new int[0]);
         q.banditsLeft = 0;
         if (q.camp != null) {
-            ServerLevel level = player.server.overworld();
+            ServerLevel level = campLevel(player.server, q);
             BanditCamp.openPen(level, q.camp);
             AABB box = new AABB(q.camp).inflate(48, 32, 48);
             for (SettlerEntity s : level.getEntitiesOfClass(SettlerEntity.class, box, e -> BanditCamp.ownedBy(e, BanditCamp.CAPTIVE_TAG, player.getUUID()))) {
@@ -243,6 +334,11 @@ public final class QuestLogic {
         Notify.player(player, Component.translatable("realmlord.quest.cleared", q.captives, q.captives * 5));
         spoils(player, q);
         offerCamp(player);
+        if (q.inLands) {
+            Component home = Component.translatable("realmlord.lands.return_button").withStyle(s -> s.withColor(ChatFormatting.GREEN)
+                    .withClickEvent(new net.minecraft.network.chat.ClickEvent(net.minecraft.network.chat.ClickEvent.Action.RUN_COMMAND, "/realm camp return")));
+            player.sendSystemMessage(Component.translatable("realmlord.lands.cleared", home));
+        }
         player.playNotifySound(SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.8F, 0.8F);
     }
 
@@ -302,7 +398,7 @@ public final class QuestLogic {
         if (!salvage) {
             Notify.player(player, "realmlord.camp.kept");
         } else {
-            List<ItemStack> got = BanditCamp.salvage(player.server.overworld(), q.camp);
+            List<ItemStack> got = BanditCamp.salvage(campLevel(player.server, q), q.camp);
             // Timber, stone and the like go to the village's stores (now, or once it is founded); the rest to the Lord.
             com.realmlord.territory.Territory home = com.realmlord.territory.TerritoryData.get(player.server).ownedBy(player.getUUID());
             int n = 0, stored = 0;

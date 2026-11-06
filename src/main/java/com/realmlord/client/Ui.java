@@ -18,6 +18,32 @@ public final class Ui {
     public static final int JADE = 0xFF6FCF97;
     public static final int GREY = 0xFF7D756A;
 
+    /**
+     * Makes a panel of w x h fit the window: when the window is too small for it at the chosen
+     * GUI scale (out of full screen, say), the GUI scale is lowered for as long as the panel is
+     * open, so nothing is cut off. Returns true if the screen was laid out again at the new scale,
+     * in which case the caller's init should stop.
+     */
+    public static boolean fit(net.minecraft.client.gui.screens.Screen s, int w, int h) {
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        var win = mc.getWindow();
+        if (s.width >= w + 8 && s.height >= h + 8) return false;
+        int scale = (int) win.getGuiScale(), best = scale;
+        while (best > 1 && (win.getWidth() / best < w + 8 || win.getHeight() / best < h + 8)) best--;
+        if (best == scale) return false;
+        win.setGuiScale(best);
+        s.init(mc, win.getGuiScaledWidth(), win.getGuiScaledHeight());
+        return true;
+    }
+
+    /** Puts the GUI scale back to the player's setting when a fitted panel closes. */
+    public static void restoreScale() {
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        var win = mc.getWindow();
+        int want = win.calculateScale(mc.options.guiScale().get(), mc.isEnforceUnicode());
+        if ((int) win.getGuiScale() != want) win.setGuiScale(want);
+    }
+
     /** Dark lacquered panel with a thin gold rim. */
     public static void panel(GuiGraphics g, int x, int y, int w, int h) {
         g.fill(x - 2, y - 2, x + w + 2, y + h + 2, 0xF0120C08);

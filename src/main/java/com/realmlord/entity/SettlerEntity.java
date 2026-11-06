@@ -460,6 +460,11 @@ public class SettlerEntity extends PathfinderMob {
             activity = Activity.PATROL;
             spot = patrolSpot(t);
             spotRadius = 6;
+        } else if (r.trainingAt >= 0 && t.building(r.trainingAt) != null && t.building(r.trainingAt).complete) {
+            // At their lessons, in the school, the dojo or the master's workshop.
+            activity = Activity.STAFF;
+            spot = t.building(r.trainingAt).center();
+            spotRadius = 4;
         } else if (r.office >= 0) {
             activity = Activity.ADMIN;
             spot = com.realmlord.village.Residents.manorSpot(t, r);

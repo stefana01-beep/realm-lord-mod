@@ -57,6 +57,8 @@ public class Building {
     public transient int clearTop = Integer.MAX_VALUE;
     /** Levelling the grounds: how many columns, counted from the manor outwards, are done. */
     public int groundsCursor;
+    /** A workshop's choice of what to make (see Workshops.modes). */
+    public int mode;
 
     /** True if the site works a rectangle of ground: a building, or a clearing. */
     public boolean footprint() {
@@ -147,6 +149,7 @@ public class Building {
         if (groundsCursor > 0) t.putInt("groundsCursor", groundsCursor);
         if (clearCols != null) t.putIntArray("clearCols", clearCols);
         if (fenceStyle > 0) t.putInt("fenceStyle", fenceStyle);
+        if (mode > 0) t.putInt("mode", mode);
         if (pathCols != null) {
             t.putIntArray("pathPts", pathPoints);
             t.putIntArray("pathCols", pathCols);
@@ -199,6 +202,7 @@ public class Building {
         b.groundsCursor = t.getInt("groundsCursor");
         b.clearCols = t.contains("clearCols") ? t.getIntArray("clearCols") : null;
         b.fenceStyle = t.getInt("fenceStyle");
+        b.mode = t.getInt("mode");
         if (t.contains("pathCols")) {
             b.pathPoints = t.getIntArray("pathPts");
             b.pathCols = t.getIntArray("pathCols");

@@ -25,6 +25,16 @@ public class ResidentScreen extends Screen {
     private int tab = CARD;
     private int scroll;
 
+    /** Opened from the manor panel: closing it goes back there. */
+    private final boolean fromManor = net.minecraft.client.Minecraft.getInstance().screen instanceof ManorScreen
+            || net.minecraft.client.Minecraft.getInstance().screen instanceof BuildingScreen;
+
+    @Override
+    public void onClose() {
+        if (fromManor && ClientVillageData.manor != null) minecraft.setScreen(new ManorScreen());
+        else super.onClose();
+    }
+
     public ResidentScreen() {
         super(Component.translatable("realmlord.resident.title"));
     }
@@ -56,6 +66,7 @@ public class ResidentScreen extends Screen {
 
     @Override
     protected void init() {
+        if (Ui.fit(this, W, H)) return;
         clearWidgets();
         if (v() == null) return;
         int x = left(), y = top();
@@ -282,5 +293,11 @@ public class ResidentScreen extends Screen {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    @Override
+    public void removed() {
+        super.removed();
+        Ui.restoreScale();
     }
 }

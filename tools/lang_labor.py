@@ -193,6 +193,7 @@ def add(L):
     L.update(PHASE_2B)
     L.update(ROUND_GROUNDS)
     L.update(ROUND_DEFENCE)
+    L.update(ROUND_TOWN)
 
 
 ROUND_PATHS = {
@@ -430,4 +431,77 @@ ROUND_DEFENCE = {
     "realmlord.chest.take_all.tip": "Take everything that fits into your inventory.",
     "realmlord.chest.store_all": "Store all",
     "realmlord.chest.store_all.tip": "Put everything in your inventory (not your hotbar) in here.",
+}
+
+
+ROUND_TOWN = {
+    # Time
+    "realmlord.speed.set": "Time now runs %sx as fast.",
+    "realmlord.speed.button": "Speed x%s",
+    "realmlord.speed.tip": "Creative testing: run the days and the village's work faster (x1, x5, x20, x60). Operators can also use /realm speed <n>.",
+    # Talents list
+    "realmlord.manor.sort.grade": "Sort: grade",
+    "realmlord.manor.sort.trade": "Sort: trade",
+    "realmlord.manor.sort.job": "Sort: work",
+    "realmlord.manor.sort.name": "Sort: name",
+    "realmlord.manor.sort.tip": "Order the list: historical figures and the best grades first, by trade, by what they are doing, or by name.",
+    "realmlord.manor.filter.all": "Show: everyone",
+    "realmlord.manor.filter.figures": "Show: figures",
+    "realmlord.manor.filter.soldiers": "Show: soldiers",
+    "realmlord.manor.filter.specialists": "Show: specialists",
+    "realmlord.manor.filter.tip": "Show all talents, only historical figures, only the militia, or only specialists.",
+    "realmlord.manor.soldier": "%s, soldier Lv.%s",
+    "realmlord.panel.purse": "Purse: %s",
+    # Building windows
+    "realmlord.workshop.title": "Workshop",
+    "realmlord.workshop.list": "Workshops, Schools and Halls",
+    "realmlord.workshop.none": "No finished building has a master or lessons yet. Build a workshop, the Private School or the Martial Arts Dojo.",
+    "realmlord.workshop.list_line": "%s; learners %s/%s",
+    "realmlord.workshop.no_master": "No master at work",
+    "realmlord.workshop.no_master_of": "No %s at work here: assign one from the Resident window, or nothing is made or taught.",
+    "realmlord.workshop.master": "Master: %s (%s)",
+    "realmlord.workshop.makes": "Makes",
+    "realmlord.workshop.makes_items": "Each day: %s graded item(s) for the storehouse, from %3$s %2$s each. The master's skill sets the grade (Bronze, Black Iron, Silver, now and then Gold).",
+    "realmlord.workshop.makes_stock_from": "Each day: %s %s from %s %s, into the stores.",
+    "realmlord.workshop.makes_stock": "Each day: %s %s, into the stores.",
+    "realmlord.workshop.mode.tools": "Tools (stock)",
+    "realmlord.workshop.mode.iron_gear": "Iron arms & armour",
+    "realmlord.workshop.mode.weapons": "Weapons (stock)",
+    "realmlord.workshop.mode.fine_weapons": "Fine graded weapons",
+    "realmlord.workshop.mode.linen": "Linen (stock)",
+    "realmlord.workshop.mode.leather_armour": "Leather armour",
+    "realmlord.workshop.mode.herbs": "Herbs (stock)",
+    "realmlord.workshop.mode.remedies": "Healing draughts",
+    "realmlord.workshop.learners": "Learning %s/%s (to be %s)",
+    "realmlord.workshop.no_learners": "Nobody is learning here. Send someone from the list on the right.",
+    "realmlord.workshop.candidates": "Could learn (%s)",
+    "realmlord.workshop.enrol": "Teach",
+    "realmlord.workshop.dismiss": "Call them back to other work",
+    "realmlord.workshop.back": "Manor",
+    "realmlord.workshop.all": "All buildings",
+    "realmlord.workshop.manage": "Manage",
+    "realmlord.workshop.open_list": "Workshops & schools...",
+    "realmlord.workshop.open_list.tip": "Choose what workshops make, and send people to learn at the school, the dojo or a master's workshop.",
+    "realmlord.workshop.learned": "%s has finished their lessons in %s.",
+    "realmlord.workshop.err.no_lessons": "Nobody is taught here.",
+    "realmlord.workshop.err.busy": "They are busy (a soldier, an official, a companion, running a building, or already learning).",
+    "realmlord.workshop.err.full": "Every place here is taken.",
+    "realmlord.workshop.err.master": "They are already an Advanced master of this trade.",
+    # Paths and clearing
+    "realmlord.path.stairs_on": "Follow the land: steps",
+    "realmlord.path.stairs_off": "Even out the way",
+    "realmlord.path.stairs.tip": "Steps: the path keeps to the lie of the land, climbing or dropping one block at a time with stairs. Even: ditches are bridged and humps cut down.",
+    "realmlord.clear.slope_on": "Grade: slope",
+    "realmlord.clear.slope_off": "Grade: flat",
+    "realmlord.clear.slope.tip": "Slope: shape the ground into an even ramp from the ground at the first corner to the ground at the second, for a way up onto raised ground. Flat: one level.",
+    # Bandit Lands
+    "realmlord.quest.bandits_lands": "Bandits hold a camp in the Bandit Lands, a wild country of its own. Go when you are ready: you will arrive fifty blocks from their camp.",
+    "realmlord.lands.ready": "When you are ready: %s",
+    "realmlord.lands.travel_button": "[Travel to the bandit camp]",
+    "realmlord.lands.travel_tip": "Go to the Bandit Lands, arriving %s blocks from the camp. You can come back the same way.",
+    "realmlord.lands.return_button": "[Return home]",
+    "realmlord.lands.arrived": "You reach the Bandit Lands. The camp lies %s blocks to the %s.",
+    "realmlord.lands.cleared": "The camp is yours. The freed captives will join you when you found your village. %s",
+    "realmlord.lands.not_now": "There is no bandit camp to travel to now.",
+    "realmlord.lands.not_there": "You are not in the Bandit Lands.",
 }

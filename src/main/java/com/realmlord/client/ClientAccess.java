@@ -14,6 +14,14 @@ public final class ClientAccess {
         else if (mc.screen instanceof ManorScreen m) m.refresh();
     }
 
+    public static void building(net.minecraft.nbt.CompoundTag view, boolean open) {
+        ClientVillageData.building = view;
+        Minecraft mc = Minecraft.getInstance();
+        if (open || !(mc.screen instanceof BuildingScreen)) {
+            if (open) mc.setScreen(new BuildingScreen());
+        } else ((BuildingScreen) mc.screen).refresh();
+    }
+
     public static void resident(net.minecraft.nbt.CompoundTag view, boolean open) {
         ClientVillageData.resident = view;
         Minecraft mc = Minecraft.getInstance();

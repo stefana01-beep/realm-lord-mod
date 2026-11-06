@@ -14,13 +14,20 @@ import java.util.function.Supplier;
 /** Client to server: clear and level the ground between two corners, at the usual height plus an offset. */
 public class ClearAreaPacket {
     private final int x0, z0, x1, z1, offset;
+    /** Graded: a smooth slope from the ground at the first corner to the ground at the second. */
+    private final boolean slope;
 
     public ClearAreaPacket(int x0, int z0, int x1, int z1, int offset) {
+        this(x0, z0, x1, z1, offset, false);
+    }
+
+    public ClearAreaPacket(int x0, int z0, int x1, int z1, int offset, boolean slope) {
         this.x0 = x0;
         this.z0 = z0;
         this.x1 = x1;
         this.z1 = z1;
         this.offset = offset;
+        this.slope = slope;
     }
 
     public ClearAreaPacket(FriendlyByteBuf buf) {
@@ -29,6 +36,7 @@ public class ClearAreaPacket {
         x1 = buf.readInt();
         z1 = buf.readInt();
         offset = buf.readVarInt();
+        slope = buf.readBoolean();
     }
 
     public void encode(FriendlyByteBuf buf) {
@@ -37,6 +45,7 @@ public class ClearAreaPacket {
         buf.writeInt(x1);
         buf.writeInt(z1);
         buf.writeVarInt(offset);
+        buf.writeBoolean(slope);
     }
 
     public void handle(Supplier<NetworkEvent.Context> ctx) {
@@ -46,7 +55,7 @@ public class ClearAreaPacket {
         int id = Profiles.get(p).getTerritoryId();
         Territory t = id >= 0 ? data.byId(id) : null;
         if (t == null || !p.getUUID().equals(t.owner)) return;
-        String err = Village.startClearing(p, t, x0, z0, x1, z1, offset);
+        String err = Village.startClearing(p, t, x0, z0, x1, z1, offset, slope);
         if (err != null) Notify.player(p, err);
         data.touch();
         ModNetwork.sync(p);

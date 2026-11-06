@@ -189,23 +189,35 @@ public final class Grounds {
             return new Sites.Op(Sites.Kind.CLEAR, p, s, -1);
         }
         Earth earth = earth(level, x, y0 - 1, z);
-        // Fill: the lowest gap up to the floor, with the land's own earth.
+        // Fill: from the lowest gap up to the floor, with the land's own earth. Anything below the
+        // floor that is not firm ground (water, air, a buried trunk, leaves, flowers, snow) is
+        // replaced, so the floor is earth all the way down to rock.
         BlockPos floor = new BlockPos(x, y0 - 1, z);
         BlockState f = level.getBlockState(floor);
-        if (!Sites.solid(f)) {
+        int bottom = Math.max(level.getMinBuildHeight() + 1, y0 - 1 - MAX_FILL);
+        if (!firm(f)) {
             int y = y0 - 1;
-            while (y > level.getMinBuildHeight() + 1 && !Sites.solid(level.getBlockState(new BlockPos(x, y - 1, z)))) y--;
-            return new Sites.Op(Sites.Kind.FILL, new BlockPos(x, y, z), y == y0 - 1 ? earth.top : earth.under, -1);
+            while (y > bottom && !firm(level.getBlockState(new BlockPos(x, y - 1, z)))) y--;
+            return new Sites.Op(Sites.Kind.SURFACE, new BlockPos(x, y, z), y == y0 - 1 ? earth.top : earth.under, -1);
         }
         // Sand needs something under it, or it falls into the hollow below.
-        if (earth.top.getBlock() instanceof FallingBlock && !Sites.solid(level.getBlockState(floor.below())) && f.getBlock() != earth.top.getBlock()) {
+        if (earth.top.getBlock() instanceof FallingBlock && !firm(level.getBlockState(floor.below())) && f.getBlock() != earth.top.getBlock()) {
             int y = y0 - 2;
-            while (y > level.getMinBuildHeight() + 1 && !Sites.solid(level.getBlockState(new BlockPos(x, y - 1, z)))) y--;
-            return new Sites.Op(Sites.Kind.FILL, new BlockPos(x, y, z), earth.under, -1);
+            while (y > bottom && !firm(level.getBlockState(new BlockPos(x, y - 1, z)))) y--;
+            return new Sites.Op(Sites.Kind.SURFACE, new BlockPos(x, y, z), earth.under, -1);
         }
         // Surface: bare rock or earth laid open is given its top (grass, or sand).
         if (f.getBlock() != earth.top.getBlock() && resurface(f)) return new Sites.Op(Sites.Kind.SURFACE, floor, earth.top, -1);
         return null;
+    }
+
+    /** How far below the floor a hollow is filled (deeper caves are left, roofed over). */
+    private static final int MAX_FILL = 64;
+
+    /** Ground that can be built on: solid, and not something that grew there (a buried log, leaves, a mushroom). */
+    static boolean firm(BlockState s) {
+        return Sites.solid(s) && !s.is(BlockTags.LOGS) && !s.is(BlockTags.LEAVES) && !Village.growth(s)
+                && !s.is(Blocks.BROWN_MUSHROOM_BLOCK) && !s.is(Blocks.RED_MUSHROOM_BLOCK) && !s.is(Blocks.MUSHROOM_STEM);
     }
 
     /** Does a job without the noise of hand work. */
@@ -222,7 +234,11 @@ public final class Grounds {
                 if (Goods.EARTH.stock(t) > 0) Goods.EARTH.add(t, -1);
                 level.setBlock(op.pos(), op.state(), Block.UPDATE_CLIENTS);
             }
-            case SURFACE -> level.setBlock(op.pos(), op.state(), Block.UPDATE_CLIENTS);
+            case SURFACE -> {
+                if (now.getBlock() == op.state().getBlock()) return;
+                if (!now.isAir() && now.getFluidState().isEmpty()) Sites.keepDrops(level, t, null, op.pos(), now);
+                level.setBlock(op.pos(), op.state(), Block.UPDATE_CLIENTS);
+            }
             default -> { }
         }
     }
@@ -230,14 +246,13 @@ public final class Grounds {
     // ------------------------------------------------------------------ what is left alone
 
     /**
-     * Columns the levelling passes over: the manor yard, every building or site with a block
-     * around it, the paths, and a wall already rising.
+     * Columns the levelling passes over: every building or site with a block around it, the
+     * paths, and a wall already rising. (The manor hall itself is spared as somebody's work; its
+     * yard is levelled with the rest.)
      */
     static Set<Long> kept(Territory t, Building job) {
         Set<Long> out = new HashSet<>();
-        int cx = t.center.getX(), cz = t.center.getZ(), m = Village.MANOR_YARD;
-        for (int x = -m; x <= m; x++)
-            for (int z = -m; z <= m; z++) out.add(Village.colKeyOf(cx + x, cz + z));
+        int cx = t.center.getX(), cz = t.center.getZ();
         for (Building b : t.buildings) {
             if (b == job || b.demolishing && b.placed <= 0) continue;
             if (b.type.placed()) {

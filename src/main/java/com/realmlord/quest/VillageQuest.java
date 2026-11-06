@@ -31,6 +31,11 @@ public class VillageQuest {
     public int food;
     public BlockPos camp;          // centre of the bandit camp (y filled in once built)
     public boolean campBuilt;
+    /** The camp lies in the Bandit Lands, its own dimension (older quests had it in the overworld). */
+    public boolean inLands;
+    /** Where the Lord set out from, to go back to. */
+    public BlockPos returnPos;
+    public String returnDim = "";
     /** What the Lord did with the cleared camp: 0 not yet decided, 1 kept it, 2 salvaged it. */
     public int campChoice;
     public int banditsLeft;
@@ -62,6 +67,9 @@ public class VillageQuest {
         t.putInt("food", food);
         if (camp != null) t.put("camp", NbtUtils.writeBlockPos(camp));
         t.putBoolean("built", campBuilt);
+        t.putBoolean("inLands", inLands);
+        if (returnPos != null) t.put("returnPos", NbtUtils.writeBlockPos(returnPos));
+        t.putString("returnDim", returnDim);
         t.putInt("campChoice", campChoice);
         t.putInt("bandits", banditsLeft);
         t.putInt("captives", captives);
@@ -88,6 +96,9 @@ public class VillageQuest {
         food = t.getInt("food");
         camp = t.contains("camp") ? NbtUtils.readBlockPos(t.getCompound("camp")) : null;
         campBuilt = t.getBoolean("built");
+        inLands = t.getBoolean("inLands");
+        returnPos = t.contains("returnPos") ? NbtUtils.readBlockPos(t.getCompound("returnPos")) : null;
+        returnDim = t.getString("returnDim");
         campChoice = t.getInt("campChoice");
         banditsLeft = t.getInt("bandits");
         captives = t.getInt("captives");
