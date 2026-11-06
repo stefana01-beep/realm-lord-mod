@@ -82,7 +82,7 @@ public class GroundsTests {
         helper.assertTrue(Village.moveWall(p, t, 3, null) == null && fence.fenceRadius == 94, "and back to the Grade 3 ring");
 
         // Defences may stand out on that wall beyond the border; other buildings may not.
-        BlockPos onWall = c.offset(93, 0, -1);
+        BlockPos onWall = c.offset(65, 0, 65);
         helper.assertTrue(Village.checkPlacement(level, t, BuildingType.ARROW_TOWER, onWall, 0) == null,
                 "an arrow tower should stand on the Grade 3 wall beyond the border: " + Village.checkPlacement(level, t, BuildingType.ARROW_TOWER, onWall, 0));
         helper.assertTrue("realmlord.build.err.border".equals(Village.checkPlacement(level, t, BuildingType.DINING_HALL, c.offset(92, 0, 0), 0)),
