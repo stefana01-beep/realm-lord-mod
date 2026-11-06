@@ -55,6 +55,12 @@ public class GroundsTests {
         for (int h = 0; h < 5; h++) level.setBlock(tree.above(h), Blocks.OAK_LOG.defaultBlockState(), 2);
         level.setBlock(tree.above(5), Blocks.OAK_LEAVES.defaultBlockState(), 2);
         level.setBlock(rock.below(), Blocks.STONE.defaultBlockState(), 2);
+        // A tree buried below the floor, and flowers in a hollow: earth all the way down instead.
+        BlockPos buried = c.offset(-12, 0, 14);
+        level.setBlock(buried.below(), Blocks.OAK_LOG.defaultBlockState(), 2);
+        level.setBlock(buried.below(2), Blocks.OAK_LEAVES.defaultBlockState(), 2);
+        BlockPos hollow = c.offset(14, 0, 12);
+        level.setBlock(hollow.below(), Blocks.POPPY.defaultBlockState(), 2);
         for (int h = 0; h < 3; h++) level.setBlock(cobble.above(h), Blocks.COBBLESTONE.defaultBlockState(), 2);
         level.setBlock(yard, Blocks.GOLD_BLOCK.defaultBlockState(), 2);
         // A building site: its ground is its own.
@@ -102,6 +108,9 @@ public class GroundsTests {
                         "the pit was not filled with dirt (and its water) beneath");
             }
         helper.assertTrue(level.getBlockState(rock.below()).is(Blocks.GRASS_BLOCK), "bare rock at the floor was not given grass");
+        helper.assertTrue(level.getBlockState(buried.below()).is(Blocks.GRASS_BLOCK) && level.getBlockState(buried.below(2)).is(Blocks.DIRT),
+                "a buried trunk and leaves were left in the floor: " + level.getBlockState(buried.below()) + ", " + level.getBlockState(buried.below(2)));
+        helper.assertTrue(level.getBlockState(hollow.below()).is(Blocks.GRASS_BLOCK), "a flower in a hollow was left instead of ground");
         helper.assertTrue(level.getBlockState(cobble.above(2)).is(Blocks.COBBLESTONE), "something a person built was cut away");
         helper.assertTrue(level.getBlockState(yard).is(Blocks.GOLD_BLOCK), "the manor yard was touched");
         helper.assertTrue(level.getBlockState(site.origin.offset(1, 1, 1)).is(Blocks.STONE), "a building site was levelled over");
