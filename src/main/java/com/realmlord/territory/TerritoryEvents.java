@@ -89,8 +89,8 @@ public final class TerritoryEvents {
         if (!RealmConfig.safeInsideFence() || event.getEntityType().getCategory() != MobCategory.MONSTER) return;
         MobSpawnType type = event.getSpawnType();
         if (type != MobSpawnType.NATURAL && type != MobSpawnType.CHUNK_GENERATION && type != MobSpawnType.PATROL) return;
-        if (!(event.getLevel().getLevel() instanceof ServerLevel level)) return;
-        if (fenced(level, event.getPos())) event.setResult(Event.Result.DENY);
+        ServerLevel level = event.getLevel().getLevel();
+        if (level != null && fenced(level, event.getPos())) event.setResult(Event.Result.DENY);
     }
 
     /** Inside a territory's finished fence. */
