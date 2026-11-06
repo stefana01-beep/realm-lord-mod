@@ -163,7 +163,12 @@ public class TownTests {
         Territory t = VillageTests.village(helper, p, 14800);
         ServerLevel level = helper.getLevel();
         BlockPos a = t.center.offset(20, 0, 20);
-        // A rise of three blocks along the way.
+        // Level ground first, whatever the test world's terrain, then a rise of three blocks along the way.
+        for (int x = -6; x < 24; x++)
+            for (int z = -8; z <= 8; z++) {
+                for (int y = -3; y < 0; y++) level.setBlock(a.offset(x, y, z), Blocks.DIRT.defaultBlockState(), 2);
+                for (int y = 0; y < 12; y++) level.setBlock(a.offset(x, y, z), Blocks.AIR.defaultBlockState(), 2);
+            }
         for (int x = 0; x < 18; x++)
             for (int z = -5; z <= 5; z++) {
                 int h = Math.min(3, Math.max(0, x - 4));

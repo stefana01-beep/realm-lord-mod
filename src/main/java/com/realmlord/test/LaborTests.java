@@ -329,7 +329,9 @@ public class LaborTests {
         helper.assertTrue(1000 - t.stone == blocks, "cobblestone costs a stone a block: paid " + (1000 - t.stone));
         path.progress = path.workNeeded;
         for (int i = 0; i < 60 && !path.verified; i++) Sites.work(level, t, path, 2000);
-        helper.assertTrue(level.getBlockState(new BlockPos(cx + 12, gy, cz)).is(Blocks.COBBLESTONE), "path not laid");
+        helper.assertTrue(level.getBlockState(new BlockPos(cx + 12, gy, cz)).is(Blocks.COBBLESTONE), "path not laid: " + level.getBlockState(new BlockPos(cx + 12, gy, cz))
+                + " at y " + gy + ", placed " + path.placed + " of " + com.realmlord.village.BuildingDesigns.size(level, t, path) + ", verified " + path.verified
+                + ", column y " + path.pathCols[1] + " flags " + path.pathCols[3]);
         helper.assertTrue(level.getBlockState(new BlockPos(cx + 20, gy, cz)).is(Blocks.COBBLESTONE)
                 && !level.getBlockState(new BlockPos(cx + 20, gy - 1, cz)).isAir(), "the ditch should be filled beneath the path: "
                 + level.getBlockState(new BlockPos(cx + 20, gy, cz)) + " over " + level.getBlockState(new BlockPos(cx + 20, gy - 1, cz))
