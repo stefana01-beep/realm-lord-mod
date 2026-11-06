@@ -50,6 +50,7 @@ public final class Views {
         int stored = 0;
         for (int i = 0; i < t.storage.getContainerSize(); i++) if (!t.storage.getItem(i).isEmpty()) stored++;
         v.putInt("stored", stored);
+        v.putLongArray("storeGoods", Goods.held(t.storage));
         v.putLong("treasury", t.treasury);
         v.putLong("tax", Village.dailyTax(t));
         v.putLong("foodUse", Village.foodUse(t));

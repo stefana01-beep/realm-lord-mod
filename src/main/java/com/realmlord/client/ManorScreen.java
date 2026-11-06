@@ -535,7 +535,7 @@ public class ManorScreen extends Screen {
                     .bounds(x + 8, by, 120, 16).tooltip(Tooltip.create(Component.translatable("realmlord.storage.open.tip"))).build());
             addRenderableWidget(Button.builder(Component.translatable("realmlord.storage.hand_in"), b -> send(ManorActionPacket.Action.HAND_IN, 0, 0))
                     .bounds(x + 132, by, 128, 16).tooltip(Tooltip.create(Component.translatable("realmlord.storage.hand_in.tip"))).build());
-            addRenderableWidget(Button.builder(Component.translatable("realmlord.storage.sell"), b -> send(ManorActionPacket.Action.SELL_STORAGE, 0, 0))
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.storage.sell"), b -> minecraft.setScreen(new SellScreen()))
                     .bounds(x + 264, by, 128, 16).tooltip(Tooltip.create(Component.translatable("realmlord.storage.sell.tip"))).build());
         } else {
             addRenderableWidget(Button.builder(Component.translatable("realmlord.market.sell_special"), b -> send(ManorActionPacket.Action.SELL_SPECIAL, 0, 0))

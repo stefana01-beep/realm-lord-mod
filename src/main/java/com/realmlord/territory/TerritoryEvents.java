@@ -104,8 +104,13 @@ public final class TerritoryEvents {
 
     /** A village whose fence is not yet finished is under grace: its settlers are left alone. */
     public static boolean inGrace(Territory t) {
+        int ring1 = com.realmlord.territory.TerritoryLevel.villageWall(1);
         for (Building b : t.buildings) {
             if (b.type != BuildingType.SIMPLE_FENCE || b.demolishing) continue;
+            // The grace is for clearing the ground and raising the first, Grade 1 wall. A Lord who
+            // goes straight for a greater wall gives it up at once.
+            int r = b.fenceRadius > 0 ? b.fenceRadius : t.level.wall();
+            if (r != ring1) return false;
             if (b.complete || b.placed > 0 && b.fenceStyle > 0 && b.progress >= b.workNeeded) return false;
         }
         return true;

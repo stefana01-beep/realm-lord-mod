@@ -294,4 +294,41 @@ public class TownTests {
                 "a building was allowed on a path");
         VillageTests.done(helper, p, t);
     }
+
+    @GameTest(template = "empty", timeoutTicks = 100, batch = "town_militia")
+    public static void aGuardFromTheStartPaidRecruitsAndTheGrace(GameTestHelper helper) {
+        ServerPlayer p = RealmTests.lord(helper, CombatClass.GENERAL);
+        Territory t = VillageTests.village(helper, p, 16400);
+        // One of the first refugees is a martial artist on watch.
+        Resident guard = null;
+        for (Resident r : t.residents) if (r.occupation == Occupation.MARTIAL_ARTIST && r.militia) guard = r;
+        helper.assertTrue(guard != null && guard.force >= 60, "no martial artist among the first villagers");
+        // Enlisting a villager costs coin, without any camp; a kit costs more.
+        Resident v = null;
+        for (Resident r : t.residents) if (!r.militia && r.office < 0) {
+            v = r;
+            break;
+        }
+        Profiles.get(p).setPurse(0);
+        t.treasury = 0;
+        helper.assertTrue(com.realmlord.village.Village.militiaCap(t) >= 3, "a few should be able to take up arms before a camp");
+        helper.assertTrue(!Coins.payWithTreasury(p, com.realmlord.village.Village.ENLIST_COST), "enlisting should cost something");
+        Coins.give(p, 100_000);
+        helper.assertTrue(Coins.payWithTreasury(p, com.realmlord.village.Village.ENLIST_COST) && com.realmlord.village.Village.enlist(t, v, true) == null && v.militia,
+                "could not enlist a villager");
+        // The grace lasts while a Grade 1 wall is planned, and ends at once if a greater wall is chosen.
+        t.wood = t.stone = 1000;
+        helper.assertTrue(com.realmlord.territory.TerritoryEvents.inGrace(t), "a new village should be under grace");
+        helper.assertTrue(com.realmlord.village.Village.start(p, t, BuildingType.SIMPLE_FENCE, t.center, 0, null, 1) == null
+                && com.realmlord.territory.TerritoryEvents.inGrace(t), "planning the Grade 1 wall should keep the grace");
+        helper.assertTrue(com.realmlord.village.Village.moveWall(p, t, 3, null) == null && !com.realmlord.territory.TerritoryEvents.inGrace(t),
+                "choosing the Grade 3 wall should end the grace");
+        // Selling one good from the storehouse leaves the rest.
+        t.storage.clearContent();
+        t.storage.addItem(new ItemStack(Items.WHEAT, 10));
+        t.storage.addItem(new ItemStack(Items.OAK_LOG, 10));
+        long got = com.realmlord.village.Goods.sellOf(t.storage, com.realmlord.village.Goods.GRAIN);
+        helper.assertTrue(got > 0 && t.storage.countItem(Items.WHEAT) == 0 && t.storage.countItem(Items.OAK_LOG) == 10, "selling one good sold the wrong things");
+        VillageTests.done(helper, p, t);
+    }
 }

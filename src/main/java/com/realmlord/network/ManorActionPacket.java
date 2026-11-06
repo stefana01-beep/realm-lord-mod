@@ -111,7 +111,9 @@ public class ManorActionPacket {
                 Notify.player(p, Component.translatable("realmlord.storage.handed_in", n));
             }
             case SELL_STORAGE -> {
-                long got = com.realmlord.village.Goods.sellAll(t.storage);
+                // a: one good (its ordinal), or -1 for everything the market takes.
+                com.realmlord.village.Goods only = a >= 0 ? com.realmlord.village.Goods.byOrdinal(a) : null;
+                long got = only != null ? com.realmlord.village.Goods.sellOf(t.storage, only) : a < 0 ? com.realmlord.village.Goods.sellAll(t.storage) : 0;
                 com.realmlord.village.Coins.give(p, got);
                 Notify.player(p, Component.translatable("realmlord.storage.sold", com.realmlord.village.Coins.format(got)));
             }

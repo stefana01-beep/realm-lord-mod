@@ -36,6 +36,8 @@ public class Resident {
     public long soldierXp;
     /** Learning at a school, the dojo or a workshop (its building id), or -1; and the half days of lessons so far. */
     public int trainingAt = -1;
+    /** A soldier's kit, bought by the Lord: 0 none, 1 leather, 2 mail, 3 iron armour. */
+    public int equipTier;
     public int trainingDays;
     /** A historical figure's id (see Figures), or empty. */
     public String figure = "";
@@ -178,6 +180,7 @@ public class Resident {
         t.putInt("slv", soldierLevel);
         t.putLong("sxp", soldierXp);
         t.putInt("trainAt", trainingAt);
+        t.putInt("kit", equipTier);
         t.putInt("trainDays", trainingDays);
         if (!figure.isEmpty()) t.putString("figure", figure);
         t.putBoolean("follows", follows);
@@ -214,6 +217,7 @@ public class Resident {
         r.soldierXp = t.getLong("sxp");
         r.trainingAt = t.contains("trainAt") ? t.getInt("trainAt") : -1;
         r.trainingDays = t.getInt("trainDays");
+        r.equipTier = t.getInt("kit");
         r.figure = t.getString("figure");
         r.follows = t.getBoolean("follows");
         r.office = t.contains("office") ? t.getInt("office") : -1;

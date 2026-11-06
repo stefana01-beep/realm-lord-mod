@@ -83,7 +83,14 @@ public final class Village {
         add(t, Resident.random(r, Occupation.FRUIT_FARMER, g));
         add(t, Resident.random(r, Occupation.CARPENTER, g));
         add(t, Resident.random(r, Occupation.MASON, g));
-        for (int i = 0; i < 5; i++) add(t, Resident.random(r, Occupation.FARMER, g));
+        for (int i = 0; i < 4; i++) add(t, Resident.random(r, Occupation.FARMER, g));
+        // One of the refugees is a martial artist who can hold off the young beasts while the village finds its feet.
+        Resident guard = Resident.random(r, Occupation.MARTIAL_ARTIST, g);
+        guard.force = Math.max(guard.force, 60);
+        guard.soldierLevel = 3;
+        guard.militia = true;
+        guard.equipTier = 1;
+        add(t, guard);
         // Those freed from the bandits move in while there are beds; the rest wait for more.
         for (int i = 0; i < extra; i++) {
             if (openBeds(t) > 0) add(t, Resident.random(r, Resident.randomOccupation(r, 1.0), g));
@@ -164,8 +171,14 @@ public final class Village {
     // ================================================================== the militia
 
     /** How many may serve in the militia: ten for a Military Camp, fifty for each Barracks, more under a good commander. */
+    /** A few may take up arms before there is any camp: the village's own watch. */
+    public static final int BASE_MILITIA = 3;
+    /** Copper to enlist a villager (their spear and keep), and to kit a soldier out at each grade. */
+    public static final long ENLIST_COST = 2_000;
+    public static final long[] KIT_COST = {5_000, 20_000, 50_000};
+
     public static int militiaCap(Territory t) {
-        int n = 0;
+        int n = BASE_MILITIA;
         for (Building b : t.buildings) {
             if (!b.complete) continue;
             if (b.type == BuildingType.MILITARY_CAMP) n += 10;

@@ -98,10 +98,17 @@ public class ResidentScreen extends Screen {
                 b -> send(ResidentActionPacket.Action.FOLLOW, r.follows ? 0 : 1)).bounds(x + W - 130, y + 52, 120, 16).build();
         follow.active = r.follows || r.isTalent() && r.office < 0 && !r.militia && !v.getBoolean("wounded");
         addRenderableWidget(follow);
-        Button militia = Button.builder(Component.translatable(r.militia ? "realmlord.militia.leave" : "realmlord.militia.join"),
-                b -> send(ResidentActionPacket.Action.MILITIA, r.militia ? 0 : 1)).bounds(x + W - 130, y + 92, 120, 16).build();
+        Button militia = Button.builder(r.militia ? Component.translatable("realmlord.militia.leave")
+                        : Component.translatable("realmlord.militia.join_cost", Ui.money(com.realmlord.village.Village.ENLIST_COST)),
+                b -> send(ResidentActionPacket.Action.MILITIA, r.militia ? 0 : 1)).bounds(x + W - 130, y + 92, 120, 16)
+                .tooltip(Tooltip.create(Component.translatable("realmlord.militia.join.tip"))).build();
         militia.active = r.militia || r.office < 0 && v.getInt("militiaCount") < v.getInt("militiaCap");
         addRenderableWidget(militia);
+        if (r.militia && r.equipTier < com.realmlord.village.Village.KIT_COST.length) {
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.militia.equip", Component.translatable("realmlord.militia.kit." + (r.equipTier + 1)),
+                            Ui.money(com.realmlord.village.Village.KIT_COST[r.equipTier])), b -> send(ResidentActionPacket.Action.EQUIP, 0))
+                    .bounds(x + W - 130, y + 112, 120, 16).tooltip(Tooltip.create(Component.translatable("realmlord.militia.equip.tip"))).build());
+        }
         ListTag offices = v.getList("offices", Tag.TAG_COMPOUND);
         for (int i = 0; i < offices.size() && i < com.realmlord.village.Office.values().length; i++) {
             CompoundTag o = offices.getCompound(i);

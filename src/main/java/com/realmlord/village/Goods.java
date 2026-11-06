@@ -227,6 +227,31 @@ public enum Goods {
     }
 
     /** Sells everything the market takes out of a container. Returns the copper earned after tax. */
+    /** Sells only one kind of good from a container. */
+    public static long sellOf(net.minecraft.world.Container from, Goods only) {
+        long copper = 0;
+        for (int i = 0; i < from.getContainerSize(); i++) {
+            ItemStack s = from.getItem(i);
+            Unit u = of(s);
+            if (u == null || u.good() != only) continue;
+            copper += u.good().sellIncome((long) u.units() * s.getCount());
+            from.setItem(i, ItemStack.EMPTY);
+        }
+        from.setChanged();
+        return copper;
+    }
+
+    /** Units of each good held in a container, by Goods ordinal. */
+    public static long[] held(net.minecraft.world.Container from) {
+        long[] out = new long[values().length];
+        for (int i = 0; i < from.getContainerSize(); i++) {
+            ItemStack s = from.getItem(i);
+            Unit u = of(s);
+            if (u != null) out[u.good().ordinal()] += (long) u.units() * s.getCount();
+        }
+        return out;
+    }
+
     public static long sellAll(net.minecraft.world.Container from) {
         long copper = 0;
         for (int i = 0; i < from.getContainerSize(); i++) {

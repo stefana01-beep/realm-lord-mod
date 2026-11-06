@@ -19,7 +19,7 @@ import java.util.function.Supplier;
 
 /** Client to server: give a resident a job, or trade with them. */
 public class ResidentActionPacket {
-    public enum Action { SET_JOB, STAFF, TRADE, REFRESH, INVENTORY, FOLLOW, MILITIA, OFFICE }
+    public enum Action { SET_JOB, STAFF, TRADE, REFRESH, INVENTORY, FOLLOW, MILITIA, OFFICE, EQUIP }
 
     private final Action action;
     private final int territory, resident, a;
@@ -99,8 +99,27 @@ public class ResidentActionPacket {
             }
             case MILITIA -> {
                 if (!owner) return;
-                String err = Village.enlist(t, r, a == 1);
-                if (err != null) Notify.player(p, err);
+                if (a == 1 && !r.militia) {
+                    // Enlisting costs the Lord their spear and keep.
+                    String err = Village.enlist(t, r, false) == null && r.office < 0 && Village.militiaCount(t) < Village.militiaCap(t) ? null : "realmlord.militia.err.full";
+                    if (r.office >= 0) err = "realmlord.militia.err.office";
+                    if (err == null && !com.realmlord.village.Coins.payWithTreasury(p, Village.ENLIST_COST)) err = "realmlord.market.cannot_afford";
+                    if (err == null) err = Village.enlist(t, r, true);
+                    if (err != null) Notify.player(p, err);
+                    else Notify.player(p, Component.translatable("realmlord.militia.enlisted", r.name, com.realmlord.village.Coins.format(Village.ENLIST_COST)));
+                } else if (a == 0) {
+                    Village.enlist(t, r, false);
+                }
+            }
+            case EQUIP -> {
+                if (!owner || !r.militia || r.equipTier >= Village.KIT_COST.length) return;
+                long cost = Village.KIT_COST[r.equipTier];
+                if (!com.realmlord.village.Coins.payWithTreasury(p, cost)) {
+                    Notify.player(p, "realmlord.market.cannot_afford");
+                    return;
+                }
+                r.equipTier++;
+                Notify.player(p, Component.translatable("realmlord.militia.equipped", r.name, Component.translatable("realmlord.militia.kit." + r.equipTier), com.realmlord.village.Coins.format(cost)));
             }
             case OFFICE -> {
                 if (!owner) return;

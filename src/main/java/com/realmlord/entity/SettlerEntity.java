@@ -282,6 +282,7 @@ public class SettlerEntity extends PathfinderMob {
             refreshName();
         }
         strengthen();
+        wearKit();
         if (following()) {
             activity = Activity.FOLLOW;
             if (isSleeping()) wake();
@@ -368,8 +369,30 @@ public class SettlerEntity extends PathfinderMob {
     /** A weapon for the fight: a diamond sword for a Gold-grade talent, iron for the rest, a bow-less spear-hand for the militia. */
     private void arm() {
         net.minecraft.world.item.Item weapon = res != null && res.grade >= 3 ? net.minecraft.world.item.Items.DIAMOND_SWORD
-                : activity == Activity.HUNT ? net.minecraft.world.item.Items.IRON_AXE : net.minecraft.world.item.Items.IRON_SWORD;
+                : activity == Activity.HUNT ? net.minecraft.world.item.Items.IRON_AXE
+                : res != null && res.militia && !res.isFigure() && res.equipTier < 2 ? net.minecraft.world.item.Items.STONE_SWORD
+                : net.minecraft.world.item.Items.IRON_SWORD;
         hold(weapon);
+    }
+
+    /** A soldier wears the kit the Lord bought them: leather, mail, then iron. */
+    private void wearKit() {
+        if (res == null) return;
+        int tier = res.militia ? res.equipTier : 0;
+        net.minecraft.world.item.Item[][] kits = {
+                {net.minecraft.world.item.Items.LEATHER_HELMET, net.minecraft.world.item.Items.LEATHER_CHESTPLATE, net.minecraft.world.item.Items.LEATHER_LEGGINGS, net.minecraft.world.item.Items.LEATHER_BOOTS},
+                {net.minecraft.world.item.Items.CHAINMAIL_HELMET, net.minecraft.world.item.Items.CHAINMAIL_CHESTPLATE, net.minecraft.world.item.Items.CHAINMAIL_LEGGINGS, net.minecraft.world.item.Items.CHAINMAIL_BOOTS},
+                {net.minecraft.world.item.Items.IRON_HELMET, net.minecraft.world.item.Items.IRON_CHESTPLATE, net.minecraft.world.item.Items.IRON_LEGGINGS, net.minecraft.world.item.Items.IRON_BOOTS}};
+        net.minecraft.world.entity.EquipmentSlot[] slots = {net.minecraft.world.entity.EquipmentSlot.HEAD, net.minecraft.world.entity.EquipmentSlot.CHEST,
+                net.minecraft.world.entity.EquipmentSlot.LEGS, net.minecraft.world.entity.EquipmentSlot.FEET};
+        for (int i = 0; i < 4; i++) {
+            net.minecraft.world.item.ItemStack want = tier <= 0 ? net.minecraft.world.item.ItemStack.EMPTY : new net.minecraft.world.item.ItemStack(kits[Math.min(3, tier) - 1][i]);
+            net.minecraft.world.item.ItemStack now = getItemBySlot(slots[i]);
+            if (want.isEmpty() ? !now.isEmpty() : !now.is(want.getItem())) {
+                setItemSlot(slots[i], want);
+                setDropChance(slots[i], 0.0F);
+            }
+        }
     }
 
     /** One tick at the Lord's side: keep up (or catch up) and keep them safe. */
