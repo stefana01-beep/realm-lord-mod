@@ -121,6 +121,7 @@ public class ForgeEvents {
         if (event.phase != TickEvent.Phase.END || !(event.player instanceof ServerPlayer sp)) return;
         if (sp.tickCount % 20 == 0) {
             QuestLogic.tick(sp);
+            com.realmlord.village.Wanderers.tick(sp);
             if (RealmConfig.lordRestriction()) enforceRestriction(sp);
         }
         if (sp.tickCount % 10 == 0) ModNetwork.syncIfDirty(sp);

@@ -90,6 +90,26 @@ public class ModNetwork {
                 .decoder(WorldInfoPacket.Request::new)
                 .consumerMainThread(WorldInfoPacket.Request::handle)
                 .add();
+        CHANNEL.messageBuilder(BanditGlowPacket.class, 15, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(BanditGlowPacket::encode)
+                .decoder(BanditGlowPacket::new)
+                .consumerMainThread(BanditGlowPacket::handle)
+                .add();
+        CHANNEL.messageBuilder(OpenNamingPacket.class, 16, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(OpenNamingPacket::encode)
+                .decoder(OpenNamingPacket::new)
+                .consumerMainThread(OpenNamingPacket::handle)
+                .add();
+        CHANNEL.messageBuilder(FoundVillagePacket.class, 17, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(FoundVillagePacket::encode)
+                .decoder(FoundVillagePacket::new)
+                .consumerMainThread(FoundVillagePacket::handle)
+                .add();
+        CHANNEL.messageBuilder(PlacePathPacket.class, 18, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(PlacePathPacket::encode)
+                .decoder(PlacePathPacket::new)
+                .consumerMainThread(PlacePathPacket::handle)
+                .add();
     }
 
     public static void toServer(Object packet) {

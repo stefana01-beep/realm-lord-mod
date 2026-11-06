@@ -52,6 +52,8 @@ public class Territory {
     public final java.util.List<com.realmlord.village.BuildingType> freeBuilds = new java.util.ArrayList<>();
     /** Set once residents have been created for this territory. */
     public boolean settled;
+    /** Settlers who would live here but have no bed yet; they move in as beds free up. */
+    public int waitingSettlers;
 
     public com.realmlord.village.Resident resident(int id) {
         for (var r : residents) if (r.id == id) return r;
@@ -111,6 +113,7 @@ public class Territory {
         t.putLong("lastDay", lastDay);
         t.putDouble("immCarry", immigrantCarry);
         t.putInt("hungry", hungryDays);
+        t.putInt("waiting", waitingSettlers);
         t.putString("freeChoices", String.join(",", freeChoices.stream().map(com.realmlord.village.BuildingType::id).toList()));
         t.putString("freeBuilds", String.join(",", freeBuilds.stream().map(com.realmlord.village.BuildingType::id).toList()));
         t.putBoolean("settled", settled);
@@ -165,6 +168,7 @@ public class Territory {
         r.lastDay = t.contains("lastDay") ? t.getLong("lastDay") : -1;
         r.immigrantCarry = t.getDouble("immCarry");
         r.hungryDays = t.getInt("hungry");
+        r.waitingSettlers = t.getInt("waiting");
         for (String s : t.getString("freeChoices").split(",")) {
             var bt = com.realmlord.village.BuildingType.byId(s);
             if (bt != null) r.freeChoices.add(bt);

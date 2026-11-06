@@ -87,6 +87,11 @@ public final class Founding {
         raiseTablet(level, center, front, t.name);
         bringSettlers(level, player, center, prof.quest().captives);
         com.realmlord.village.Village.settle(t, level.getRandom(), prof.quest().captives);
+        if (com.realmlord.quest.QuestLogic.deliverSpoils(prof.quest(), t)) {
+            prof.markDirty();
+            Notify.player(player, Component.translatable("realmlord.found.spoils", t.food, t.wood, t.stone, t.ironOre));
+        }
+        if (t.waitingSettlers > 0) Notify.player(player, Component.translatable("realmlord.found.waiting", t.waitingSettlers));
         t.lastDay = com.realmlord.village.GaiaCalendar.day(level.getServer().overworld().getGameTime());
 
         int merit = foundingMerit(t.foundedOrder);

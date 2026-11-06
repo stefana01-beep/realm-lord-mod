@@ -300,6 +300,90 @@ public class LaborTests {
         VillageTests.done(helper, p, t);
     }
 
+    @GameTest(template = "empty", timeoutTicks = 300, batch = "labor_paths")
+    public static void pathsSpoilsAndNewcomers(GameTestHelper helper) {
+        ServerPlayer p = RealmTests.lord(helper, CombatClass.GENERAL);
+        Territory t = VillageTests.village(helper, p, 6000);
+        ServerLevel level = helper.getLevel();
+        int gy = t.center.getY() - 1, cx = t.center.getX(), cz = t.center.getZ();
+        for (int x = 6; x <= 32; x++)
+            for (int z = -4; z <= 4; z++) {
+                for (int y = -3; y <= 0; y++) level.setBlock(new BlockPos(cx + x, gy + y, cz + z), Blocks.STONE.defaultBlockState(), 2);
+                level.setBlock(new BlockPos(cx + x, gy, cz + z), Blocks.GRASS_BLOCK.defaultBlockState(), 2);
+                for (int y = 1; y < 8; y++) level.setBlock(new BlockPos(cx + x, gy + y, cz + z), Blocks.AIR.defaultBlockState(), 2);
+            }
+        // A ditch the path must cross.
+        level.setBlock(new BlockPos(cx + 20, gy, cz), Blocks.AIR.defaultBlockState(), 2);
+        level.setBlock(new BlockPos(cx + 20, gy - 1, cz), Blocks.AIR.defaultBlockState(), 2);
+
+        // Paths: priced by surface and width, laid by the builders.
+        t.wood = 0;
+        t.stone = 1000;
+        helper.assertTrue("realmlord.path.err.cost".equals(com.realmlord.village.Paths.start(p, t, com.realmlord.village.Paths.Surface.PLANKS, 2, new int[]{cx + 8, cz, cx + 28, cz})),
+                "a plank path should need wood");
+        String err = com.realmlord.village.Paths.start(p, t, com.realmlord.village.Paths.Surface.COBBLE, 2, new int[]{cx + 8, cz, cx + 28, cz});
+        helper.assertTrue(err == null, "could not lay a path: " + err);
+        Building path = t.buildings.get(t.buildings.size() - 1);
+        int blocks = com.realmlord.village.Paths.blocks(path);
+        helper.assertTrue(blocks >= 40 && blocks <= 46, "a 2-wide path 21 blocks long should cover about 42 blocks, covers " + blocks);
+        helper.assertTrue(1000 - t.stone == blocks, "cobblestone costs a stone a block: paid " + (1000 - t.stone));
+        path.progress = path.workNeeded;
+        for (int i = 0; i < 10; i++) Sites.work(level, t, path, 2000);
+        helper.assertTrue(level.getBlockState(new BlockPos(cx + 12, gy, cz)).is(Blocks.COBBLESTONE), "path not laid");
+        helper.assertTrue(level.getBlockState(new BlockPos(cx + 20, gy, cz)).is(Blocks.COBBLESTONE)
+                && !level.getBlockState(new BlockPos(cx + 20, gy - 1, cz)).isAir(), "the ditch should be filled beneath the path");
+        Territory copy = Territory.load(t.save());
+        helper.assertTrue(copy.building(path.id) != null && com.realmlord.village.Paths.blocks(copy.building(path.id)) == blocks, "path lost on saving");
+        Village.demolish(level, t, path);
+        helper.assertTrue(t.building(path.id) == null && level.getBlockState(new BlockPos(cx + 12, gy, cz)).is(Blocks.GRASS_BLOCK), "a demolished path should go back to grass");
+
+        // Freed settlers wait for beds, and move in when there are some.
+        helper.assertTrue(Village.openBeds(t) == 0, "the manor's ten beds should be full");
+        t.waitingSettlers = 3;
+        helper.assertTrue(Village.admitWaiting(level, t) == 0 && t.residents.size() == 10, "settlers moved in with no beds");
+        VillageTests.built(t, BuildingType.SMALL_RESIDENTIAL_COURTYARD);
+        helper.assertTrue(Village.admitWaiting(level, t) == 3 && t.waitingSettlers == 0 && t.residents.size() == 13, "waiting settlers did not move in");
+        // Wanderers settle where there is a bed, and pass on where there is none.
+        BlockPos near = new BlockPos(cx + 12, gy + 1, cz + 2);
+        com.realmlord.village.Wanderers.spawn(level, near, 1);
+        SettlerEntity w = level.getEntitiesOfClass(SettlerEntity.class, new net.minecraft.world.phys.AABB(near).inflate(3),
+                e -> e.getTags().contains(com.realmlord.village.Wanderers.TAG)).get(0);
+        com.realmlord.village.Wanderers.check(level, w);
+        helper.assertTrue(w.isRemoved() && t.residents.size() == 14, "a wanderer did not settle in a village with beds");
+        while (Village.openBeds(t) > 0) Village.add(t, Resident.random(level.getRandom(), com.realmlord.village.Occupation.FARMER, 0));
+        com.realmlord.village.Wanderers.spawn(level, near, 1);
+        SettlerEntity w2 = level.getEntitiesOfClass(SettlerEntity.class, new net.minecraft.world.phys.AABB(near).inflate(3),
+                e -> e.getTags().contains(com.realmlord.village.Wanderers.TAG)).get(0);
+        int full = t.residents.size();
+        com.realmlord.village.Wanderers.check(level, w2);
+        helper.assertTrue(!w2.isRemoved() && t.residents.size() == full, "a wanderer settled without a bed");
+        w2.getPersistentData().putLong("realmlord_born", level.getGameTime() - com.realmlord.village.Wanderers.LIFETIME - 10);
+        com.realmlord.village.Wanderers.check(level, w2);
+        helper.assertTrue(w2.isRemoved(), "a wanderer should move on after two days");
+
+        // The bandits' spoils: blueprints and gold now, supplies for the stores later.
+        com.realmlord.quest.VillageQuest q = Profiles.get(p).quest();
+        long coins = com.realmlord.village.Coins.count(p);
+        com.realmlord.quest.QuestLogic.spoils(p, q);
+        helper.assertTrue(p.getInventory().countItem(com.realmlord.registry.ModItems.BLUEPRINT.get()) >= 2, "no blueprints in the spoils");
+        helper.assertTrue(com.realmlord.village.Coins.count(p) - coins == 50_000, "the chief's five gold coins are missing");
+        long food = t.food;
+        helper.assertTrue(com.realmlord.quest.QuestLogic.deliverSpoils(q, t) && t.food - food == 400 && !q.hasSpoils(), "spoils not delivered to the stores");
+
+        // What clearing turns up goes straight to the stores.
+        Sites.toStores(t, new ItemStack(Items.SAND, 3));
+        Sites.toStores(t, new ItemStack(Items.CLAY_BALL, 4));
+        Sites.toStores(t, new ItemStack(Items.DIRT, 5));
+        Sites.toStores(t, new ItemStack(Items.OAK_SAPLING, 2));
+        helper.assertTrue(com.realmlord.village.Goods.SAND.stock(t) == 3 && com.realmlord.village.Goods.CLAY.stock(t) == 4
+                && com.realmlord.village.Goods.EARTH.stock(t) == 5, "sand, clay or earth not kept");
+        helper.assertTrue(t.storage.countItem(Items.OAK_SAPLING) == 2, "saplings not kept in the storehouse");
+        // Village names are tidied.
+        helper.assertTrue("Red Cliff".equals(com.realmlord.network.FoundVillagePacket.clean("  Red Cliff ")) && com.realmlord.network.FoundVillagePacket.clean("   ") == null,
+                "village name not cleaned");
+        VillageTests.done(helper, p, t);
+    }
+
     private static Building site(Territory t, BuildingType type, int dx) {
         Building b = new Building();
         b.id = t.nextBuildingId++;

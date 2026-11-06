@@ -738,6 +738,10 @@ public class SettlerEntity extends PathfinderMob {
             if (r == null || !getUUID().equals(r.entity)) discard();
             return;
         }
+        if (getTags().contains(com.realmlord.village.Wanderers.TAG)) {
+            com.realmlord.village.Wanderers.check(sl, this);
+            return;
+        }
         if (owner == null) return;
         // Freed settlers from before villages had residents: the village records take their place.
         Territory t = TerritoryData.get(sl.getServer()).ownedBy(owner);

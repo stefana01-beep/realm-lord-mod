@@ -41,9 +41,11 @@ public enum BuildingType {
     MULBERRY_SHED(3, false, null, 0, 400, 100, 48, 9, 7, Style.SHED, 3, 1),
     WINE_WORKSHOP(3, true, Occupation.WINEMAKER, 0, 400, 200, 48, 9, 7, Style.WORKSHOP, 3, 1),
     SENTRY_POST(3, false, null, 0, 40, 200, 24, 3, 3, Style.TOWER, 3, 1),
-    STABLE(3, true, null, 0, 200, 50, 24, 11, 7, Style.SHED, 3, 1);
+    STABLE(3, true, null, 0, 200, 50, 24, 11, 7, Style.SHED, 3, 1),
+    // ---------------------------------------------------------------- laid on the map, any grade
+    PATH(1, false, null, 0, 0, 0, 1, 0, 0, Style.PATH, 0, 0);
 
-    public enum Style { FENCE, HALL, HUT, COURTYARD, WORKSHOP, SHOP, LOGGING, QUARRY, FARM, MINE, CAMP, TEMPLE, DOJO, GRANARY, TOWER, OUTPOST, SHED }
+    public enum Style { PATH, FENCE, HALL, HUT, COURTYARD, WORKSHOP, SHOP, LOGGING, QUARRY, FARM, MINE, CAMP, TEMPLE, DOJO, GRANARY, TOWER, OUTPOST, SHED }
 
     /** Village grade (1-3) that unlocks it. */
     public final int grade;
@@ -88,7 +90,12 @@ public enum BuildingType {
 
     /** Placed by the player on the map (the fence is built around the border instead). */
     public boolean placed() {
-        return this != SIMPLE_FENCE;
+        return this != SIMPLE_FENCE && this != PATH;
+    }
+
+    /** Not one of the novel's buildings: kept out of the building lists (paths are laid from the map). */
+    public boolean hidden() {
+        return this == PATH;
     }
 
     // ---------------------------------------------------------------- what it does once built
@@ -186,7 +193,7 @@ public enum BuildingType {
 
     public static List<BuildingType> ofGrade(int g) {
         List<BuildingType> out = new ArrayList<>();
-        for (BuildingType t : values()) if (t.grade == g) out.add(t);
+        for (BuildingType t : values()) if (t.grade == g && !t.hidden()) out.add(t);
         return out;
     }
 

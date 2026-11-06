@@ -36,6 +36,9 @@ public class Building {
     // The Simple Fence: its ring, the ground height of each post and where the gates are.
     public int fenceRadius;
     public int[] fenceYs;
+    /** A path: its points (x, z pairs), surface, width, and the columns it covers (x, y, z, earth beneath). */
+    public int[] pathPoints, pathCols;
+    public int pathSurface, pathWidth = 1;
     /** Earth packed under each post where the ground falls away. */
     public int[] fenceFill;
     /** Before a building is finished, its whole design is checked against the world (transient). */
@@ -117,6 +120,12 @@ public class Building {
         t.putInt("d", depth());
         t.putInt("fenceR", fenceRadius);
         if (fenceYs != null) t.putIntArray("fenceYs", fenceYs);
+        if (pathCols != null) {
+            t.putIntArray("pathPts", pathPoints);
+            t.putIntArray("pathCols", pathCols);
+            t.putInt("pathSurface", pathSurface);
+            t.putInt("pathWidth", pathWidth);
+        }
         if (fenceFill != null) t.putIntArray("fenceFill", fenceFill);
         t.putIntArray("gates", gates);
         return t;
@@ -159,6 +168,12 @@ public class Building {
         }
         b.fenceRadius = t.getInt("fenceR");
         b.fenceYs = t.contains("fenceYs") ? t.getIntArray("fenceYs") : null;
+        if (t.contains("pathCols")) {
+            b.pathPoints = t.getIntArray("pathPts");
+            b.pathCols = t.getIntArray("pathCols");
+            b.pathSurface = t.getInt("pathSurface");
+            b.pathWidth = Math.max(1, t.getInt("pathWidth"));
+        }
         b.fenceFill = t.contains("fenceFill") ? t.getIntArray("fenceFill") : null;
         b.gates = t.contains("gates") ? t.getIntArray("gates") : new int[]{0, 90, 180, 270};
         return b;

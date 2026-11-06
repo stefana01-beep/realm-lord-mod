@@ -195,6 +195,8 @@ public final class Sites {
             }
             case FILL -> {
                 if (solid(level.getBlockState(op.pos()))) return true;
+                // Earth dug from other sites goes back into the ground first.
+                if (Goods.EARTH.stock(t) > 0) Goods.EARTH.add(t, -1);
                 level.setBlock(op.pos(), op.state(), Block.UPDATE_ALL);
                 sound(level, op.pos(), op.state(), false);
             }
@@ -270,9 +272,19 @@ public final class Sites {
 
     private static void keepDrops(ServerLevel level, Territory t, Resident r, BlockPos p, BlockState s) {
         BlockEntity be = level.getBlockEntity(p);
-        for (ItemStack drop : Block.getDrops(s, level, p, be)) {
-            if (Haul.value(drop) == null && !drop.is(net.minecraft.tags.ItemTags.SAPLINGS)) continue;
-            store(t, r, drop);
+        for (ItemStack drop : Block.getDrops(s, level, p, be)) toStores(t, drop);
+    }
+
+    /**
+     * What clearing a site turns up goes straight to the village's stores: timber, stone, ore,
+     * sand, clay and earth as stock, saplings to the storehouse for replanting. The rest is left.
+     */
+    public static void toStores(Territory t, ItemStack drop) {
+        Goods.Unit u = Goods.of(drop);
+        if (u != null) {
+            u.good().add(t, (long) u.units() * drop.getCount());
+        } else if (drop.is(net.minecraft.tags.ItemTags.SAPLINGS)) {
+            t.storage.addItem(drop);
         }
     }
 

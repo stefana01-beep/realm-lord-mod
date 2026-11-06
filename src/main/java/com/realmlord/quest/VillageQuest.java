@@ -41,6 +41,8 @@ public class VillageQuest {
     public int deaths;
     public boolean warned;
     public TokenGrade grade;       // set once claimed
+    /** Supplies taken from the bandits, by good, waiting for the village's stores. */
+    public final long[] spoils = new long[com.realmlord.village.Goods.values().length];
 
     public boolean active() {
         return stage == Stage.SUPPLIES || stage == Stage.BANDITS || stage == Stage.CLEARED;
@@ -69,6 +71,9 @@ public class VillageQuest {
         t.putInt("deaths", deaths);
         t.putBoolean("warned", warned);
         if (grade != null) t.putInt("grade", grade.ordinal());
+        CompoundTag sp = new CompoundTag();
+        for (com.realmlord.village.Goods g : com.realmlord.village.Goods.values()) if (spoils[g.ordinal()] != 0) sp.putLong(g.id, spoils[g.ordinal()]);
+        t.put("spoils", sp);
         return t;
     }
 
@@ -92,6 +97,13 @@ public class VillageQuest {
         deaths = t.getInt("deaths");
         warned = t.getBoolean("warned");
         grade = t.contains("grade") ? TokenGrade.byId(t.getInt("grade")) : null;
+        CompoundTag sp = t.getCompound("spoils");
+        for (com.realmlord.village.Goods g : com.realmlord.village.Goods.values()) spoils[g.ordinal()] = sp.getLong(g.id);
+    }
+
+    public boolean hasSpoils() {
+        for (long v : spoils) if (v != 0) return true;
+        return false;
     }
 
     public void copyFrom(VillageQuest o) {

@@ -17,7 +17,8 @@ public enum Goods {
     GRAIN("grain", 10), WOOD("wood", 20), STONE("stone", 30), IRON_ORE("iron_ore", 100),
     SALT("salt", 20), MEAT("meat", 30), FISH("fish", 15), LEATHER("leather", 50), HERBS("herbs", 25),
     FLOUR("flour", 15), WINE("wine", 100), POTTERY("pottery", 50), TOOLS("tools", 300), WEAPONS("weapons", 800),
-    LINEN("linen", 1000), FINE_SILK("fine_silk", 5000), FIRE_OIL("fire_oil", 100);
+    LINEN("linen", 1000), FINE_SILK("fine_silk", 5000), FIRE_OIL("fire_oil", 100),
+    SAND("sand", 5), CLAY("clay", 10), EARTH("earth", 2);
 
     public final String id;
     /** Copper per unit, before the market's 20% tax on sales. */
@@ -78,7 +79,14 @@ public enum Goods {
         if (s.is(ItemTags.LOGS)) return new Unit(WOOD, 2);
         if (s.is(ItemTags.PLANKS)) return new Unit(WOOD, 1);
         if (i == Items.COBBLESTONE || i == Items.STONE || i == Items.COBBLED_DEEPSLATE || i == Items.STONE_BRICKS
-                || i == Items.ANDESITE || i == Items.DIORITE || i == Items.GRANITE) return new Unit(STONE, 1);
+                || i == Items.ANDESITE || i == Items.DIORITE || i == Items.GRANITE || i == Items.GRAVEL || i == Items.TUFF
+                || i == Items.CALCITE || i == Items.SANDSTONE || i == Items.RED_SANDSTONE || i == Items.MOSSY_COBBLESTONE) return new Unit(STONE, 1);
+        if (i == Items.SAND || i == Items.RED_SAND) return new Unit(SAND, 1);
+        if (i == Items.CLAY_BALL) return new Unit(CLAY, 1);
+        if (i == Items.CLAY) return new Unit(CLAY, 4);
+        if (i == Items.DIRT || i == Items.COARSE_DIRT || i == Items.ROOTED_DIRT || i == Items.MUD || i == Items.PACKED_MUD
+                || i == Items.GRASS_BLOCK || i == Items.PODZOL || i == Items.MYCELIUM) return new Unit(EARTH, 1);
+        if (i == Items.MANGROVE_ROOTS || i == Items.MUDDY_MANGROVE_ROOTS || i == Items.BAMBOO) return new Unit(WOOD, 1);
         if (i == Items.RAW_IRON || i == Items.IRON_ORE || i == Items.DEEPSLATE_IRON_ORE) return new Unit(IRON_ORE, 1);
         if (i == Items.WHEAT || i == Items.POTATO || i == Items.CARROT || i == Items.BEETROOT) return new Unit(GRAIN, 1);
         if (i == Items.BREAD) return new Unit(FLOUR, 3);

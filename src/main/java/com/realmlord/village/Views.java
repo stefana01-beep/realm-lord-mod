@@ -82,6 +82,12 @@ public final class Views {
                 bt.putIntArray("gates", b.gates);
                 bt.putInt("fr", b.fenceRadius);
             }
+            if (b.type == BuildingType.PATH && b.pathPoints != null) {
+                bt.putIntArray("pts", b.pathPoints);
+                bt.putInt("mat", b.pathSurface);
+                bt.putInt("w", b.pathWidth);
+                bt.putInt("blocks", Paths.blocks(b));
+            }
             Resident s = Village.staffOf(t, b);
             if (s != null) bt.putString("staff", s.name);
             if (b.type == BuildingType.FARMLAND) bt.putDouble("growth", Village.growth(b, day));
@@ -91,6 +97,7 @@ public final class Views {
         // Construction options for this player
         ListTag opts = new ListTag();
         for (BuildingType type : BuildingType.values()) {
+            if (type.hidden()) continue;
             CompoundTag o = new CompoundTag();
             o.putInt("type", type.ordinal());
             o.putInt("built", Village.countComplete(t, type));

@@ -31,6 +31,10 @@ public final class ClientAccess {
         Minecraft.getInstance().setScreen(new SpawnScreen(p));
     }
 
+    public static void naming(com.realmlord.network.OpenNamingPacket p) {
+        net.minecraft.client.Minecraft.getInstance().setScreen(new NamingScreen(p));
+    }
+
     public static void open(int screen) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;

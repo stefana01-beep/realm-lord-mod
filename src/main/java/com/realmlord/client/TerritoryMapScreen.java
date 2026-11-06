@@ -4,6 +4,7 @@ import com.realmlord.network.ManorActionPacket;
 import com.realmlord.network.ModNetwork;
 import com.realmlord.network.PlaceBuildingPacket;
 import com.realmlord.village.BuildingType;
+import com.realmlord.village.Paths;
 import com.realmlord.village.Village;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -30,6 +31,10 @@ public class TerritoryMapScreen extends Screen {
     /** A building picked on the map, and whether its demolition awaits a second click. */
     private int selectedId = -1;
     private boolean confirmDemolish;
+    /** Laying out a path: its points (x, z), surface and width. */
+    private boolean pathMode;
+    private final java.util.List<int[]> pathPts = new java.util.ArrayList<>();
+    private int pathSurface = 1, pathWidth = 2;
 
     public TerritoryMapScreen(BuildingType placing) {
         super(Component.translatable("realmlord.map.title"));
@@ -139,6 +144,39 @@ public class TerritoryMapScreen extends Screen {
                 fenceMode = false;
                 init();
             }).bounds(bx, by - 18, bw, 16).build());
+        } else if (pathMode) {
+            Paths.Surface s = Paths.Surface.byOrdinal(pathSurface);
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.path.surface", Component.translatable(s.key())), b -> {
+                pathSurface = (pathSurface + 1) % Paths.Surface.values().length;
+                init();
+            }).bounds(bx, by - 90, bw, 16).build());
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.path.width", pathWidth), b -> {
+                pathWidth = pathWidth % Paths.MAX_WIDTH + 1;
+                init();
+            }).bounds(bx, by - 72, bw, 16).build());
+            Button lay = Button.builder(Component.translatable("realmlord.path.lay"), b -> {
+                int[] pts = new int[pathPts.size() * 2];
+                for (int i = 0; i < pathPts.size(); i++) {
+                    pts[i * 2] = pathPts.get(i)[0];
+                    pts[i * 2 + 1] = pathPts.get(i)[1];
+                }
+                ModNetwork.toServer(new com.realmlord.network.PlacePathPacket(pathSurface, pathWidth, pts));
+                pathMode = false;
+                pathPts.clear();
+                refreshIn = 20;
+                init();
+            }).bounds(bx, by - 54, bw, 16).build();
+            lay.active = pathPts.size() >= 2;
+            addRenderableWidget(lay);
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.path.undo"), b -> {
+                if (!pathPts.isEmpty()) pathPts.remove(pathPts.size() - 1);
+                init();
+            }).bounds(bx, by - 36, bw, 16).build());
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.map.cancel"), b -> {
+                pathMode = false;
+                pathPts.clear();
+                init();
+            }).bounds(bx, by - 18, bw, 16).build());
         } else if (placing != null) {
             addRenderableWidget(Button.builder(Component.translatable("realmlord.map.rotate"), b -> rotation = (rotation + 1) & 3)
                     .bounds(bx, by - 54, bw, 16).build());
@@ -162,13 +200,20 @@ public class TerritoryMapScreen extends Screen {
                     init();
                 }).bounds(bx, by - 36, bw, 16).build());
             }
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.path.new"), b -> {
+                pathMode = true;
+                selectedId = -1;
+                pathPts.clear();
+                init();
+            }).bounds(bx, by - 72, bw, 16).build());
             CompoundTag sel = selected();
-            if (sel != null && sel.getBoolean("complete")) {
+            boolean isPath = sel != null && sel.getInt("type") == BuildingType.PATH.ordinal();
+            if (sel != null && (sel.getBoolean("complete") || isPath) && !sel.getBoolean("demolish")) {
                 Button d = Button.builder(Component.translatable(confirmDemolish ? "realmlord.map.demolish.confirm" : "realmlord.map.demolish"), b -> {
                     if (!confirmDemolish) {
                         confirmDemolish = true;
                     } else {
-                        ModNetwork.toServer(new ManorActionPacket(ManorActionPacket.Action.DEMOLISH, selectedId, 0));
+                        ModNetwork.toServer(new ManorActionPacket(sel.getBoolean("complete") ? ManorActionPacket.Action.DEMOLISH : ManorActionPacket.Action.CANCEL_SITE, selectedId, 0));
                         selectedId = -1;
                         confirmDemolish = false;
                         refreshIn = 20;
@@ -212,7 +257,13 @@ public class TerritoryMapScreen extends Screen {
                 }
             }
         }
-        if (!fenceMode && placing == null && at != null && button == 0) {
+        if (pathMode && at != null) {
+            if (button == 0 && pathPts.size() < Paths.MAX_POINTS) pathPts.add(new int[]{at.getX(), at.getZ()});
+            else if (button == 1 && !pathPts.isEmpty()) pathPts.remove(pathPts.size() - 1);
+            init();
+            return true;
+        }
+        if (!fenceMode && !pathMode && placing == null && at != null && button == 0) {
             CompoundTag v = ClientVillageData.manor;
             int was = selectedId;
             selectedId = -1;
@@ -224,6 +275,10 @@ public class TerritoryMapScreen extends Screen {
                     if (bt == null || !bt.placed()) continue;
                     int bx = b.getInt("x"), bz = b.getInt("z");
                     if (at.getX() >= bx && at.getX() < bx + b.getInt("sx") && at.getZ() >= bz && at.getZ() < bz + b.getInt("sz")) selectedId = b.getInt("id");
+                }
+                if (selectedId < 0) {
+                    CompoundTag p = pathNear(v, at.getX(), at.getZ());
+                    if (p != null) selectedId = p.getInt("id");
                 }
             }
             if (selectedId != was) {
@@ -309,8 +364,29 @@ public class TerritoryMapScreen extends Screen {
         // Lord's Manor yard
         int m = Village.MANOR_YARD;
         rect(g, cx - m, cz - m, 2 * m, 2 * m, 0x60C8423B, 0xFFC8423B);
-        // Buildings
+        // Paths
         ListTag bs = v.getList("buildings", Tag.TAG_COMPOUND);
+        for (int i = 0; i < bs.size(); i++) {
+            CompoundTag b = bs.getCompound(i);
+            if (b.getInt("type") != BuildingType.PATH.ordinal() || !b.contains("pts")) continue;
+            int col = surfaceColor(b.getInt("mat"));
+            if (!b.getBoolean("complete")) col = (col & 0x00FFFFFF) | 0x90000000;
+            if (b.getInt("id") == selectedId) col = 0xFFFFFFFF;
+            polyline(g, b.getIntArray("pts"), b.getInt("w"), col);
+        }
+        if (pathMode && !pathPts.isEmpty()) {
+            int[] pts = new int[pathPts.size() * 2];
+            for (int i = 0; i < pathPts.size(); i++) {
+                pts[i * 2] = pathPts.get(i)[0];
+                pts[i * 2 + 1] = pathPts.get(i)[1];
+            }
+            polyline(g, pts, pathWidth, 0xC0FFE07A);
+            for (int[] p : pathPts) {
+                int px = screenX(p[0] + 0.5), py = screenY(p[1] + 0.5);
+                g.fill(px - 2, py - 2, px + 2, py + 2, 0xFFFFD84D);
+            }
+        }
+        // Buildings
         for (int i = 0; i < bs.size(); i++) {
             CompoundTag b = bs.getCompound(i);
             BuildingType bt = BuildingType.byOrdinal(b.getInt("type"));
@@ -321,6 +397,58 @@ public class TerritoryMapScreen extends Screen {
             rect(g, b.getInt("x"), b.getInt("z"), b.getInt("sx"), b.getInt("sz"), fillCol, edge);
         }
         fenceRing(g, v);
+    }
+
+    private static int surfaceColor(int mat) {
+        return switch (Paths.Surface.byOrdinal(mat)) {
+            case DIRT -> 0xFFA07A4A;
+            case GRAVEL -> 0xFF8E8A86;
+            case PLANKS -> 0xFF7A5A34;
+            case COBBLE -> 0xFF6E6E6E;
+            case STONE -> 0xFFB0B0B0;
+        };
+    }
+
+    /** A path drawn as a thick line through its points. */
+    private void polyline(GuiGraphics g, int[] pts, int w, int col) {
+        int r = Math.max(1, (int) Math.round(w * scale() / Math.max(1, ClientMap.step) / 2.0));
+        for (int s = 0; s + 3 < pts.length; s += 2) {
+            double ax = screenX(pts[s] + 0.5), ay = screenY(pts[s + 1] + 0.5), bx = screenX(pts[s + 2] + 0.5), by = screenY(pts[s + 3] + 0.5);
+            int n = (int) Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay)));
+            for (int i = 0; i <= n; i++) {
+                int px = (int) Math.round(ax + (bx - ax) * i / n), py = (int) Math.round(ay + (by - ay) * i / n);
+                g.fill(px - r / 2, py - r / 2, px - r / 2 + r, py - r / 2 + r, col);
+            }
+        }
+    }
+
+    /** The path within a few blocks of a point, or null. */
+    private static CompoundTag pathNear(CompoundTag v, int x, int z) {
+        ListTag bs = v.getList("buildings", Tag.TAG_COMPOUND);
+        double reach = Math.max(3, ClientMap.step * 2);
+        for (int i = 0; i < bs.size(); i++) {
+            CompoundTag b = bs.getCompound(i);
+            if (b.getInt("type") != BuildingType.PATH.ordinal() || !b.contains("pts")) continue;
+            int[] p = b.getIntArray("pts");
+            for (int s = 0; s + 3 < p.length; s += 2) {
+                if (segDist(x, z, p[s], p[s + 1], p[s + 2], p[s + 3]) <= reach + b.getInt("w") / 2.0) return b;
+            }
+        }
+        return null;
+    }
+
+    private static double segDist(double px, double pz, double ax, double az, double bx, double bz) {
+        double dx = bx - ax, dz = bz - az, l = dx * dx + dz * dz;
+        double t = l == 0 ? 0 : Math.max(0, Math.min(1, ((px - ax) * dx + (pz - az) * dz) / l));
+        return Math.hypot(px - (ax + t * dx), pz - (az + t * dz));
+    }
+
+    /** Rough size of the path being drawn, in blocks. */
+    private int pathEstimate() {
+        double len = 0;
+        for (int i = 1; i < pathPts.size(); i++)
+            len += Math.hypot(pathPts.get(i)[0] - pathPts.get(i - 1)[0], pathPts.get(i)[1] - pathPts.get(i - 1)[1]);
+        return pathPts.size() < 2 ? 0 : (int) Math.ceil((len + 1) * pathWidth);
     }
 
     private void rect(GuiGraphics g, double wx, double wz, double sx, double sz, int fillCol, int edge) {
@@ -364,6 +492,8 @@ public class TerritoryMapScreen extends Screen {
         ListTag bs = v.getList("buildings", Tag.TAG_COMPOUND);
         for (int i = 0; i < bs.size(); i++) {
             CompoundTag b = bs.getCompound(i);
+            BuildingType ht = BuildingType.byOrdinal(b.getInt("type"));
+            if (ht == null || !ht.placed()) continue;
             int bx = b.getInt("x"), bz = b.getInt("z");
             if (at.getX() >= bx && at.getX() < bx + b.getInt("sx") && at.getZ() >= bz && at.getZ() < bz + b.getInt("sz")) {
                 BuildingType bt = BuildingType.byOrdinal(b.getInt("type"));
@@ -375,6 +505,13 @@ public class TerritoryMapScreen extends Screen {
                 return Component.translatable("realmlord.map.building", name, Math.round(b.getDouble("fraction") * 100));
             }
         }
+        if (!pathMode) {
+            CompoundTag p = pathNear(v, at.getX(), at.getZ());
+            if (p != null) {
+                Component name = Component.translatable("realmlord.path.named", Component.translatable(Paths.Surface.byOrdinal(p.getInt("mat")).key()), p.getInt("w"));
+                return p.getBoolean("complete") ? name : Component.translatable("realmlord.map.building", name, Math.round(p.getDouble("fraction") * 100));
+            }
+        }
         return null;
     }
 
@@ -384,6 +521,17 @@ public class TerritoryMapScreen extends Screen {
             g.drawString(font, Component.translatable("realmlord.building.simple_fence"), sx, sy, Ui.GOLD, false);
             g.drawString(font, Component.translatable("realmlord.map.fence.gates", gates.size()), sx, sy + 11, Ui.INK, false);
             Ui.wrap(g, font, Component.translatable("realmlord.map.fence.hint"), sx, sy + 25, w, Ui.MUTED);
+        } else if (pathMode) {
+            Paths.Surface s = Paths.Surface.byOrdinal(pathSurface);
+            int n = pathEstimate();
+            long[] c = Paths.cost(s, n);
+            g.drawString(font, Component.translatable("realmlord.path.title"), sx, sy, Ui.GOLD, false);
+            g.drawString(font, Component.translatable("realmlord.path.points", pathPts.size(), Paths.MAX_POINTS), sx, sy + 11, Ui.INK, false);
+            g.drawString(font, Component.translatable("realmlord.path.estimate", n), sx, sy + 22, Ui.INK, false);
+            g.drawString(font, c[0] == 0 && c[1] == 0 ? Component.translatable("realmlord.path.free")
+                    : Component.translatable("realmlord.path.cost", c[0], c[1]), sx, sy + 33, Ui.INK, false);
+            Ui.wrap(g, font, Component.translatable("realmlord.path.hint"), sx, sy + 47, w, Ui.MUTED);
+            return;
         } else if (placing != null) {
             g.drawString(font, Component.translatable("realmlord.map.placing"), sx, sy, Ui.GOLD, false);
             g.drawString(font, Component.translatable(placing.key()), sx, sy + 11, Ui.INK, false);
@@ -399,18 +547,21 @@ public class TerritoryMapScreen extends Screen {
             CompoundTag sel = selected();
             if (sel != null) {
                 BuildingType bt = BuildingType.byOrdinal(sel.getInt("type"));
-                g.drawString(font, Component.translatable(bt.key()), sx, sy + 74, Ui.GOLD, false);
+                boolean path = bt == BuildingType.PATH;
+                g.drawString(font, path ? Component.translatable("realmlord.path.named", Component.translatable(Paths.Surface.byOrdinal(sel.getInt("mat")).key()), sel.getInt("w"))
+                        : Component.translatable(bt.key()), sx, sy + 74, Ui.GOLD, false);
                 Component state = sel.getBoolean("demolish") ? Component.translatable("realmlord.map.state.demolishing")
                         : sel.getBoolean("complete") ? Component.translatable("realmlord.map.state.built")
                         : Component.translatable("realmlord.map.state.site", Math.round(sel.getDouble("fraction") * 100));
                 g.drawString(font, state, sx, sy + 85, Ui.INK, false);
-                if (sel.getBoolean("complete")) Ui.wrap(g, font, Component.translatable("realmlord.map.salvage", bt.wood * 3 / 4, bt.stone * 3 / 4), sx, sy + 97, w, Ui.MUTED);
+                if (path) Ui.wrap(g, font, Component.translatable("realmlord.path.remove_hint", sel.getInt("blocks")), sx, sy + 97, w, Ui.MUTED);
+                else if (sel.getBoolean("complete")) Ui.wrap(g, font, Component.translatable("realmlord.map.salvage", bt.wood * 3 / 4, bt.stone * 3 / 4), sx, sy + 97, w, Ui.MUTED);
             } else {
                 Ui.wrap(g, font, Component.translatable("realmlord.map.view_hint"), sx, sy + 74, w, Ui.MUTED);
             }
         }
         BlockPos at = worldAt(mx, my);
-        if (at != null) g.drawString(font, Component.translatable("realmlord.map.coords", at.getX(), at.getZ()), sx, top() + H - 96, Ui.MUTED, false);
+        if (at != null) g.drawString(font, Component.translatable("realmlord.map.coords", at.getX(), at.getZ()), sx, top() + H - 112, Ui.MUTED, false);
     }
 
     private void legend(GuiGraphics g, int x, int y, int color, String key) {

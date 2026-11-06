@@ -75,7 +75,28 @@ public final class Village {
         add(t, Resident.random(r, Occupation.CARPENTER, g));
         add(t, Resident.random(r, Occupation.MASON, g));
         for (int i = 0; i < 5; i++) add(t, Resident.random(r, Occupation.FARMER, g));
-        for (int i = 0; i < extra; i++) add(t, Resident.random(r, Resident.randomOccupation(r, 1.0), g));
+        // Those freed from the bandits move in while there are beds; the rest wait for more.
+        for (int i = 0; i < extra; i++) {
+            if (openBeds(t) > 0) add(t, Resident.random(r, Resident.randomOccupation(r, 1.0), g));
+            else t.waitingSettlers++;
+        }
+    }
+
+    /** Beds nobody sleeps in yet (within the level's limit on people). */
+    public static int openBeds(Territory t) {
+        return Math.max(0, capacity(t) - t.residents.size());
+    }
+
+    /** Settlers waiting for beds move in as soon as there are some. Returns how many did. */
+    public static int admitWaiting(ServerLevel level, Territory t) {
+        int n = Math.min(t.waitingSettlers, openBeds(t));
+        if (n <= 0) return 0;
+        RandomSource r = level.getRandom();
+        for (int i = 0; i < n; i++) add(t, Resident.random(r, Resident.randomOccupation(r, 1.0), t.grade.ordinal()));
+        t.waitingSettlers -= n;
+        ServerPlayer owner = t.owner == null ? null : level.getServer().getPlayerList().getPlayer(t.owner);
+        if (owner != null) Notify.player(owner, Component.translatable("realmlord.village.waiting_joined", n, t.name, t.waitingSettlers));
+        return n;
     }
 
     public static List<Resident> withJob(Territory t, Job job) {
@@ -715,6 +736,10 @@ public final class Village {
      */
     public static void demolish(ServerLevel level, Territory t, Building b) {
         if (b.demolishing) return;
+        if (b.type == BuildingType.PATH) {
+            Paths.remove(level, t, b);
+            return;
+        }
         int size = BuildingDesigns.size(level, t, b);
         double built = b.complete ? 1.0 : size > 0 ? Math.min(1.0, b.placed / (double) size) : 0.0;
         double share = b.free ? 0 : Sites.SALVAGE;
@@ -995,6 +1020,7 @@ public final class Village {
         if (!t.settled) settle(t, level.getRandom(), Math.max(0, t.population - 10));
         catchUp(level, t);
         construct(level, t, 20);
+        if (t.waitingSettlers > 0) admitWaiting(level, t);
         Residents.sync(level, t);
     }
 

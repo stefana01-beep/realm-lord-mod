@@ -1,6 +1,5 @@
 package com.realmlord.item;
 
-import com.realmlord.territory.Founding;
 import com.realmlord.territory.TokenGrade;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -29,12 +28,11 @@ public class VillageTokenItem extends Item {
         if (level.isClientSide) return InteractionResult.SUCCESS;
         if (!(ctx.getPlayer() instanceof ServerPlayer player)) return InteractionResult.PASS;
         ItemStack stack = ctx.getItemInHand();
-        String name = stack.hasCustomHoverName() ? stack.getHoverName().getString() : null;
-        if (Founding.found(player, ctx.getClickedPos().above(), grade, name) != null) {
-            if (!player.getAbilities().instabuild) stack.shrink(1);
-            return InteractionResult.CONSUME;
-        }
-        return InteractionResult.FAIL;
+        // Ask for the village's name first; an anvil name fills it in.
+        String name = stack.hasCustomHoverName() ? stack.getHoverName().getString() : "";
+        com.realmlord.network.ModNetwork.send(player, new com.realmlord.network.OpenNamingPacket(ctx.getClickedPos().above(), name,
+                ctx.getHand() == net.minecraft.world.InteractionHand.OFF_HAND));
+        return InteractionResult.CONSUME;
     }
 
     @Override

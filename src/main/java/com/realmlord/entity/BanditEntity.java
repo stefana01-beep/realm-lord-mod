@@ -260,4 +260,18 @@ public class BanditEntity extends Monster implements RangedAttackMob {
     public static boolean isServer(Level level) {
         return level instanceof ServerLevel;
     }
+
+    /** Outlined for the Lord hunting this band (and nobody else), so they can be found in jungle and on hills. */
+    @Override
+    public boolean isCurrentlyGlowing() {
+        if (level().isClientSide && net.minecraftforge.fml.loading.FMLEnvironment.dist.isClient() && ClientGlow.glows(getId())) return true;
+        return super.isCurrentlyGlowing();
+    }
+
+    /** Keeps client classes out of the server's way. */
+    private static final class ClientGlow {
+        static boolean glows(int id) {
+            return com.realmlord.client.QuestGlow.glows(id);
+        }
+    }
 }

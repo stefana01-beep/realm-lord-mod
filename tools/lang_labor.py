@@ -180,3 +180,55 @@ def add(L):
         "Straw beds for 20 residents (23 in all), who sleep here at night.")
     L["realmlord.map.place_hint"] = ("Click the map to place it here. Right-click turns it; the yellow edge is the door. "
                                      "Green fits, red does not. Builders will clear and level the ground first.")
+    L.update(ROUND_PATHS)
+
+
+ROUND_PATHS = {
+    # Quest
+    "realmlord.quest.not_needed": "You already rule a village, so the Village Creation quest is not needed.",
+    "realmlord.quest.spoils": "Bandit spoils: %s village blueprints and %s gold coins are yours. Their stolen supplies (%s grain, %s wood, %s stone, %s iron ore) will go into your village's stores when you found it.",
+    "realmlord.camp.salvaged_stores": "%s salvaged materials went straight into your village's stores.",
+    "realmlord.camp.salvaged_spoils": "%s salvaged materials were set aside for your village's stores.",
+    "realmlord.found.spoils": "The bandits' supplies fill your new stores: %s grain, %s wood, %s stone, %s iron ore.",
+    "realmlord.found.waiting": "%s freed settlers have no bed yet. They wait nearby and move in as soon as you build housing (a Small Residential Courtyard holds 20).",
+    # Naming
+    "realmlord.naming.title": "Name your village",
+    "realmlord.naming.hint": "The name is carved on the founding stone.",
+    "realmlord.naming.found": "Found village",
+    "realmlord.token.tooltip.name": "You name the village when you found it.",
+    # Joining
+    "realmlord.village.waiting_joined": "%s settlers moved into the new beds in %s (%s still waiting).",
+    "realmlord.village.wanderer_joined": "A wandering refugee, %s, settled in %s.",
+    "realmlord.village.wanderer_no_bed": "Wandering refugees passed by %s, but there were no free beds for them.",
+    # Paths
+    "realmlord.building.path": "Path",
+    "realmlord.building.path.desc": "A path or road laid across the village.",
+    "realmlord.path.new": "Lay a path",
+    "realmlord.path.title": "New path",
+    "realmlord.path.surface": "Surface: %s",
+    "realmlord.path.width": "Width: %s",
+    "realmlord.path.lay": "Lay path",
+    "realmlord.path.undo": "Undo last point",
+    "realmlord.path.points": "Points: %s / %s",
+    "realmlord.path.estimate": "About %s blocks",
+    "realmlord.path.cost": "Cost: %s wood, %s stone",
+    "realmlord.path.free": "Cost: free",
+    "realmlord.path.hint": "Click the map to add points along the way; right-click removes the last. Paths go around buildings and stop at the fence. Builders lay them, filling dips with earth.",
+    "realmlord.path.named": "%s path (%s wide)",
+    "realmlord.path.remove_hint": "%s blocks. Demolishing it turns it back to grass and returns 3/4 of the cost of any part not yet laid.",
+    "realmlord.path.started": "Builders will lay a %s path, %s blocks wide.",
+    "realmlord.path.surface.dirt": "Dirt",
+    "realmlord.path.surface.gravel": "Gravel",
+    "realmlord.path.surface.planks": "Plank",
+    "realmlord.path.surface.cobble": "Cobblestone",
+    "realmlord.path.surface.stone": "Stone brick",
+    "realmlord.path.err.points": "A path needs at least two points.",
+    "realmlord.path.err.unloaded": "Part of that path is too far away to survey. Go closer and try again.",
+    "realmlord.path.err.empty": "That path would run only through buildings or beyond the border.",
+    "realmlord.path.err.cost": "The stores do not hold enough wood and stone for that path.",
+    "realmlord.build.err.dimension": "You must be in your village's world to build there.",
+    # Goods
+    "realmlord.goods.sand": "Sand",
+    "realmlord.goods.clay": "Clay",
+    "realmlord.goods.earth": "Earth",
+}

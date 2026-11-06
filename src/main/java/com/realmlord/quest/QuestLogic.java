@@ -64,6 +64,10 @@ public final class QuestLogic {
     public static void start(ServerPlayer player) {
         Profile p = Profiles.get(player);
         VillageQuest q = p.quest();
+        if (ownsVillage(player)) {
+            Notify.player(player, "realmlord.quest.not_needed");
+            return;
+        }
         q.load(new VillageQuest().save());
         q.stage = VillageQuest.Stage.SUPPLIES;
         q.startTick = player.server.overworld().getGameTime();
@@ -153,6 +157,15 @@ public final class QuestLogic {
         Profile p = Profiles.get(player);
         VillageQuest q = p.quest();
         if (!q.active() || !p.isLord()) return;
+        // A Lord who already rules a village has no need of the Village Creation quest.
+        if (ownsVillage(player)) {
+            q.stage = VillageQuest.Stage.CLAIMED;
+            p.markDirty();
+            glow(player, new int[0]);
+            Notify.player(player, "realmlord.quest.not_needed");
+            ModNetwork.sync(player);
+            return;
+        }
         long now = player.server.overworld().getGameTime();
         long elapsed = now - q.startTick;
         if (q.stage != VillageQuest.Stage.CLEARED) {
@@ -176,6 +189,10 @@ public final class QuestLogic {
                 Notify.player(player, "realmlord.quest.camp_found");
             } else if (q.campBuilt && d2 < 80 * 80) {
                 int left = countBandits(level, player, q);
+                // The Lord (and only the Lord) sees the band outlined through jungle and hill.
+                AABB box = new AABB(q.camp).inflate(128, 96, 128);
+                glow(player, level.getEntitiesOfClass(Mob.class, box, e -> e.isAlive() && BanditCamp.ownedBy(e, BanditCamp.BANDIT_TAG, player.getUUID()))
+                        .stream().mapToInt(Mob::getId).toArray());
                 if (left != q.banditsLeft) {
                     q.banditsLeft = left;
                     p.markDirty();
@@ -183,6 +200,16 @@ public final class QuestLogic {
                 if (left == 0) clear(player);
             }
         }
+    }
+
+    private static void glow(ServerPlayer player, int[] ids) {
+        ModNetwork.send(player, new com.realmlord.network.BanditGlowPacket(ids));
+    }
+
+    /** True if this player already rules a territory. */
+    public static boolean ownsVillage(ServerPlayer player) {
+        int id = Profiles.get(player).getTerritoryId();
+        return id >= 0 && com.realmlord.territory.TerritoryData.get(player.server).byId(id) != null;
     }
 
     public static int countBandits(ServerLevel level, ServerPlayer player, VillageQuest q) {
@@ -198,6 +225,7 @@ public final class QuestLogic {
         if (q.stage != VillageQuest.Stage.BANDITS) return;
         q.stage = VillageQuest.Stage.CLEARED;
         q.clearTick = player.server.overworld().getGameTime();
+        glow(player, new int[0]);
         q.banditsLeft = 0;
         if (q.camp != null) {
             ServerLevel level = player.server.overworld();
@@ -210,8 +238,40 @@ public final class QuestLogic {
         }
         p.markDirty();
         Notify.player(player, Component.translatable("realmlord.quest.cleared", q.captives, q.captives * 5));
+        spoils(player, q);
         offerCamp(player);
         player.playNotifySound(SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.8F, 0.8F);
+    }
+
+    /** Grain, timber, stone and iron ore the bandits had taken, kept for the village's stores. */
+    public static final long[] SPOILS = {400, 200, 150, 30};
+    /** Gold coins in the bandit chief's strongbox. */
+    public static final int SPOIL_GOLD = 5;
+
+    /**
+     * The bandits' hoard: two village blueprints and the chief's gold straight to the Lord, and
+     * the supplies they had stolen set aside for the stores of the village about to be founded.
+     */
+    public static void spoils(ServerPlayer player, VillageQuest q) {
+        java.util.List<String> pool = new java.util.ArrayList<>(com.realmlord.loot.Blueprints.VILLAGE_1);
+        java.util.Collections.shuffle(pool, new java.util.Random(player.getRandom().nextLong()));
+        for (int i = 0; i < Math.min(2, pool.size()); i++) give(player, com.realmlord.loot.Blueprints.of(pool.get(i)));
+        com.realmlord.village.Coins.give(player, SPOIL_GOLD * 10_000L);
+        com.realmlord.village.Goods[] basic = {com.realmlord.village.Goods.GRAIN, com.realmlord.village.Goods.WOOD,
+                com.realmlord.village.Goods.STONE, com.realmlord.village.Goods.IRON_ORE};
+        for (int i = 0; i < basic.length; i++) q.spoils[basic[i].ordinal()] += SPOILS[i];
+        Notify.player(player, Component.translatable("realmlord.quest.spoils", Math.min(2, pool.size()), SPOIL_GOLD,
+                SPOILS[0], SPOILS[1], SPOILS[2], SPOILS[3]).withStyle(ChatFormatting.GOLD));
+    }
+
+    /** Moves the camp's spoils into a village's stores. Returns true if there were any. */
+    public static boolean deliverSpoils(VillageQuest q, com.realmlord.territory.Territory t) {
+        if (!q.hasSpoils()) return false;
+        for (com.realmlord.village.Goods g : com.realmlord.village.Goods.values()) {
+            g.add(t, q.spoils[g.ordinal()]);
+            q.spoils[g.ordinal()] = 0;
+        }
+        return true;
     }
 
     /** Asks the Lord what to do with the cleared camp, with buttons in the chat. */
@@ -240,12 +300,24 @@ public final class QuestLogic {
             Notify.player(player, "realmlord.camp.kept");
         } else {
             List<ItemStack> got = BanditCamp.salvage(player.server.overworld(), q.camp);
-            int n = 0;
+            // Timber, stone and the like go to the village's stores (now, or once it is founded); the rest to the Lord.
+            com.realmlord.territory.Territory home = com.realmlord.territory.TerritoryData.get(player.server).ownedBy(player.getUUID());
+            int n = 0, stored = 0;
             for (ItemStack s : got) {
+                com.realmlord.village.Goods.Unit u = com.realmlord.village.Goods.of(s);
+                if (u != null) {
+                    long units = (long) u.units() * s.getCount();
+                    if (home != null) u.good().add(home, units);
+                    else q.spoils[u.good().ordinal()] += units;
+                    stored += s.getCount();
+                    continue;
+                }
                 n += s.getCount();
                 give(player, s);
             }
+            if (home != null) com.realmlord.territory.TerritoryData.get(player.server).touch();
             Notify.player(player, Component.translatable("realmlord.camp.salvaged", n));
+            if (stored > 0) Notify.player(player, Component.translatable(home != null ? "realmlord.camp.salvaged_stores" : "realmlord.camp.salvaged_spoils", stored));
             player.playNotifySound(SoundEvents.WOOD_BREAK, SoundSource.BLOCKS, 1.0F, 1.0F);
         }
         ModNetwork.sync(player);
