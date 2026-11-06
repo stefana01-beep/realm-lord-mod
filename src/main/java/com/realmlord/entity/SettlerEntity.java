@@ -82,13 +82,18 @@ public class SettlerEntity extends PathfinderMob {
         goalSelector.addGoal(1, new PanicGoal(this, 0.75) {
             @Override
             public boolean canUse() {
-                return !fighter() && super.canUse();
+                return !canFight() && super.canUse();
             }
         });
         goalSelector.addGoal(1, new net.minecraft.world.entity.ai.goal.MeleeAttackGoal(this, 0.9, true) {
             @Override
             public boolean canUse() {
-                return fighter() && super.canUse();
+                return canFight() && super.canUse();
+            }
+
+            @Override
+            public boolean canContinueToUse() {
+                return canFight() && super.canContinueToUse();
             }
         });
         goalSelector.addGoal(2, new AvoidEntityGoal<>(this, BanditEntity.class, 8.0F, 0.6, 0.75) {
@@ -101,11 +106,11 @@ public class SettlerEntity extends PathfinderMob {
         targetSelector.addGoal(1, new net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal(this) {
             @Override
             public boolean canUse() {
-                return fighter() && super.canUse();
+                return canFight() && super.canUse();
             }
         });
         targetSelector.addGoal(2, new net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal<>(this, net.minecraft.world.entity.Mob.class, 10, true, false,
-                e -> e instanceof net.minecraft.world.entity.monster.Enemy && !(e instanceof SettlerEntity)) {
+                SettlerEntity::hostile) {
             @Override
             public boolean canUse() {
                 return fighter() && super.canUse();
@@ -222,7 +227,7 @@ public class SettlerEntity extends PathfinderMob {
 
     /** What a resident is up to. Each has a text key for their card. */
     public enum Activity {
-        IDLE, HOME, BUILD, CHOP, GATHER, FARM, STAFF, ADMIN, DEPOSIT, FOLLOW, PATROL, HUNT;
+        IDLE, HOME, BUILD, CHOP, GATHER, FARM, STAFF, ADMIN, DEPOSIT, FOLLOW, PATROL, HUNT, SHELTER;
 
         public String key() {
             return "realmlord.activity." + name().toLowerCase(java.util.Locale.ROOT);
@@ -255,6 +260,10 @@ public class SettlerEntity extends PathfinderMob {
     private BlockPos goingTo;
     private double bestDist = Double.MAX_VALUE;
     private int noProgress;
+    /** Times they have had to find a way round on this trip; too many and they simply get there. */
+    private int hops;
+    /** Has a job but nowhere to do it (no field, no workshop): shown on their card. */
+    private boolean noPlace;
 
     public com.realmlord.village.Resident resident() {
         return res;
@@ -285,7 +294,7 @@ public class SettlerEntity extends PathfinderMob {
         if (isSleeping() && (activity != Activity.HOME || bed == null)) wake();
         // Woken some other way (their bed broken, say): free to move again.
         if (!isSleeping()) wake();
-        r.activity = isSleeping() ? "realmlord.activity.sleeping" : activity.key();
+        r.activity = isSleeping() ? "realmlord.activity.sleeping" : noPlace ? "realmlord.activity.no_place" : activity.key();
         if (activity == Activity.HUNT || activity == Activity.PATROL) clearRestriction();
         else restrictTo(spot, spotRadius);
         if (activity == Activity.PATROL || activity == Activity.HUNT) arm();
@@ -294,12 +303,28 @@ public class SettlerEntity extends PathfinderMob {
 
     // ------------------------------------------------------------------ fighting
 
+    /** What the village's fighters go for: monsters, bandits and the wild beasts (not the grazing ox). */
+    public static boolean hostile(LivingEntity e) {
+        if (e instanceof SettlerEntity || !e.isAlive()) return false;
+        if (e instanceof com.realmlord.entity.beast.WildOxEntity ox) return ox.getTarget() != null;
+        return e instanceof net.minecraft.world.entity.monster.Enemy || e instanceof BanditEntity
+                || e instanceof net.minecraft.world.entity.Mob m && com.realmlord.entity.level.MobLevels.leveled(m);
+    }
+
+    /**
+     * Able to fight back when it comes to it: anyone on duty, and any soldier or historical
+     * figure even off duty. Everyone else runs.
+     */
+    public boolean canFight() {
+        return fighter() || res != null && (res.militia || res.isFigure()) && !isCaptive();
+    }
+
     /** Fighting now: a companion at the Lord's side, the militia on duty, a hunter on the hunt. */
     public boolean fighter() {
         return activity == Activity.FOLLOW || activity == Activity.PATROL || activity == Activity.HUNT;
     }
 
-    private ServerPlayer lord() {
+    public ServerPlayer lord() {
         if (!(level() instanceof ServerLevel sl) || terr == null || terr.owner == null) return null;
         ServerPlayer p = sl.getServer().getPlayerList().getPlayer(terr.owner);
         return p != null && p.level() == level() && !p.isSpectator() ? p : null;
@@ -312,17 +337,23 @@ public class SettlerEntity extends PathfinderMob {
         return lord() != null;
     }
 
+    /** Re-reads health and blows after a soldier's level changes. */
+    public void refreshStrength() {
+        strengthen();
+    }
+
     /** Health and strength follow Force: a great general is far harder to put down than a farmer. */
     private void strengthen() {
         if (res == null) return;
-        double hp = 20 + (res.isFigure() || res.militia ? res.force / 4.0 : 0);
+        boolean fighter = res.isFigure() || res.militia;
+        double hp = 20 + (fighter ? res.force / 4.0 + (res.soldierLevel - 1) * 2 : 0);
         var h = getAttribute(Attributes.MAX_HEALTH);
         if (h != null && h.getBaseValue() != hp) {
             h.setBaseValue(hp);
             if (getHealth() > hp) setHealth((float) hp);
         }
         var a = getAttribute(Attributes.ATTACK_DAMAGE);
-        double dmg = 1 + res.force / 15.0;
+        double dmg = 1 + res.force / 15.0 + (fighter ? (res.soldierLevel - 1) * 0.25 : 0);
         if (a != null && a.getBaseValue() != dmg) a.setBaseValue(dmg);
     }
 
@@ -403,7 +434,20 @@ public class SettlerEntity extends PathfinderMob {
         com.realmlord.village.Resident r = res;
         Activity was = activity;
         boolean watch = r.militia && r.id % 2 == 1;
-        if (!level().isDay() && !watch) {
+        noPlace = false;
+        boolean walled = walled(t);
+        // Danger near and no way to fight: run for the manor. And until the fence stands, everyone
+        // spends the night inside it rather than out where the beasts roam.
+        boolean danger = !canFight() && !level().getEntitiesOfClass(net.minecraft.world.entity.Mob.class, getBoundingBox().inflate(12),
+                SettlerEntity::hostile).isEmpty();
+        if (danger || !walled && !level().isDay() && !watch) {
+            BlockPos own = !danger && level() instanceof ServerLevel sl ? com.realmlord.village.Residents.bedOf(sl, t, r) : null;
+            boolean inManor = own != null && own.distSqr(t.center) <= 8 * 8;
+            activity = danger ? Activity.SHELTER : Activity.HOME;
+            bed = inManor ? own : null;
+            spot = bed != null ? bed : shelterSpot(t, r);
+            spotRadius = 2;
+        } else if (!level().isDay() && !watch) {
             activity = Activity.HOME;
             bed = level() instanceof ServerLevel sl ? com.realmlord.village.Residents.bedOf(sl, t, r) : null;
             spot = bed != null ? bed : com.realmlord.village.Residents.home(t, r);
@@ -444,7 +488,10 @@ public class SettlerEntity extends PathfinderMob {
                         activity = Activity.STAFF;
                         spot = w.center();
                         spotRadius = 3;
-                    } else idle(t);
+                    } else {
+                        noPlace = true;
+                        idle(t);
+                    }
                 }
                 case ADMINISTRATION -> {
                     activity = Activity.ADMIN;
@@ -462,8 +509,20 @@ public class SettlerEntity extends PathfinderMob {
         }
     }
 
+    /** True once the village's fence stands (or is being refitted). */
+    private boolean walled(Territory t) {
+        return level() instanceof ServerLevel sl && com.realmlord.territory.TerritoryEvents.fenced(sl, t.center);
+    }
+
+    /** A place to stand inside the Lord's Manor hall, near the seal. */
+    public static BlockPos shelterSpot(Territory t, com.realmlord.village.Resident r) {
+        int i = Math.floorMod(r.id, 9);
+        return t.center.offset(i % 3 - 1, 0, i / 3 - 1).offset(0, 0, 2);
+    }
+
     private void work(com.realmlord.village.Building field, Activity a, int radius, Territory t) {
         if (field == null) {
+            noPlace = true;
             idle(t);
             return;
         }
@@ -559,12 +618,14 @@ public class SettlerEntity extends PathfinderMob {
         if (d <= reach && Math.abs(getY() - target.getY()) < 20) {
             getNavigation().stop();
             goingTo = null;
+            hops = 0;
             return true;
         }
         if (!target.equals(goingTo)) {
             goingTo = target;
             bestDist = d;
             noProgress = 0;
+            hops = 0;
         }
         if (getNavigation().isDone() || tickCount % 40 == 0) {
             int y = level().getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, target.getX(), target.getZ());
@@ -575,8 +636,14 @@ public class SettlerEntity extends PathfinderMob {
                 bestDist = d;
                 noProgress = 0;
             } else if (++noProgress >= 8) {
-                // Stuck on the way: find a way round, as villagers in the novel always seem to.
-                hop(target);
+                // Stuck on the way: find a way round, as villagers in the novel always seem to; stuck
+                // again and again, they turn up at their work all the same.
+                if (++hops >= 3 && level() instanceof ServerLevel sl && level().isLoaded(target)) {
+                    BlockPos at = groundNear(sl, target, random, (int) Math.max(1, Math.min(4, reach)));
+                    getNavigation().stop();
+                    teleportTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5);
+                    hops = 0;
+                } else hop(target);
                 noProgress = 0;
                 bestDist = horizontalDist(target);
             }
@@ -916,7 +983,16 @@ public class SettlerEntity extends PathfinderMob {
             com.realmlord.village.Village.tell(sl, terr, Component.translatable("realmlord.companion.wounded", res.name));
             return false;
         }
-        return super.hurt(source, amount);
+        boolean hit = super.hurt(source, amount);
+        // Set upon: soldiers and figures nearby turn on the attacker, and the victim fights back if it can (or runs).
+        if (hit && !level().isClientSide && source.getEntity() instanceof net.minecraft.world.entity.Mob attacker && hostile(attacker)) {
+            for (SettlerEntity s : level().getEntitiesOfClass(SettlerEntity.class, getBoundingBox().inflate(24),
+                    o -> o != this && o.terr == terr && o.canFight() && (o.getTarget() == null || !o.getTarget().isAlive()))) {
+                s.setTarget(attacker);
+            }
+            if (canFight()) setTarget(attacker);
+        }
+        return hit;
     }
 
     /**

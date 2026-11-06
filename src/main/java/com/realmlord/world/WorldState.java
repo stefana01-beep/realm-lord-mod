@@ -41,6 +41,8 @@ public class WorldState extends SavedData {
         public long respawnDay;
         public final Set<UUID> discoveredBy = new HashSet<>();
         public UUID king;
+        /** Whose lair: 0 a Boar King's, 1 a Wolf King's, 2 the White Tiger King's. */
+        public int kind;
 
         CompoundTag save() {
             CompoundTag t = new CompoundTag();
@@ -51,6 +53,7 @@ public class WorldState extends SavedData {
             for (UUID u : discoveredBy) d.add(NbtUtils.createUUID(u));
             t.put("found", d);
             if (king != null) t.putUUID("king", king);
+            t.putInt("kind", kind);
             return t;
         }
 
@@ -61,6 +64,7 @@ public class WorldState extends SavedData {
             d.respawnDay = t.getLong("respawn");
             for (Tag u : t.getList("found", Tag.TAG_INT_ARRAY)) d.discoveredBy.add(NbtUtils.loadUUID(u));
             d.king = t.hasUUID("king") ? t.getUUID("king") : null;
+            d.kind = t.getInt("kind");
             return d;
         }
     }

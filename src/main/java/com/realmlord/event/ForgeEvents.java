@@ -167,9 +167,22 @@ public class ForgeEvents {
             return;
         }
         // Character experience for whoever made the kill.
-        if (event.getSource().getEntity() instanceof ServerPlayer killer && (dead instanceof Enemy || dead.getTags().contains(BanditCamp.BANDIT_TAG))) {
-            long xp = Math.max(1, Math.round(dead.getMaxHealth() * 4.0));
-            Profiles.grantXp(killer, xp);
+        boolean beast = dead instanceof net.minecraft.world.entity.Mob mob && com.realmlord.entity.level.MobLevels.leveled(mob);
+        if (event.getSource().getEntity() instanceof ServerPlayer killer && (beast || dead instanceof Enemy || dead.getTags().contains(BanditCamp.BANDIT_TAG))) {
+            Profiles.grantXp(killer, killXp(dead, Profiles.get(killer).getLevel()));
+        }
+        // A resident's kill: the fighter grows, and the Lord learns from it too (half the experience).
+        if (event.getSource().getEntity() instanceof com.realmlord.entity.SettlerEntity s && s.resident() != null
+                && (beast || dead instanceof Enemy || dead.getTags().contains(BanditCamp.BANDIT_TAG))) {
+            com.realmlord.village.Resident r = s.resident();
+            int lv = beast ? com.realmlord.entity.level.MobLevels.level((net.minecraft.world.entity.Mob) dead) : 1;
+            int up = r.gainSoldierXp(12L * Math.max(1, lv));
+            if (up > 0) s.refreshStrength();
+            ServerPlayer lord = s.lord();
+            if (lord != null) {
+                Profiles.grantXp(lord, Math.max(1, killXp(dead, Profiles.get(lord).getLevel()) / 2));
+                if (up > 0) Notify.player(lord, Component.translatable("realmlord.militia.level_up", r.name, r.soldierLevel));
+            }
         }
         // The bandit chief carries a ledger.
         if (dead.getTags().contains(BanditCamp.CHIEF_TAG)) {
@@ -183,6 +196,18 @@ public class ForgeEvents {
                 }
             }
         }
+    }
+
+    /**
+     * Experience for a kill: by the creature's strength and level, more for a foe above your own
+     * level, less for one far below it.
+     */
+    public static long killXp(LivingEntity dead, int playerLevel) {
+        int lv = dead instanceof net.minecraft.world.entity.Mob m && com.realmlord.entity.level.MobLevels.leveled(m) ? com.realmlord.entity.level.MobLevels.level(m) : 1;
+        double xp = 4.0 * Math.min(dead.getMaxHealth(), 400) * (1 + 0.15 * (lv - 1));
+        int gap = lv - playerLevel;
+        xp *= gap >= 0 ? 1 + 0.1 * Math.min(10, gap) : Math.max(0.2, 1 + 0.1 * gap);
+        return Math.max(1, Math.round(xp));
     }
 
     /** Force gives a chance of a critical strike: 0.25% per point, for half again the damage. */

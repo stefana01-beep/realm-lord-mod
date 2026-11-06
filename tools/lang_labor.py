@@ -192,6 +192,7 @@ def add(L):
     gen_figures.lang(L)
     L.update(PHASE_2B)
     L.update(ROUND_GROUNDS)
+    L.update(ROUND_DEFENCE)
 
 
 ROUND_PATHS = {
@@ -405,4 +406,14 @@ ROUND_GROUNDS = {
     "realmlord.map.legend.grounds": "Ground being levelled",
     "realmlord.map.view_hint": "Click a building to select it; you can then demolish it. Scroll or use + and - to zoom, and drag to move about. Ground you have not loaded nearby shows dark.",
     "realmlord.build.err.border": "It must stand inside your territory's border (arrow towers, sentry posts and outposts may also stand out on the wall).",
+}
+
+
+ROUND_DEFENCE = {
+    "realmlord.den.found": "You have found a beast den at %s, %s: the lair of a %s.",
+    "realmlord.den.cleared": "The %2$s is slain! The den lies quiet for %1$s days.",
+    "realmlord.reason.den_king": "Slaying a %s",
+    "realmlord.militia.level_up": "%s has risen to soldier level %s.",
+    "realmlord.activity.shelter": "Sheltering in the manor",
+    "realmlord.activity.no_place": "Has no place to work (build one, or give them another job)",
 }

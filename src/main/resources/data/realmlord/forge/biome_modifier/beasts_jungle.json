@@ -4,25 +4,19 @@
  "spawners": [
   {
    "type": "realmlord:wild_boar",
-   "weight": 10,
-   "minCount": 2,
-   "maxCount": 4
+   "weight": 5,
+   "minCount": 1,
+   "maxCount": 2
   },
   {
    "type": "realmlord:mountain_tiger",
-   "weight": 8,
+   "weight": 4,
    "minCount": 1,
    "maxCount": 1
   },
   {
    "type": "realmlord:leopard",
-   "weight": 6,
-   "minCount": 1,
-   "maxCount": 1
-  },
-  {
-   "type": "realmlord:tiger_king",
-   "weight": 1,
+   "weight": 3,
    "minCount": 1,
    "maxCount": 1
   }

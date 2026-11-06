@@ -108,7 +108,7 @@ public final class TerritoryEvents {
                 // A fence being refitted still keeps the village safe; a new one only once it is finished.
                 if (!b.complete && b.fenceStyle == 0 && b.placed == 0) continue;
                 if (!b.complete && b.progress < b.workNeeded) continue;
-                int r = b.fenceRadius > 0 ? b.fenceRadius : t.radius() - 2;
+                int r = b.fenceRadius > 0 ? b.fenceRadius : t.level.wall();
                 long dx = pos.getX() - t.center.getX(), dz = pos.getZ() - t.center.getZ();
                 if (dx * dx + dz * dz < (long) r * r) return true;
             }

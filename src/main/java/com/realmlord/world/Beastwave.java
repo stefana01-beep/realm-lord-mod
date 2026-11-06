@@ -152,9 +152,22 @@ public final class Beastwave {
             Beasts.setRaid(m, t.center);
             m.getPersistentData().putInt("realmlord_wave_territory", t.id);
             level.addFreshEntity(m);
+            com.realmlord.entity.level.MobLevels.set(m, waveLevel(level, t, wave, kind == ModEntities.BOAR_KING.get(), r));
             made++;
         }
         return made;
+    }
+
+    /**
+     * The levels of a wave's beasts, as in the novel: the first beastwaves are young beasts a
+     * new village can hold off, and they grow each time, with the village, and through the night.
+     * A Boar King leading the last wave stands a few levels above his beasts.
+     */
+    public static int waveLevel(ServerLevel level, Territory t, int wave, boolean king, RandomSource r) {
+        int year = com.realmlord.village.GaiaCalendar.year(com.realmlord.village.GaiaCalendar.today(level.getServer()));
+        int held = Math.max(0, (year - 3) / 2);
+        int base = 1 + held * 3 + t.level.ordinal() * 2 + (wave - 1);
+        return king ? base + 7 : base + r.nextInt(4);
     }
 
     /** A village nobody is near fights the wave unseen: a finished fence and a militia keep it safe. */

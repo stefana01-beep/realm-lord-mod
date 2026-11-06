@@ -38,6 +38,7 @@ public class ModBusEvents {
     public static void spawns(net.minecraftforge.event.entity.SpawnPlacementRegisterEvent event) {
         for (var type : java.util.List.of(ModEntities.WILD_BOAR.get(), ModEntities.GREY_WOLF.get(), ModEntities.MOUNTAIN_TIGER.get(), ModEntities.SNOW_BEAR.get(),
                 ModEntities.BLACK_BEAR.get(), ModEntities.LEOPARD.get(), ModEntities.WOLF_KING.get(), ModEntities.TIGER_KING.get())) {
+            if (type == ModEntities.WOLF_KING.get() || type == ModEntities.TIGER_KING.get()) KINGS.add(type);
             register(event, type);
         }
         // The wild ox grazes on grass like any herd animal.
@@ -49,13 +50,25 @@ public class ModBusEvents {
                 net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 (t, level, reason, pos, random) -> reason != net.minecraft.world.entity.MobSpawnType.NATURAL
                         || net.minecraft.world.entity.monster.Monster.checkMonsterSpawnRules(t, level, reason, pos, random) && level.canSeeSky(pos)
-                        && crowd(level, pos) < 4,
+                        && crowd(level, pos) < 2 && sparse(level, pos, random),
                 net.minecraftforge.event.entity.SpawnPlacementRegisterEvent.Operation.REPLACE);
+    }
+
+    private static final java.util.Set<net.minecraft.world.entity.EntityType<?>> KINGS = new java.util.HashSet<>();
+
+    /**
+     * Near the world's spawn, where new players start, the wilds are thinner still: only a third
+     * of spawns go ahead within 500 blocks, and two thirds within 1,500.
+     */
+    private static boolean sparse(net.minecraft.world.level.ServerLevelAccessor level, net.minecraft.core.BlockPos pos, net.minecraft.util.RandomSource random) {
+        net.minecraft.core.BlockPos spawn = level.getLevel().getSharedSpawnPos();
+        double d = Math.sqrt(Math.pow(pos.getX() - spawn.getX(), 2) + Math.pow(pos.getZ() - spawn.getZ(), 2));
+        return d > 1500 || random.nextInt(3) < (d > 500 ? 2 : 1);
     }
 
     /** How many of the novel's beasts and bandits are already about near a spot. */
     private static int crowd(net.minecraft.world.level.ServerLevelAccessor level, net.minecraft.core.BlockPos pos) {
-        return level.getEntitiesOfClass(net.minecraft.world.entity.Mob.class, new net.minecraft.world.phys.AABB(pos).inflate(48, 24, 48),
+        return level.getEntitiesOfClass(net.minecraft.world.entity.Mob.class, new net.minecraft.world.phys.AABB(pos).inflate(64, 32, 64),
                 m -> com.realmlord.entity.level.MobLevels.leveled(m)).size();
     }
 
@@ -66,9 +79,10 @@ public class ModBusEvents {
                 (t, level, reason, pos, random) -> level.getDifficulty() != net.minecraft.world.Difficulty.PEACEFUL
                         && net.minecraft.world.entity.Mob.checkMobSpawnRules(t, level, reason, pos, random)
                         && level.getBlockState(pos.below()).isValidSpawn(level, pos.below(), t)
-                        // Not too thick on the ground: a few about at a time, more of them by night.
-                        && (reason != net.minecraft.world.entity.MobSpawnType.NATURAL || level.canSeeSky(pos)
-                            && crowd(level, pos) < (level.getLevel().isNight() ? 6 : 3)),
+                        // Not too thick on the ground: a few about at a time, a few more by night. Beast
+                        // kings never wander in: they keep to their lairs.
+                        && (reason != net.minecraft.world.entity.MobSpawnType.NATURAL || !KINGS.contains(t) && level.canSeeSky(pos)
+                            && crowd(level, pos) < (level.getLevel().isNight() ? 3 : 2) && sparse(level, pos, random)),
                 net.minecraftforge.event.entity.SpawnPlacementRegisterEvent.Operation.REPLACE);
     }
 }

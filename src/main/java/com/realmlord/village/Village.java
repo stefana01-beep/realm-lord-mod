@@ -198,6 +198,8 @@ public final class Village {
             int cap = r.isFigure() ? 100 : r.grade >= 0 ? 70 : 45;
             if (r.force < cap && rnd.nextDouble() < chance) r.force++;
             if (r.occupation == Occupation.OFFICER && r.command < cap && rnd.nextDouble() < chance / 2) r.command++;
+            // A day at the drill is worth something to every soldier, more under a good commander.
+            r.gainSoldierXp(Math.round(15 * Office.boost(t, Office.MILITARY, 200)));
         }
     }
 

@@ -31,6 +31,9 @@ public class Resident {
     /** The spawned entity, if this resident is currently shown in the world. */
     public UUID entity;
     public boolean militia;
+    /** A fighter's level, won by drilling and by kills: more health and harder blows. */
+    public int soldierLevel = 1;
+    public long soldierXp;
     /** A historical figure's id (see Figures), or empty. */
     public String figure = "";
     /** Walking with the Lord as a companion. */
@@ -45,6 +48,27 @@ public class Resident {
     public final long[] gathered = new long[3];
     /** What they are doing right now (a text key), for their card. */
     public String activity = "";
+
+    public static final int MAX_SOLDIER_LEVEL = 30;
+
+    public static long soldierXpToNext(int level) {
+        return 40L * level * level;
+    }
+
+    /** Experience from drill or battle; each level gained also hardens them (+1 Force). Returns levels gained. */
+    public int gainSoldierXp(long amount) {
+        if (amount <= 0 || soldierLevel >= MAX_SOLDIER_LEVEL) return 0;
+        soldierXp += amount;
+        int gained = 0;
+        while (soldierLevel < MAX_SOLDIER_LEVEL && soldierXp >= soldierXpToNext(soldierLevel)) {
+            soldierXp -= soldierXpToNext(soldierLevel);
+            soldierLevel++;
+            gained++;
+            if (force < 100) force++;
+        }
+        if (soldierLevel >= MAX_SOLDIER_LEVEL) soldierXp = 0;
+        return gained;
+    }
 
     public boolean isTalent() {
         return grade != COMMON || occupation.special;
@@ -148,6 +172,8 @@ public class Resident {
         t.putInt("skin", skin);
         if (entity != null) t.putUUID("entity", entity);
         t.putBoolean("militia", militia);
+        t.putInt("slv", soldierLevel);
+        t.putLong("sxp", soldierXp);
         if (!figure.isEmpty()) t.putString("figure", figure);
         t.putBoolean("follows", follows);
         t.putInt("office", office);
@@ -179,6 +205,8 @@ public class Resident {
         r.skin = t.getInt("skin");
         r.entity = t.hasUUID("entity") ? t.getUUID("entity") : null;
         r.militia = t.getBoolean("militia");
+        r.soldierLevel = Math.max(1, t.getInt("slv"));
+        r.soldierXp = t.getLong("sxp");
         r.figure = t.getString("figure");
         r.follows = t.getBoolean("follows");
         r.office = t.contains("office") ? t.getInt("office") : -1;

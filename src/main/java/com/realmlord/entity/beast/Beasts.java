@@ -37,11 +37,11 @@ public final class Beasts {
         BlockPos raid = raid(m);
         LivingEntity target = m.getTarget();
         if (target == null || !target.isAlive()) {
-            double reach = raid != null ? 20 : 10;
+            double reach = raid != null ? 20 : 12;
             LivingEntity prey = null;
             double best = reach * reach;
             for (LivingEntity e : m.level().getEntitiesOfClass(LivingEntity.class, new AABB(m.blockPosition()).inflate(reach),
-                    e -> e.isAlive() && (e instanceof Player p && !p.isCreative() && !p.isSpectator() || raid != null && e instanceof SettlerEntity))) {
+                    e -> e.isAlive() && (e instanceof Player p && !p.isCreative() && !p.isSpectator() || e instanceof SettlerEntity s && !s.isCaptive()))) {
                 double d = e.distanceToSqr(m);
                 if (d < best && m.getSensing().hasLineOfSight(e)) {
                     best = d;

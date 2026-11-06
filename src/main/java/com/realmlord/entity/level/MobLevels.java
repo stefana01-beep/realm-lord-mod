@@ -36,17 +36,17 @@ public final class MobLevels {
     public static Map<EntityType<?>, Range> ranges() {
         if (ranges == null) {
             ranges = Map.ofEntries(
-                    Map.entry(ModEntities.WILD_BOAR.get(), new Range(1, 8)),
-                    Map.entry(ModEntities.WILD_OX.get(), new Range(3, 10)),
-                    Map.entry(ModEntities.GREY_WOLF.get(), new Range(3, 12)),
-                    Map.entry(ModEntities.LEOPARD.get(), new Range(8, 16)),
-                    Map.entry(ModEntities.BLACK_BEAR.get(), new Range(10, 18)),
-                    Map.entry(ModEntities.SNOW_BEAR.get(), new Range(12, 22)),
-                    Map.entry(ModEntities.MOUNTAIN_TIGER.get(), new Range(14, 26)),
-                    Map.entry(ModEntities.WOLF_KING.get(), new Range(24, 32)),
-                    Map.entry(ModEntities.BOAR_KING.get(), new Range(28, 36)),
-                    Map.entry(ModEntities.TIGER_KING.get(), new Range(36, 45)),
-                    Map.entry(ModEntities.BANDIT.get(), new Range(5, 15)));
+                    Map.entry(ModEntities.WILD_BOAR.get(), new Range(1, 4)),
+                    Map.entry(ModEntities.WILD_OX.get(), new Range(1, 5)),
+                    Map.entry(ModEntities.GREY_WOLF.get(), new Range(2, 6)),
+                    Map.entry(ModEntities.LEOPARD.get(), new Range(4, 9)),
+                    Map.entry(ModEntities.BLACK_BEAR.get(), new Range(5, 10)),
+                    Map.entry(ModEntities.SNOW_BEAR.get(), new Range(6, 12)),
+                    Map.entry(ModEntities.MOUNTAIN_TIGER.get(), new Range(8, 14)),
+                    Map.entry(ModEntities.BOAR_KING.get(), new Range(10, 15)),
+                    Map.entry(ModEntities.WOLF_KING.get(), new Range(14, 20)),
+                    Map.entry(ModEntities.TIGER_KING.get(), new Range(20, 30)),
+                    Map.entry(ModEntities.BANDIT.get(), new Range(3, 8)));
         }
         return ranges;
     }
@@ -67,13 +67,13 @@ public final class MobLevels {
         apply(m, r);
     }
 
-    /** A level within the kind's range, a little higher the further from the world's spawn (up to +8). */
+    /** A level within the kind's range, a little higher the further from the world's spawn (+1 per 1,500 blocks, up to +10). */
     public static int roll(ServerLevel level, Mob m, Range r, RandomSource rnd) {
         int lv = r.min() + rnd.nextInt(r.max() - r.min() + 1);
-        if (m instanceof BanditEntity b && b.getRole() == BanditEntity.Role.CHIEF) lv += 8;
+        if (m instanceof BanditEntity b && b.getRole() == BanditEntity.Role.CHIEF) lv += 4;
         BlockPos spawn = level.getSharedSpawnPos();
         double dist = Math.sqrt(m.blockPosition().distSqr(new BlockPos(spawn.getX(), m.getBlockY(), spawn.getZ())));
-        lv += Math.min(8, (int) (dist / 1000));
+        lv += Math.min(10, (int) (dist / 1500));
         return Math.max(1, lv);
     }
 

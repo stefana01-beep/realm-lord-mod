@@ -4,21 +4,15 @@
  "spawners": [
   {
    "type": "realmlord:snow_bear",
-   "weight": 6,
+   "weight": 3,
    "minCount": 1,
    "maxCount": 2
   },
   {
    "type": "realmlord:grey_wolf",
-   "weight": 8,
-   "minCount": 3,
-   "maxCount": 5
-  },
-  {
-   "type": "realmlord:wolf_king",
-   "weight": 1,
-   "minCount": 1,
-   "maxCount": 1
+   "weight": 4,
+   "minCount": 2,
+   "maxCount": 3
   }
  ]
 }

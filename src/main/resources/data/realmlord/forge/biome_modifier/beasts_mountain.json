@@ -4,30 +4,24 @@
  "spawners": [
   {
    "type": "realmlord:snow_bear",
-   "weight": 5,
-   "minCount": 1,
-   "maxCount": 1
-  },
-  {
-   "type": "realmlord:grey_wolf",
-   "weight": 6,
-   "minCount": 2,
-   "maxCount": 4
-  },
-  {
-   "type": "realmlord:mountain_tiger",
    "weight": 2,
    "minCount": 1,
    "maxCount": 1
   },
   {
-   "type": "realmlord:leopard",
+   "type": "realmlord:grey_wolf",
    "weight": 3,
+   "minCount": 2,
+   "maxCount": 3
+  },
+  {
+   "type": "realmlord:mountain_tiger",
+   "weight": 1,
    "minCount": 1,
    "maxCount": 1
   },
   {
-   "type": "realmlord:tiger_king",
+   "type": "realmlord:leopard",
    "weight": 1,
    "minCount": 1,
    "maxCount": 1
