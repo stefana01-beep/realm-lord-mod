@@ -427,6 +427,7 @@ Minecraft's monsters no longer appear in the overworld: no zombies, skeletons, c
 ### Levels over every head
 Every beast and bandit shows its level above its head, for example **Lv.4 Grey Wolf**. Each level adds 6% health and 4% damage, and higher-level beasts grow bigger. As in the novel, the wilds near where players start are gentle: levels rise slowly with distance from the world's spawn (+1 per 1,500 blocks, up to +10).
 - **Fewer of them:** a few beasts about at a time (two by day and three by night within 64 blocks), in small groups, and thinner still near the world's spawn (a third as many within 500 blocks, two thirds within 1,500).
+- **Jungles:** Minecraft's own ocelots don't spawn, and the jungle's leopards and tigers are few.
 - **Kings keep to their lairs:** beast kings never wander the wilds. They are found only in dens (see below).
 - **Experience:** every kill of a beast or bandit gives character experience, more for higher levels and for foes above your own level, less for ones far below it.
 
