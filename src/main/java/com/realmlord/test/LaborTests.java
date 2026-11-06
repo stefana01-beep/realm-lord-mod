@@ -331,7 +331,9 @@ public class LaborTests {
         for (int i = 0; i < 10; i++) Sites.work(level, t, path, 2000);
         helper.assertTrue(level.getBlockState(new BlockPos(cx + 12, gy, cz)).is(Blocks.COBBLESTONE), "path not laid");
         helper.assertTrue(level.getBlockState(new BlockPos(cx + 20, gy, cz)).is(Blocks.COBBLESTONE)
-                && !level.getBlockState(new BlockPos(cx + 20, gy - 1, cz)).isAir(), "the ditch should be filled beneath the path");
+                && !level.getBlockState(new BlockPos(cx + 20, gy - 1, cz)).isAir(), "the ditch should be filled beneath the path: "
+                + level.getBlockState(new BlockPos(cx + 20, gy, cz)) + " over " + level.getBlockState(new BlockPos(cx + 20, gy - 1, cz))
+                + ", column " + java.util.Arrays.toString(column(path, cx + 20, cz)) + ", placed " + path.placed + "/" + com.realmlord.village.Paths.blocks(path) * 3 + ", stage " + path.stage);
         Territory copy = Territory.load(t.save());
         helper.assertTrue(copy.building(path.id) != null && com.realmlord.village.Paths.blocks(copy.building(path.id)) == blocks, "path lost on saving");
         Village.demolish(level, t, path);
@@ -451,6 +453,12 @@ public class LaborTests {
         Territory copy = Territory.load(t.save());
         helper.assertTrue(copy.manorTier == 3 && copy.manorFront == net.minecraft.core.Direction.NORTH.get2DDataValue(), "manor state lost on saving");
         VillageTests.done(helper, p, t);
+    }
+
+    private static int[] column(Building path, int x, int z) {
+        for (int i = 0; i + 3 < path.pathCols.length; i += 4)
+            if (path.pathCols[i] == x && path.pathCols[i + 2] == z) return java.util.Arrays.copyOfRange(path.pathCols, i, i + 4);
+        return null;
     }
 
     private static Building site(Territory t, BuildingType type, int dx) {
