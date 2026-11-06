@@ -213,18 +213,21 @@ Press **M** anywhere to open the world map. Scroll to zoom, drag to move around,
 
 The cost is paid when you lay it out. Builders lay the path like any other site, keeping the way even: a ditch is bridged with earth and a hump is cut down. Paths go around buildings and the manor and stop short of the fence. Click a path on the map to select it; **Demolish** turns it back to grass. Paths don't speed up walking yet.
 
-**Clearing and levelling ground.** On the territory map, click **Clear & level ground**, then click two opposite corners (up to 48 × 48 blocks; right-click starts again). The level starts at the usual ground height there; **Lower** and **Raise** move it up to 8 blocks either way. Builders fell the trees, cut away everything above the level and fill dips below it with earth, and everything useful goes to the stores. A clearing can't cover buildings, sites or the manor yard, and must stay inside the fence, and nothing can be built on it until it's done. When the ground is level, the clearing disappears from the map; select one and **Demolish** to call it off (what's done stays done).
+**Clearing and levelling ground.** On the territory map, click **Clear & level ground**, then click two opposite corners (up to 48 × 48 blocks; right-click starts again). The level starts at the usual ground height there; **Lower** and **Raise** move it up to 8 blocks either way. Builders fell the trees, cut away everything above the level and fill dips below it with earth, and everything useful goes to the stores.
+- **No cliffs:** for up to 8 blocks beyond the edges, the ground is cut back and banked up in a slope, one block per block.
+- **Finished work is spared:** completed buildings (and a block around them), paths, the fence and the manor yard inside the area are left exactly as they are. Only a site still being built gets in the way.
+- Nothing can be built on a clearing until it's done. When the ground is level, the clearing disappears from the map; select one and **Demolish** to call it off (what's done stays done).
 
 **Buildings.** Every Village Grade 1–3 building from the novel:
 - **Grade 1:** Simple Fence, Dining Hall, Bathroom, Small Residential Courtyard (17 × 15, straw beds for 20), Blacksmith Workshop, Grocery Shop, Logging Field, Quarry, Farmland and Military Camp.
-- **Grade 2:** Ancestral Hall, Clinic, Private School, Martial Arts Dojo, Granary, Tailor Workshop, Mining Field, Arrow Tower and Stone Outpost.
-- **Grade 3:** Temple, Weapons Workshop, Pottery Workshop, Mill, Mulberry Shed, Wine Workshop, Sentry Post and Stable.
+- **Grade 2:** Ancestral Hall, Clinic, Private School, Martial Arts Dojo, Granary, Tailor Workshop, Mining Field, Arrow Tower, Stone Outpost and Medium Residential Courtyard (21 × 19, a two-storey hall, 50 straw beds).
+- **Grade 3:** Temple, Weapons Workshop, Pottery Workshop, Mill, Mulberry Shed, Wine Workshop, Sentry Post, Stable and Large Residential Courtyard (27 × 25, two storeys all round, 100 straw beds).
 
 Each has its own look, in a style of stone plinths, red posts, white walls and dark tiled roofs.
 
 **Residents.** Your village begins as the novel's did, with ten refugees: a village chief (a Bronze civil servant), two fruit farmers, a carpenter, a mason and five farmers. Settlers you freed from the bandits join them as beds allow.
 - **Wandering refugees** roam the wilds in ones and twos. Any who come within 48 blocks of a village's border settle there if it has a free bed; if not, they move on and are gone after two days.
-- **Immigrants:** about 10 a day (more with a better token and happier people), but only into free housing (the manor holds 10 at Grade 1 only, each courtyard 20) and up to your grade's limit (200, 500, 1,000).
+- **Immigrants:** about 10 a day (more with a better token and happier people), but only into free housing (the manor holds 10 at Grade 1 only; a small courtyard 20, a medium one 50 and a large one 100) and up to your grade's limit (200, 500, 1,000).
 - **Talents:** some immigrants are special talents (blacksmiths, grocers, tailors, doctors, scholars, martial artists, potters, winemakers, cooks, hunters, fishermen, miners, stablemen, civil servants and officers). They're graded Bronze, Black Iron or Silver, with better stats and a specialty.
 - **Their card:** right-click a resident to open it. **Card** shows their grade, occupation and rank, loyalty, Command, Force, Intelligence, Politics, specialty and an evaluation. **Work** (Lord only) sets their job or the workshop they run. **Trade** lets anyone buy and sell with them, priced in copper. Craftsmen sell their best goods only while they work in their workshop; a visitor's purchases go into the village treasury.
 - **Who you see:** up to 24 residents walk around the village at once (talents first). The rest live on in the records.
@@ -241,9 +244,12 @@ Each has its own look, in a style of stone plinths, red posts, white walls and d
   - Logs, planks, stone and cobblestone, raw iron and wheat they carry are handed in at the manor when the pack fills or at day's end.
   - What a worker carries in counts towards their day's work. The rest of their quota still comes in at the end of the day, so nothing is lost while you are away.
 - **Taking buildings down:** select a finished building on the map and click **Demolish** (twice, to confirm). Builders take it down from the top and bring back three quarters of its wood and stone as planks and cobblestone. Do this to move a building, or to rebuild the fence on your wider border after an upgrade. Cancelling a site returns three quarters of what it had not yet used straight away; whatever was already built is taken down the same way.
-- **The Simple Fence:** each post is an oak plank set into the ground, two oak fence blocks, and an oak plank on top, so the tops join into a rail. Each gateway is three posts wide, with a fence gate under the rail.
-  - **Even line:** post heights are smoothed so a lone bump or dip doesn't break the line, and earth is packed under any post whose ground falls away.
-  - **No gaps:** a post lower than its neighbours stands taller so the fence never leaves a gap, and trees in the way are felled whole.
+- **The Simple Fence** is a wooden palisade: oak planks three blocks high, set one block into the ground, with a spruce top course and slab cap. A stripped spruce post stands every six blocks, with a lantern on every fourth post.
+  - **Gateways** are three blocks wide: spruce gates under a dark oak beam with a little tiled roof and a hanging lantern, between tall posts topped with lanterns.
+  - **Towns** (from Town Grade 1): the palisade gains battlements and a wall-walk on its inside, level with the top, with ladders up beside each gate, ready for arrow towers later.
+  - **Even line:** heights are smoothed so a lone bump or dip doesn't break the line, and earth is packed under any stretch whose ground falls away.
+  - **No gaps:** a stretch lower than its neighbours stands taller so the wall never leaves a gap, and trees in the way are felled whole.
+  - **Rebuilding:** moving gates, a fence built to the older post-and-rail design, and a village becoming a town all send the builders back to change the wall over, at no cost.
 
 **The day.** Every novel day (24 real minutes by default):
 - Loggers cut 10 wood each, quarrymen 5 stone and miners 2 iron ore, more with the right trade and your token's production bonus.
@@ -283,8 +289,8 @@ The order follows the novel: Ouyang Shuo summons his first general, sets up the 
 1. **Lord and Adventurer cores** (done)
 2. **Village grades 1–3** (2a done, with a territory map and the China world type: every building from the novel with its costs, blueprints and specialists, placement and construction, residents with jobs, talents and trade, resource jobs, the farming calendar, the market and upgrades).
    - **2b next:**
-     - Using the Summoning Token calls your first historical general or minister.
-     - The militia team and the Barracks (Grade 2).
+     - Using the Summoning Token calls your first historical general or minister, drawn from a large roster of figures from Chinese history of every kind (generals, ministers, scholars, craftsmen and more), graded like the novel's talents.
+     - The militia team and the Barracks (Grade 2). Hunters go out on their own to hunt, or join the militia.
      - The village's Political, Economic and Cultural indexes.
      - The first secretaries running village affairs.
      - Beast lairs to hunt, such as the wild boar king and its den (the first dungeons).
@@ -294,6 +300,7 @@ The order follows the novel: Ouyang Shuo summons his first general, sets up the 
    - More historical generals and ministers, recruited through quests and reputation.
    - Departments growing into a cabinet.
    - Troops beyond the militia.
+   - Ships and docks: fishermen take boats out to fish on their own.
    - Mountain-barbarian tribes to defeat or take in.
    - Ruins and deeper lairs to explore.
 4. **County:**
