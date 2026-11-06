@@ -167,7 +167,7 @@ public class Phase2bTests {
         helper.assertTrue(Goods.of(new net.minecraft.world.item.ItemStack(ModItems.TIGER_PELT.get())).good() == Goods.LEATHER, "a tiger pelt should sell as leather");
         // A den: the Boar King and his sounder; slaying him clears it for some days.
         WorldState w = WorldState.get(level.getServer());
-        WorldState.Den den = Dens.create(level, new BlockPos(cx - 25, gy + 1, cz - 25));
+        WorldState.Den den = Dens.create(level, new BlockPos(cx - 25, gy + 1, cz - 25), Dens.BOAR);
         w.dens.add(den);
         Entity king = level.getEntity(den.king);
         int boars = level.getEntitiesOfClass(com.realmlord.entity.beast.WildBoarEntity.class, new AABB(den.pos).inflate(14),

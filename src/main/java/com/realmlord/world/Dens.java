@@ -119,6 +119,11 @@ public final class Dens {
 
     /** Digs the den (a burrow under a mound of earth and roots) and fills it. */
     public static WorldState.Den create(ServerLevel level, BlockPos c) {
+        return create(level, c, -1);
+    }
+
+    /** As above, with the kind of king chosen (or -1 for whichever keeps a lair in this country). */
+    public static WorldState.Den create(ServerLevel level, BlockPos c, int kind) {
         RandomSource r = level.getRandom();
         int R = 6;
         for (int dx = -R; dx <= R; dx++)
@@ -149,7 +154,7 @@ public final class Dens {
         level.setBlock(c, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
         WorldState.Den den = new WorldState.Den();
         den.pos = c;
-        den.kind = kindAt(level, c);
+        den.kind = kind >= 0 ? kind : kindAt(level, c);
         populate(level, den);
         return den;
     }
