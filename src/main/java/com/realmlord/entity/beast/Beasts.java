@@ -41,7 +41,7 @@ public final class Beasts {
             LivingEntity prey = null;
             double best = reach * reach;
             for (LivingEntity e : m.level().getEntitiesOfClass(LivingEntity.class, new AABB(m.blockPosition()).inflate(reach),
-                    e -> e.isAlive() && (e instanceof Player p && !p.isCreative() && !p.isSpectator() || e instanceof SettlerEntity s && !s.isCaptive()))) {
+                    e -> e.isAlive() && (e instanceof Player p && !p.isCreative() && !p.isSpectator() || e instanceof SettlerEntity s && !s.isCaptive() && !s.sheltered()))) {
                 double d = e.distanceToSqr(m);
                 if (d < best && m.getSensing().hasLineOfSight(e)) {
                     best = d;

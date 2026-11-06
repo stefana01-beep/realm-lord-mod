@@ -153,8 +153,17 @@ public class TownTests {
         helper.assertTrue(Beastwave.waveLevel(level, t, 1, false, level.getRandom()) <= 12
                 && Beastwave.waveLevel(level, t, 3, true, level.getRandom()) <= 20, "the first beastwave is too strong");
         helper.runAfterDelay(2, () -> {
+            // Before the fence is built, the village's grace keeps the beasts off its settlers.
             w2.setTarget(null);
             w2.tickCount = 40;
+            com.realmlord.entity.beast.Beasts.think(w2);
+            helper.assertTrue(w2.getTarget() != v && v.sheltered(), "the wolf went for a settler during the village's grace");
+            helper.assertTrue(!v.hurt(level.damageSources().mobAttack(w2), 5) && v.getHealth() == v.getMaxHealth(), "a settler was hurt during the village's grace");
+            helper.assertTrue(com.realmlord.territory.TerritoryEvents.graceAt(level, t.center.offset(t.radius() + 10, 0, 0)), "beasts may spawn by a new village");
+            // Once the fence stands, the beasts come for them.
+            VillageTests.built(t, BuildingType.SIMPLE_FENCE);
+            w2.setTarget(null);
+            w2.tickCount = 60;
             com.realmlord.entity.beast.Beasts.think(w2);
             helper.assertTrue(w2.getTarget() == v, "the wolf ignored the villager");
             w2.discard();

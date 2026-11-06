@@ -303,6 +303,14 @@ public class SettlerEntity extends PathfinderMob {
 
     // ------------------------------------------------------------------ fighting
 
+    /**
+     * Under the village's grace: until its fence is built, beasts and bandits leave its settlers
+     * be, and nothing they do can harm them.
+     */
+    public boolean sheltered() {
+        return terr != null && residentId >= 0 && com.realmlord.territory.TerritoryEvents.inGrace(terr);
+    }
+
     /** What the village's fighters go for: monsters, bandits and the wild beasts (not the grazing ox). */
     public static boolean hostile(net.minecraft.world.entity.LivingEntity e) {
         if (e instanceof SettlerEntity || !e.isAlive()) return false;
@@ -975,6 +983,13 @@ public class SettlerEntity extends PathfinderMob {
     public boolean hurt(DamageSource source, float amount) {
         if (isCaptive() && !source.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY)) return false;
         if (source.is(net.minecraft.world.damagesource.DamageTypes.IN_WALL)) return false;
+        // The village's grace: no beast, bandit or monster can harm a settler before the fence is built.
+        if (sheltered() && (source.getEntity() instanceof net.minecraft.world.entity.Mob && !(source.getEntity() instanceof SettlerEntity)
+                || source.getDirectEntity() instanceof net.minecraft.world.entity.projectile.Projectile pr && pr.getOwner() instanceof net.minecraft.world.entity.Mob
+                && !(pr.getOwner() instanceof SettlerEntity))) {
+            if (source.getEntity() instanceof net.minecraft.world.entity.Mob m && m.getTarget() == this) m.setTarget(null);
+            return false;
+        }
         // Never lost to the void: brought back instead.
         if (source.is(net.minecraft.world.damagesource.DamageTypes.FELL_OUT_OF_WORLD) && residentId >= 0) {
             rescue();

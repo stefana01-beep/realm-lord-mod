@@ -91,7 +91,7 @@ public class BanditEntity extends Monster implements RangedAttackMob {
         targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
         // Bandits prey on villagers too, though never on their own captives.
         targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, com.realmlord.entity.SettlerEntity.class, 10, true, false,
-                e -> e instanceof com.realmlord.entity.SettlerEntity s && !s.isCaptive()));
+                e -> e instanceof com.realmlord.entity.SettlerEntity s && !s.isCaptive() && !s.sheltered()));
     }
 
     // ------------------------------------------------------------------ role and strength

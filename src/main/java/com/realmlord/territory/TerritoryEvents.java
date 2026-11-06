@@ -96,7 +96,33 @@ public final class TerritoryEvents {
         MobSpawnType type = event.getSpawnType();
         if (type != MobSpawnType.NATURAL && type != MobSpawnType.CHUNK_GENERATION && type != MobSpawnType.PATROL) return;
         ServerLevel level = event.getLevel().getLevel();
-        if (level != null && fenced(level, event.getPos())) event.setResult(Event.Result.DENY);
+        if (level != null && (fenced(level, event.getPos()) || graceAt(level, event.getPos()))) event.setResult(Event.Result.DENY);
+    }
+
+    /** How far beyond a new village's border its grace keeps the wilds back. */
+    public static final int GRACE_MARGIN = 32;
+
+    /** A village whose fence is not yet finished is under grace: its settlers are left alone. */
+    public static boolean inGrace(Territory t) {
+        for (Building b : t.buildings) {
+            if (b.type != BuildingType.SIMPLE_FENCE || b.demolishing) continue;
+            if (b.complete || b.placed > 0 && b.fenceStyle > 0 && b.progress >= b.workNeeded) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Within a new village's grace: inside its border or just beyond it, before its fence is
+     * built. No beast or bandit spawns there, so a village has time to raise its wall.
+     */
+    public static boolean graceAt(ServerLevel level, BlockPos pos) {
+        for (Territory t : TerritoryData.get(level.getServer()).all()) {
+            if (!t.dimension.equals(level.dimension()) || !inGrace(t)) continue;
+            long r = t.radius() + GRACE_MARGIN;
+            long dx = pos.getX() - t.center.getX(), dz = pos.getZ() - t.center.getZ();
+            if (dx * dx + dz * dz < r * r) return true;
+        }
+        return false;
     }
 
     /** Inside a territory's finished fence. */

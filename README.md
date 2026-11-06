@@ -368,6 +368,7 @@ Scholars, especially historical ones, also raise the Cultural index.
 
 ### Defending the village
 Beasts and bandits now go for villagers as well as players. Someone set upon calls for help: soldiers and historical figures within 24 blocks turn on the attacker, a soldier or figure fights back even off duty, and everyone else runs. Anyone who can't fight runs for the manor when a beast comes near.
+- **A new village's grace:** until the village's fence is finished, no beast or bandit spawns inside its border or within 32 blocks of it, beasts and bandits that wander in ignore its settlers, and nothing they do can hurt them. Once the fence stands, the grace is over and the village must defend itself.
 - **Sheltering until the fence stands:** until the village's fence is finished, everyone spends the night inside the Lord's Manor (those with a bed there sleep in it) instead of out where the beasts roam. Once the fence stands, they go home to their own beds.
 - **Soldiers' levels:** every soldier has a level, shown in the People tab. A day at the drill and every kill bring experience; each level adds health, harder blows and a point of Force. A soldier's kill also gives the Lord half its experience.
 
