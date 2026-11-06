@@ -251,6 +251,8 @@ public final class ChinaMap {
                 double y = groundY(bx, bz);
                 double rugged = sample(RELIEF, bx, bz) * (1 - riverAt(bx, bz));
                 y += rugged * 18 * detail;
+                // Vanilla's 3D noise lifts flat ground by a few blocks on average; take it back off.
+                y -= 4.0 * (1 - sample(RELIEF, bx, bz));
                 v = y / 128.0 - 1.0;
             }
             case "continents" -> {
