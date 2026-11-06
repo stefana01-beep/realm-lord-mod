@@ -50,9 +50,9 @@ public class GroundsTests {
         for (BlockPos f : new BlockPos[]{knoll, pit, tree, rock, far, cobble, buried, hollow, c.offset(-40, 0, -40)})
             for (int x = -4; x <= 9; x++)
                 for (int z = -4; z <= 9; z++) {
-                    for (int y = -6; y < -1; y++) level.setBlock(f.offset(x, y, z), Blocks.DIRT.defaultBlockState(), 2);
+                    for (int dy = -6; dy < -1; dy++) level.setBlock(f.offset(x, dy, z), Blocks.DIRT.defaultBlockState(), 2);
                     level.setBlock(f.offset(x, -1, z), Blocks.GRASS_BLOCK.defaultBlockState(), 2);
-                    for (int y = 0; y < 16; y++) level.setBlock(f.offset(x, y, z), Blocks.AIR.defaultBlockState(), 2);
+                    for (int dy = 0; dy < 16; dy++) level.setBlock(f.offset(x, dy, z), Blocks.AIR.defaultBlockState(), 2);
                 }
         for (int x = 0; x < 5; x++)
             for (int z = 0; z < 5; z++)
