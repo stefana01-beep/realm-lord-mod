@@ -70,7 +70,8 @@ public class ItemTests {
         com.realmlord.entity.FireOilEntity oil = new com.realmlord.entity.FireOilEntity(level, p);
         oil.setPos(spot.getX() + 0.5, y, spot.getZ() + 0.5);
         oil.burst(level, null);
-        helper.assertTrue(cow.isOnFire(), "fire oil did not set the cow alight");
+        helper.assertTrue(cow.isOnFire(), "fire oil did not set the cow alight: cow alive " + cow.isAlive() + " removed " + cow.isRemoved() + " at " + cow.position()
+                + ", oil at " + oil.position() + ", near " + level.getEntitiesOfClass(net.minecraft.world.entity.LivingEntity.class, new net.minecraft.world.phys.AABB(oil.blockPosition()).inflate(2.5)));
         int fires = 0;
         for (int x = -3; x <= 3; x++)
             for (int z = -3; z <= 3; z++) if (level.getBlockState(new BlockPos(spot.getX() + x, y, spot.getZ() + z)).is(Blocks.FIRE)) fires++;

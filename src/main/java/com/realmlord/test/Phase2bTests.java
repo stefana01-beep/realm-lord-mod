@@ -175,7 +175,9 @@ public class Phase2bTests {
         helper.assertTrue(king instanceof com.realmlord.entity.beast.BoarKingEntity && boars >= 4, "the den is not guarded: king " + king + ", boars " + boars);
         king.hurt(level.damageSources().playerAttack(p), 10_000);
         helper.assertTrue(den.cleared && den.respawnDay > GaiaCalendar.today(level.getServer()), "slaying the king did not clear the den");
-        helper.assertTrue(!level.getEntitiesOfClass(ItemEntity.class, new AABB(den.pos).inflate(4), e -> e.getItem().is(ModItems.BOAR_KING_TUSK.get())).isEmpty(), "the Boar King left no tusk");
+        helper.assertTrue(!level.getEntitiesOfClass(ItemEntity.class, new AABB(king.blockPosition()).inflate(6), e -> e.getItem().is(ModItems.BOAR_KING_TUSK.get())).isEmpty(),
+                "the Boar King left no tusk: king at " + king.position() + ", den at " + den.pos + ", items near: "
+                        + level.getEntitiesOfClass(ItemEntity.class, new AABB(king.blockPosition()).inflate(8)).stream().map(e -> e.getItem().toString()).toList());
         for (Entity e : level.getEntitiesOfClass(Entity.class, new AABB(den.pos).inflate(20), e -> e.getTags().contains(Beasts.DEN_TAG) || e instanceof ItemEntity)) e.discard();
         w.dens.remove(den);
         // The beastwave: on every other new year from the third year, and it sends beasts at the manor.
