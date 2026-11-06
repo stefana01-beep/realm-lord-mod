@@ -167,6 +167,12 @@ public class Phase2bTests {
         helper.assertTrue(Goods.of(new net.minecraft.world.item.ItemStack(ModItems.TIGER_PELT.get())).good() == Goods.LEATHER, "a tiger pelt should sell as leather");
         // A den: the Boar King and his sounder; slaying him clears it for some days.
         WorldState w = WorldState.get(level.getServer());
+        // Solid, dry ground for the den, whatever the test world's terrain (water would wash the drops away).
+        for (int x = -16; x <= 16; x++)
+            for (int z = -16; z <= 16; z++) {
+                for (int y = -4; y <= 0; y++) level.setBlock(new BlockPos(cx - 25 + x, gy + y, cz - 25 + z), Blocks.STONE.defaultBlockState(), 2);
+                for (int y = 1; y < 24; y++) level.setBlock(new BlockPos(cx - 25 + x, gy + y, cz - 25 + z), Blocks.AIR.defaultBlockState(), 2);
+            }
         WorldState.Den den = Dens.create(level, new BlockPos(cx - 25, gy + 1, cz - 25), Dens.BOAR);
         w.dens.add(den);
         Entity king = level.getEntity(den.king);
