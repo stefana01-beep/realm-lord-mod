@@ -201,6 +201,14 @@ Press **M** anywhere to open the world map. Scroll to zoom, drag to move around,
 - **Sharing builders:** builders are shared evenly among all the sites, so several buildings rise at once.
 - **Crews:** in the Construction tab, each site shows its builders with **−** and **+**. Setting a number yourself (shown in gold) gives that site a fixed crew, taking on idle residents if there aren't enough builders. Going below zero returns the site to sharing (grey). When a workshop is finished, a resident of its trade moves in to run it.
 
+**Safety and protection.**
+- **Safe inside the fence:** once the fence is finished, monsters no longer spawn inside it.
+- **Your land is yours:** other players can't break or place blocks or open chests in your territory unless you trust them with `/realm trust <player>` (`/realm untrust <player>`, `/realm trusted` to list). The chests in the Lord's Manor are yours alone, even for trusted players.
+
+**Records.** The manor's **Records** tab shows yesterday's ledger (grain in, food eaten, wood, stone and iron ore in, taxes, arrivals and departures) and how long the food will last. It also keeps the **village log**, the last 60 events with their day: buildings finished, residents arriving, leaving or dying, settlers and wanderers moving in, the fence being rebuilt and hunger. When the grain runs out, the village eats flour, then meat, then fish from the goods shelves before going hungry.
+
+**Towers in the wall.** An Arrow Tower or Sentry Post placed near the fence on the map snaps onto it, and the wall makes room for it; its open sides join the wall-walk in towns. Taking the tower down closes the gap again. Nothing else may stand on the fence, and nothing may block a gateway.
+
 **Paths.** On the territory map, click **Lay a path**, then click points along the way (up to 32; right-click removes the last). Choose a surface and a width of 1 to 3 blocks:
 
 | Surface | Cost per block |
@@ -230,7 +238,8 @@ Each has its own look, in a style of stone plinths, red posts, white walls and d
 - **Immigrants:** about 10 a day (more with a better token and happier people), but only into free housing (the manor holds 10 at Grade 1 only; a small courtyard 20, a medium one 50 and a large one 100) and up to your grade's limit (200, 500, 1,000).
 - **Talents:** some immigrants are special talents (blacksmiths, grocers, tailors, doctors, scholars, martial artists, potters, winemakers, cooks, hunters, fishermen, miners, stablemen, civil servants and officers). They're graded Bronze, Black Iron or Silver, with better stats and a specialty.
 - **Their card:** right-click a resident to open it. **Card** shows their grade, occupation and rank, loyalty, Command, Force, Intelligence, Politics, specialty and an evaluation. **Work** (Lord only) sets their job or the workshop they run. **Trade** lets anyone buy and sell with them, priced in copper. Craftsmen sell their best goods only while they work in their workshop; a visitor's purchases go into the village treasury.
-- **Who you see:** up to 24 residents walk around the village at once (talents first). The rest live on in the records.
+- **Who you see:** up to 48 residents walk around the village at once (talents first; a server setting). The rest live on in the records.
+- **Deaths are for good:** a resident who is killed is gone from the village, their pack falls where they lie, and the village log records it.
 - **Their day:** by day, each goes to their work.
   - Builders go to the site.
   - Loggers fell real trees around their Logging Field, log by log, and replant a sapling of the same kind.
@@ -260,7 +269,7 @@ Each has its own look, in a style of stone plinths, red posts, white walls and d
 **Farming.** Farmland is sown as soon as it has farmers. Sowing at Qingming (month 4) or early July (month 7) gives the full yield; a month or more off gives 10–50% less. The harvest comes three months later: 200 food per mu, more with a better token. Crops visibly grow in the field.
 
 **Upgrading.** As in the novel:
-- **Village Grade 2** needs 200 people, a Second Class Baron and every Grade 1 building, including ten courtyards.
+- **Village Grade 2** needs 200 people, a Second Class Baron and every Grade 1 building, plus courtyard beds for 200: the novel's ten small courtyards, or any mix of small, medium and large ones.
 - **Village Grade 3** needs 500 people, a First Class Baron and every Grade 2 building.
 
 Each upgrade pays merit by world order (1,100 for the first), widens your border, and offers three random buildings of the new grade, one of which you get free.
@@ -277,7 +286,9 @@ Villages already at Grade 2 or 3 get their residence the next time the manor is 
 - `lordRestriction` (default **off**): the novel's rule that Lords cannot leave their territory except for war. Other dimensions are exempt.
 - `ticksPerNovelHour` (default 1200, one real minute): construction times and the length of a novel day.
 - `daysPerMonth` (default 2): the Gaia calendar's month length, which sets how often you can sow and harvest.
-- `visibleResidents` (default 24): how many residents walk around a village at once.
+- `visibleResidents` (default 48): how many residents walk around a village at once.
+- `protectTerritories` (default **on**): only a territory's Lord and the players they trust may build, break or open chests there; the Lord's Manor chests are the Lord's alone. Operators are exempt.
+- `safeInsideFence` (default **on**): monsters don't spawn inside a finished fence.
 - `daysToComplete` (10), `goldWithinDays` (3), `silverWithinDays` (5), `blackIronWithinDays` (7.5), and an experience multiplier.
 
 ## Admin commands (op)
