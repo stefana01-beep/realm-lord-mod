@@ -195,7 +195,9 @@ public class LaborTests {
         for (int x = 2; x < 6; x++)
             for (int z = 2; z < 6; z++)
                 for (int y = -5; y <= 0; y++) level.setBlock(new BlockPos(pad.getX() + x, gy + y, pad.getZ() + z), Blocks.WATER.defaultBlockState(), 2);
-        helper.assertTrue("realmlord.build.err.water".equals(Village.checkPlacement(level, t, BuildingType.BATHROOM, at, 0)), "deep water should not be buildable");
+        String deep = Village.checkPlacement(level, t, BuildingType.BATHROOM, at, 0);
+        helper.assertTrue("realmlord.build.err.water".equals(deep), "deep water should not be buildable: " + deep + ", ground at y "
+                + Village.groundAt(level, pad.getX() + 2, pad.getZ() + 2) + ", pad floor y " + gy);
 
         // The bandit camp: salvaging it returns its materials and leaves nothing behind.
         com.realmlord.quest.VillageQuest q = Profiles.get(p).quest();
