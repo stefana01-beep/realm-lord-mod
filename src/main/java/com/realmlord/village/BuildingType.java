@@ -160,6 +160,7 @@ public enum BuildingType {
             case POTTERY_WORKSHOP, WINE_WORKSHOP -> new int[]{0, 4, 0, 0};
             case MILL, MULBERRY_SHED -> new int[]{0, 3, 0, 0};
             case STABLE -> new int[]{0, 0, 0, 3};
+            case PATH -> new int[]{0, 0, 0, 0};
         };
     }
 
