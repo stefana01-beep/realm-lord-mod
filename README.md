@@ -21,7 +21,7 @@ Keys can be rebound under Options → Controls → Realm Lord.
 
 ## Choosing where to begin
 Right after choosing your path (below), you choose where in the world to start. A Lord's quest clock only starts once you arrive.
-- **Earth Online: China worlds:** the whole map of China is shown with eight recommended regions: the Central Plains (Luoyang), Guanzhong (Chang'an), the Sichuan Basin (Chengdu), Jiangnan (Jianye), Jingxiang (Xiangyang), Youyan (Jingdu), the Fujian coast (Quanzhou) and Yunnan (Dali). Each comes with a line on what the land is like. Pick one, or click anywhere on land.
+- **Earth Online: China worlds:** a map of China fills the window, showing the novel's provinces (Lingnan, Chuannan, Shu, Zhongyuan, Jiangnan and the rest), the great rivers and the mountain ranges. Scroll to zoom and drag to move around. Nine places are recommended, starting with the **Lianzhou Basin (Shanhai)**, where the novel begins, then the Central Plains (Luoyang), Guanzhong (Chang'an), the Sichuan Basin (Chengdu), Jiangnan (Jianye), Jingxiang (Xiangyang), Youyan (Jingdu), the Fujian coast (Quanzhou) and Yunnan (Dali). Each comes with a line on what the land is like. Pick one, or click anywhere on land.
 - **Other worlds:** the world spawn, plus the nearest open plains, forest, river valley, sea coast, savanna, taiga, hill country and jungle found within 3,000 blocks. Each shows how far away it is and in which direction.
 
 You arrive on the nearest dry ground, and that spot becomes where you wake. Operators can offer the choice again with `/realm spawn`.
