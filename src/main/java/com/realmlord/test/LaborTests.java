@@ -371,12 +371,14 @@ public class LaborTests {
         helper.assertTrue(com.realmlord.quest.QuestLogic.deliverSpoils(q, t) && t.food - food == 400 && !q.hasSpoils(), "spoils not delivered to the stores");
 
         // What clearing turns up goes straight to the stores.
+        long sand0 = com.realmlord.village.Goods.SAND.stock(t), clay0 = com.realmlord.village.Goods.CLAY.stock(t), earth0 = com.realmlord.village.Goods.EARTH.stock(t);
+        helper.assertTrue(earth0 > 0, "the turf dug up for the path should have gone to the stores as earth");
         Sites.toStores(t, new ItemStack(Items.SAND, 3));
         Sites.toStores(t, new ItemStack(Items.CLAY_BALL, 4));
         Sites.toStores(t, new ItemStack(Items.DIRT, 5));
         Sites.toStores(t, new ItemStack(Items.OAK_SAPLING, 2));
-        helper.assertTrue(com.realmlord.village.Goods.SAND.stock(t) == 3 && com.realmlord.village.Goods.CLAY.stock(t) == 4
-                && com.realmlord.village.Goods.EARTH.stock(t) == 5, "sand, clay or earth not kept");
+        helper.assertTrue(com.realmlord.village.Goods.SAND.stock(t) - sand0 == 3 && com.realmlord.village.Goods.CLAY.stock(t) - clay0 == 4
+                && com.realmlord.village.Goods.EARTH.stock(t) - earth0 == 5, "sand, clay or earth not kept");
         helper.assertTrue(t.storage.countItem(Items.OAK_SAPLING) == 2, "saplings not kept in the storehouse");
         // Village names are tidied.
         helper.assertTrue("Red Cliff".equals(com.realmlord.network.FoundVillagePacket.clean("  Red Cliff ")) && com.realmlord.network.FoundVillagePacket.clean("   ") == null,
