@@ -57,7 +57,7 @@ public class ItemTests {
         ItemStack wine = new ItemStack(ModItems.THREE_FLOWER_WINE.get());
         ModItems.THREE_FLOWER_WINE.get().finishUsingItem(wine, level, p);
         helper.assertTrue(p.hasEffect(net.minecraft.world.effect.MobEffects.DAMAGE_BOOST), "wine gave no strength");
-        BlockPos spot = t.center.offset(500, 0, 500);
+        BlockPos spot = t.center.offset(40, 0, 40);
         int y = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, spot.getX(), spot.getZ());
         for (int x = -4; x <= 4; x++)
             for (int z = -4; z <= 4; z++) {
@@ -74,7 +74,9 @@ public class ItemTests {
         int fires = 0;
         for (int x = -3; x <= 3; x++)
             for (int z = -3; z <= 3; z++) if (level.getBlockState(new BlockPos(spot.getX() + x, y, spot.getZ() + z)).is(Blocks.FIRE)) fires++;
-        helper.assertTrue(fires >= 8, "fire oil set too little alight: " + fires);
+        helper.assertTrue(fires >= 8, "fire oil set too little alight: " + fires + "; at the burst " + level.getBlockState(new BlockPos(spot.getX(), y, spot.getZ()))
+                + " over " + level.getBlockState(new BlockPos(spot.getX(), y - 1, spot.getZ())) + ", oil at " + oil.blockPosition() + ", y " + y
+                + ", can place " + net.minecraft.world.level.block.BaseFireBlock.canBePlacedAt(level, new BlockPos(spot.getX() + 1, y, spot.getZ()), net.minecraft.core.Direction.UP));
         for (int x = -4; x <= 4; x++)
             for (int z = -4; z <= 4; z++) level.setBlock(new BlockPos(spot.getX() + x, y, spot.getZ() + z), Blocks.AIR.defaultBlockState(), 2);
         cow.discard();
