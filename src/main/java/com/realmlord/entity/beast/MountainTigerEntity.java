@@ -66,7 +66,7 @@ public class MountainTigerEntity extends Ocelot {
     }
 
     @Override
-    protected void customServerAiStep() {
+    public void customServerAiStep() {
         super.customServerAiStep();
         Beasts.think(this);
     }
