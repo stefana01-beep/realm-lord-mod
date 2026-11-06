@@ -130,6 +130,7 @@ public final class Grounds {
     public static void sweep(ServerLevel level, Territory t, Building b, int budget) {
         if (b.groundsCursor >= columns(b)) {
             finished(b);
+            if (t.buildings.contains(b)) Village.finish(level, t, b);
             return;
         }
         Set<Long> kept = kept(t, b);
@@ -140,7 +141,10 @@ public final class Grounds {
         }
         b.progress = Math.min(b.workNeeded, b.groundsCursor);
         b.lastWork = level.getGameTime();
-        if (b.groundsCursor >= columns(b)) finished(b);
+        if (b.groundsCursor >= columns(b)) {
+            finished(b);
+            if (t.buildings.contains(b)) Village.finish(level, t, b);
+        }
     }
 
     private static Sites.Op finished(Building b) {

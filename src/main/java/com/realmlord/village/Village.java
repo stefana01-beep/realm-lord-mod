@@ -1012,7 +1012,6 @@ public final class Village {
         if (site.type == BuildingType.GROUNDS) {
             // Builders work it by hand where they stand; the rest of the crew's work goes on all round.
             Grounds.sweep(level, t, site, (int) Math.max(20, Math.round(work * ticks * 2)));
-            if (Grounds.done(site) && t.buildings.contains(site)) finish(level, t, site);
             return;
         }
         if (!site.demolishing) site.progress = Math.min(site.workNeeded, site.progress + Math.round(work * ticks));
@@ -1045,7 +1044,7 @@ public final class Village {
         Sites.work(level, t, b, 400);
     }
 
-    private static void finish(ServerLevel level, Territory t, Building b) {
+    static void finish(ServerLevel level, Territory t, Building b) {
         if (b.type == BuildingType.GROUNDS) {
             t.buildings.remove(b);
             for (Resident r : t.residents) if (r.workplace == b.id) r.workplace = -1;

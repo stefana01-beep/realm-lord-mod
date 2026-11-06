@@ -327,6 +327,7 @@ public class RealmTests {
         helper.assertTrue(t.level == TerritoryLevel.VILLAGE_1 && t.grade == TokenGrade.BLACK_IRON, "wrong level or grade");
         helper.assertTrue(prof.getTerritoryId() == t.id, "profile not linked to the territory");
         helper.assertTrue(prof.getMerit() >= Founding.foundingMerit(t.foundedOrder), "founding merit not granted");
+        helper.assertTrue(com.realmlord.village.Grounds.active(t), "founding did not set the builders to levelling the grounds");
         helper.assertTrue(level.getBlockState(t.center).is(ModBlocks.LORDS_MANOR.get()), "Lord's Manor not placed");
         helper.assertTrue(t.residents.size() >= 10, "the village should start with the novel's ten refugees, has " + t.residents.size());
         helper.assertTrue(data.at(Level.OVERWORLD, t.center) == t, "territory lookup failed");
