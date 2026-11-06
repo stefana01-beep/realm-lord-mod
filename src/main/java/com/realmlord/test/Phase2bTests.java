@@ -170,7 +170,7 @@ public class Phase2bTests {
         WorldState.Den den = Dens.create(level, new BlockPos(cx - 25, gy + 1, cz - 25), Dens.BOAR);
         w.dens.add(den);
         Entity king = level.getEntity(den.king);
-        int boars = level.getEntitiesOfClass(com.realmlord.entity.beast.WildBoarEntity.class, new AABB(den.pos).inflate(14),
+        int boars = level.getEntitiesOfClass(com.realmlord.entity.beast.WildBoarEntity.class, new AABB(den.pos).inflate(14, 96, 14),
                 e -> e.getTags().contains(Beasts.DEN_TAG) && !(e instanceof com.realmlord.entity.beast.BoarKingEntity)).size();
         helper.assertTrue(king instanceof com.realmlord.entity.beast.BoarKingEntity && boars >= 4, "the den is not guarded: king " + king + ", boars " + boars);
         king.hurt(level.damageSources().playerAttack(p), 10_000);
