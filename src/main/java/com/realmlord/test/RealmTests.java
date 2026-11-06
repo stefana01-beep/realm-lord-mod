@@ -262,7 +262,7 @@ public class RealmTests {
         helper.assertTrue(q.captives >= 3, "too few captives");
         helper.assertTrue(level.getBlockState(q.cache).is(Blocks.CHEST), "no cache chest under the campfire");
 
-        for (Mob m : level.getEntitiesOfClass(Mob.class, new net.minecraft.world.phys.AABB(q.camp).inflate(40),
+        for (Mob m : level.getEntitiesOfClass(Mob.class, new net.minecraft.world.phys.AABB(q.camp).inflate(128, 96, 128),
                 e -> BanditCamp.ownedBy(e, BanditCamp.BANDIT_TAG, p.getUUID()))) {
             m.kill();
         }
