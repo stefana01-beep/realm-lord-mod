@@ -207,7 +207,7 @@ Press **M** anywhere to open the world map. Scroll to zoom, drag to move around,
 
 **Records.** The manor's **Records** tab shows yesterday's ledger (grain in, food eaten, wood, stone and iron ore in, taxes, arrivals and departures) and how long the food will last. It also keeps the **village log**, the last 60 events with their day: buildings finished, residents arriving, leaving or dying, settlers and wanderers moving in, the fence being rebuilt and hunger. When the grain runs out, the village eats flour, then meat, then fish from the goods shelves before going hungry.
 
-**Towers in the wall.** An Arrow Tower or Sentry Post placed near the fence on the map snaps onto it, and the wall makes room for it; its open sides join the wall-walk in towns. Taking the tower down closes the gap again. Nothing else may stand on the fence, and nothing may block a gateway.
+**Towers in the wall.** An Arrow Tower or Sentry Post placed near the fence on the map snaps onto it, and the wall makes room for it; below the wall-top its sides are closed except the one facing into the village, so it's never a way through the wall, and above that its open sides join the wall-walk in towns. Taking the tower down closes the gap again. Nothing else may stand on the fence, and nothing may block a gateway.
 
 **Paths.** On the territory map, click **Lay a path**, then click points along the way (up to 32; right-click removes the last). Choose a surface and a width of 1 to 3 blocks:
 
