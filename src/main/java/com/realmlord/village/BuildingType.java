@@ -33,6 +33,7 @@ public enum BuildingType {
     MINING_FIELD(2, false, null, 0, 40, 20, 24, 9, 9, Style.MINE, 2, 1),
     ARROW_TOWER(2, false, null, 0, 80, 10, 24, 3, 3, Style.TOWER, 2, 1),
     STONE_OUTPOST(2, false, null, 0, 20, 200, 24, 5, 5, Style.OUTPOST, 0, 0),
+    MEDIUM_RESIDENTIAL_COURTYARD(2, true, null, 0, 120, 80, 24, 21, 19, Style.COURTYARD, 0, 0),
     // ---------------------------------------------------------------- Grade 3 village
     TEMPLE(3, true, null, 0, 400, 350, 48, 11, 11, Style.TEMPLE, 3, 1),
     WEAPONS_WORKSHOP(3, true, Occupation.BLACKSMITH, 2, 400, 200, 48, 9, 9, Style.WORKSHOP, 3, 1),
@@ -42,6 +43,7 @@ public enum BuildingType {
     WINE_WORKSHOP(3, true, Occupation.WINEMAKER, 0, 400, 200, 48, 9, 7, Style.WORKSHOP, 3, 1),
     SENTRY_POST(3, false, null, 0, 40, 200, 24, 3, 3, Style.TOWER, 3, 1),
     STABLE(3, true, null, 0, 200, 50, 24, 11, 7, Style.SHED, 3, 1),
+    LARGE_RESIDENTIAL_COURTYARD(3, true, null, 0, 250, 200, 48, 27, 25, Style.COURTYARD, 0, 0),
     // ---------------------------------------------------------------- laid on the map, any grade
     PATH(1, false, null, 0, 0, 0, 1, 0, 0, Style.PATH, 0, 0),
     /** Ground the builders clear and level on the Lord's order. */
@@ -103,7 +105,12 @@ public enum BuildingType {
     // ---------------------------------------------------------------- what it does once built
 
     public int housing() {
-        return this == SMALL_RESIDENTIAL_COURTYARD ? 20 : 0;
+        return switch (this) {
+            case SMALL_RESIDENTIAL_COURTYARD -> 20;
+            case MEDIUM_RESIDENTIAL_COURTYARD -> 50;
+            case LARGE_RESIDENTIAL_COURTYARD -> 100;
+            default -> 0;
+        };
     }
 
     /** The field job it provides, and how many places. */
@@ -145,7 +152,7 @@ public enum BuildingType {
             case SIMPLE_FENCE -> new int[]{0, 0, 0, 5};
             case DINING_HALL -> new int[]{3, 0, 0, 0};
             case BATHROOM -> new int[]{2, 0, 0, 0};
-            case SMALL_RESIDENTIAL_COURTYARD -> new int[]{0, 0, 0, 0};
+            case SMALL_RESIDENTIAL_COURTYARD, MEDIUM_RESIDENTIAL_COURTYARD, LARGE_RESIDENTIAL_COURTYARD -> new int[]{0, 0, 0, 0};
             case BLACKSMITH_WORKSHOP -> new int[]{0, 3, 0, 2};
             case GROCERY_SHOP -> new int[]{0, 4, 0, 0};
             case LOGGING_FIELD, QUARRY, FARMLAND, MINING_FIELD -> new int[]{0, 1, 0, 0};

@@ -41,6 +41,15 @@ public class Building {
     public int pathSurface, pathWidth = 1;
     /** A clearing: how high above its level the builders cut away; the layer they have reached (not saved). */
     public int clearHeight;
+    /**
+     * A clearing's columns, {x, z, cut, fill}: everything from cut up is taken away, and gaps
+     * below fill are filled (NO_FILL for none). The ground at its edges is cut back and banked
+     * up in a slope, and finished buildings, paths, the fence and the manor yard are left alone.
+     */
+    public int[] clearCols;
+    /** Which design the fence was built to: 0 the old post-and-rail, 2 the plank palisade, 3 with a wall-walk. */
+    public int fenceStyle;
+    public static final int NO_FILL = Integer.MIN_VALUE, NO_CUT = Integer.MAX_VALUE;
     public transient int clearTop = Integer.MAX_VALUE;
 
     /** True if the site works a rectangle of ground: a building, or a clearing. */
@@ -129,6 +138,8 @@ public class Building {
         t.putInt("fenceR", fenceRadius);
         if (fenceYs != null) t.putIntArray("fenceYs", fenceYs);
         if (clearHeight > 0) t.putInt("clearHeight", clearHeight);
+        if (clearCols != null) t.putIntArray("clearCols", clearCols);
+        if (fenceStyle > 0) t.putInt("fenceStyle", fenceStyle);
         if (pathCols != null) {
             t.putIntArray("pathPts", pathPoints);
             t.putIntArray("pathCols", pathCols);
@@ -178,6 +189,8 @@ public class Building {
         b.fenceRadius = t.getInt("fenceR");
         b.fenceYs = t.contains("fenceYs") ? t.getIntArray("fenceYs") : null;
         b.clearHeight = t.getInt("clearHeight");
+        b.clearCols = t.contains("clearCols") ? t.getIntArray("clearCols") : null;
+        b.fenceStyle = t.getInt("fenceStyle");
         if (t.contains("pathCols")) {
             b.pathPoints = t.getIntArray("pathPts");
             b.pathCols = t.getIntArray("pathCols");

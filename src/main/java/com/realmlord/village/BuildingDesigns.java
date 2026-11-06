@@ -396,6 +396,10 @@ public final class BuildingDesigns {
             courtyardSmall(c, w, d);
             return;
         }
+        if (w >= 21) {
+            courtyardTall(c, w, d, w >= 27);
+            return;
+        }
         c.fill(0, -1, 0, w - 1, -1, d - 1, Blocks.GRASS_BLOCK.defaultBlockState());
         for (int x = 0; x < w; x++)
             for (int z = 0; z < d; z++) {
@@ -431,6 +435,99 @@ public final class BuildingDesigns {
         c.set(6, 0, wz0 + 1, Blocks.WATER_CAULDRON.defaultBlockState().setValue(net.minecraft.world.level.block.LayeredCauldronBlock.LEVEL, 3));
         c.set(w / 2 + 2, 0, 1, Blocks.LANTERN);
         c.set(w / 2 - 2, 0, 1, Blocks.POPPY);
+    }
+
+    /**
+     * The larger courtyards, for a growing village: the hall across the back rises two storeys
+     * (Medium, 50 straw beds), and in the Large courtyard the side wings do too (100). Ladders
+     * lead to the upper floors.
+     */
+    private static void courtyardTall(Canvas c, int w, int d, boolean tallWings) {
+        c.fill(0, -1, 0, w - 1, -1, d - 1, Blocks.GRASS_BLOCK.defaultBlockState());
+        for (int x = 0; x < w; x++)
+            for (int z = 0; z < d; z++) {
+                if (x == 0 || z == 0 || x == w - 1 || z == d - 1) {
+                    c.set(x, -1, z, PLINTH);
+                    for (int y = 0; y <= 2; y++) c.set(x, y, z, y == 2 ? Blocks.STONE_BRICK_SLAB : Blocks.STONE_BRICK_WALL);
+                }
+            }
+        // A gateway with red posts and a little roof.
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int y = 0; y <= 2; y++) c.set(w / 2 + dx, y, 0, AIR);
+            c.set(w / 2 + dx, 3, 0, TILE_SLAB);
+        }
+        for (int dx : new int[]{-2, 2}) for (int y = 0; y <= 3; y++) c.set(w / 2 + dx, y, 0, POST);
+        c.set(w / 2 - 2, 4, 0, Blocks.LANTERN);
+        c.set(w / 2 + 2, 4, 0, Blocks.LANTERN);
+        for (int z = 0; z <= d - 7; z++) c.set(w / 2, -1, z, Blocks.DIRT_PATH);
+        // The hall across the back, two storeys.
+        int hz0 = d - 6, hz1 = d - 2;
+        house2(c, 1, hz0, w - 2, hz1);
+        c.door(w / 2, 0, hz0, Blocks.SPRUCE_DOOR, Direction.NORTH);
+        for (int x = 3; x <= w - 3; x++) c.bed(x, 0, hz1 - 2, STRAW_BED, Direction.SOUTH);
+        for (int x = 2; x <= w - 3; x++) c.bed(x, 4, hz1 - 2, STRAW_BED, Direction.SOUTH);
+        ladder(c, 2, hz0 + 1, Direction.EAST);
+        // The side wings.
+        int wz0 = 2, wz1 = d - 7, mid = (wz0 + wz1) / 2;
+        if (tallWings) {
+            house2(c, 1, wz0, 5, wz1);
+            house2(c, w - 6, wz0, w - 2, wz1);
+        } else {
+            house(c, 1, wz0, 5, wz1);
+            house(c, w - 6, wz0, w - 2, wz1);
+        }
+        c.door(5, 0, mid, Blocks.SPRUCE_DOOR, Direction.EAST);
+        c.door(w - 6, 0, mid, Blocks.SPRUCE_DOOR, Direction.WEST);
+        for (int z = wz0 + 1; z <= wz1 - 1; z++) {
+            c.bed(3, 0, z, STRAW_BED, Direction.WEST);
+            c.bed(w - 4, 0, z, STRAW_BED, Direction.EAST);
+            if (tallWings) {
+                c.bed(3, 4, z, STRAW_BED, Direction.WEST);
+                c.bed(w - 4, 4, z, STRAW_BED, Direction.EAST);
+            }
+        }
+        if (tallWings) {
+            ladder(c, 4, wz0 + 1, Direction.SOUTH);
+            ladder(c, w - 5, wz0 + 1, Direction.SOUTH);
+        }
+        // A well and lanterns in the yard.
+        c.set(w / 2 - 3, 0, 3, Blocks.COBBLESTONE_WALL);
+        c.set(w / 2 - 3, -1, 3, Blocks.WATER);
+        c.set(w / 2 + 3, 0, 3, Blocks.WATER_CAULDRON.defaultBlockState().setValue(net.minecraft.world.level.block.LayeredCauldronBlock.LEVEL, 3));
+        c.set(w / 2 - 2, 0, d - 8, Blocks.LANTERN);
+        c.set(w / 2 + 2, 0, d - 8, Blocks.LANTERN);
+    }
+
+    /** A ladder from the ground floor up through the floor above. */
+    private static void ladder(Canvas c, int x, int z, Direction facing) {
+        for (int y = 0; y <= 3; y++) c.facing(x, y, z, Blocks.LADDER, facing);
+    }
+
+    /** A two-storey timber house: as {@link #house} with a plank floor at y 3 and a second storey to y 6. */
+    private static void house2(Canvas c, int x0, int z0, int x1, int z1) {
+        for (int x = x0; x <= x1; x++)
+            for (int z = z0; z <= z1; z++) {
+                boolean edge = x == x0 || x == x1 || z == z0 || z == z1;
+                c.set(x, -1, z, FLOOR);
+                for (int y = 0; y <= 6; y++) {
+                    BlockState s;
+                    if (!edge) s = y == 3 ? FLOOR : AIR;
+                    else if (y == 2 || y == 3 || y == 6) s = BEAM;
+                    else if ((y == 1 || y == 5) && (x - x0) % 4 == 2 && (z == z0 || z == z1)) s = WINDOW;
+                    else s = WALL;
+                    c.set(x, y, z, s);
+                }
+            }
+        for (int x : new int[]{x0, x1})
+            for (int z : new int[]{z0, z1})
+                for (int y = 0; y <= 6; y++) c.set(x, y, z, POST);
+        for (int x = x0 - 1; x <= x1 + 1; x++)
+            for (int z = z0 - 1; z <= z1 + 1; z++) {
+                boolean rim = x == x0 - 1 || x == x1 + 1 || z == z0 - 1 || z == z1 + 1;
+                c.set(x, 7, z, rim ? TILE_SLAB : TILE);
+            }
+        if (x1 - x0 >= z1 - z0) for (int x = x0; x <= x1; x++) c.set(x, 8, (z0 + z1) / 2, TILE_SLAB);
+        else for (int z = z0; z <= z1; z++) c.set((x0 + x1) / 2, 8, z, TILE_SLAB);
     }
 
     /** A plain timber house: plank floor, white walls on a beam, posts at the corners, tiled roof with eaves. */
@@ -811,29 +908,106 @@ public final class BuildingDesigns {
             b.fenceFill = fill;
         }
         BlockState plank = Blocks.OAK_PLANKS.defaultBlockState();
-        BlockState fence = Blocks.OAK_FENCE.defaultBlockState();
         BlockState earth = Blocks.DIRT.defaultBlockState();
+        BlockState post = Blocks.STRIPPED_SPRUCE_LOG.defaultBlockState();
+        BlockState trim = Blocks.SPRUCE_PLANKS.defaultBlockState();
+        BlockState cap = Blocks.SPRUCE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM);
+        boolean walkway = walkway(t);
+        int[] rails = new int[n];
+        boolean[] gate = new boolean[n];
+        for (int i = 0; i < n; i++) {
+            int y = b.fenceYs[i];
+            int neighbour = Math.max(b.fenceYs[Math.floorMod(i - 1, n)], b.fenceYs[Math.floorMod(i + 1, n)]);
+            // The top course runs no lower than one below either neighbour's, so no gaps open in the wall.
+            rails[i] = Math.max(y, neighbour - 1) + 2;
+            gate[i] = b.isGate(bearing(t.center, cols.get(i)[0], cols.get(i)[1]));
+        }
         List<Placement> out = new ArrayList<>();
         for (int i = 0; i < n; i++) {
-            int x = cols.get(i)[0], z = cols.get(i)[1], y = b.fenceYs[i];
-            // The rail runs no lower than one below either neighbour's, so no gaps open between posts.
-            int neighbour = Math.max(b.fenceYs[Math.floorMod(i - 1, n)], b.fenceYs[Math.floorMod(i + 1, n)]);
-            int rail = Math.max(y, neighbour - 1) + 2;
-            double deg = bearing(t.center, x, z);
-            boolean gate = b.isGate(deg);
+            int x = cols.get(i)[0], z = cols.get(i)[1], y = b.fenceYs[i], rail = rails[i];
+            boolean prevGate = gate[Math.floorMod(i - 1, n)], nextGate = gate[Math.floorMod(i + 1, n)];
             for (int k = b.fenceFill[i]; k >= 1; k--) out.add(new Placement(new BlockPos(x, y - 1 - k, z), earth));
             out.add(new Placement(new BlockPos(x, y - 1, z), plank));
-            if (gate) {
-                double rad = Math.toRadians(deg);
+            if (gate[i]) {
+                // The gateway: a wooden gate, room to pass beneath a beam, and a little tiled roof.
+                double rad = Math.toRadians(bearing(t.center, x, z));
                 Direction facing = Direction.getNearest(Math.cos(rad), 0, Math.sin(rad));
-                out.add(new Placement(new BlockPos(x, y, z), Blocks.OAK_FENCE_GATE.defaultBlockState().setValue(FenceGateBlock.FACING, facing)));
-                for (int yy = y + 1; yy < rail; yy++) out.add(new Placement(new BlockPos(x, yy, z), AIR));
+                out.add(new Placement(new BlockPos(x, y, z), Blocks.SPRUCE_FENCE_GATE.defaultBlockState().setValue(FenceGateBlock.FACING, facing)));
+                boolean middle = prevGate && nextGate && rail - y >= 3;
+                for (int yy = y + 1; yy <= rail; yy++) if (!(middle && yy == rail)) out.add(new Placement(new BlockPos(x, yy, z), AIR));
+                out.add(new Placement(new BlockPos(x, rail + 1, z), Blocks.DARK_OAK_PLANKS.defaultBlockState()));
+                out.add(new Placement(new BlockPos(x, rail + 2, z), TILE_SLAB));
+                if (middle) out.add(new Placement(new BlockPos(x, rail, z), Blocks.LANTERN.defaultBlockState().setValue(LanternBlock.HANGING, true)));
+            } else if (prevGate || nextGate) {
+                // Gate posts: tall timbers with a lantern on top.
+                for (int yy = y; yy <= rail + 2; yy++) out.add(new Placement(new BlockPos(x, yy, z), post));
+                out.add(new Placement(new BlockPos(x, rail + 3, z), Blocks.LANTERN.defaultBlockState()));
+            } else if (i % 6 == 0) {
+                // A post every six blocks, a lantern on every fourth.
+                for (int yy = y; yy <= rail + 1; yy++) out.add(new Placement(new BlockPos(x, yy, z), post));
+                if (i % 24 == 0) out.add(new Placement(new BlockPos(x, rail + 2, z), Blocks.LANTERN.defaultBlockState()));
             } else {
-                for (int yy = y; yy < rail; yy++) out.add(new Placement(new BlockPos(x, yy, z), fence));
+                for (int yy = y; yy < rail; yy++) out.add(new Placement(new BlockPos(x, yy, z), plank));
+                out.add(new Placement(new BlockPos(x, rail, z), trim));
+                // Towns: battlements along the top.
+                out.add(new Placement(new BlockPos(x, rail + 1, z), walkway && i % 2 == 0 ? trim : cap));
             }
-            out.add(new Placement(new BlockPos(x, rail, z), plank));
         }
+        if (walkway) walk(level, t, b, cols, rails, gate, out);
+        // One block to a place: the first claim wins (the wall before the walk, the walk before a ladder).
+        java.util.Set<BlockPos> taken = new java.util.HashSet<>();
+        out.removeIf(pl -> !taken.add(pl.pos()));
         return out;
+    }
+
+    /** From Town Grade 1 the palisade has a wall-walk behind it. */
+    public static boolean walkway(Territory t) {
+        return t.level.ordinal() >= com.realmlord.territory.TerritoryLevel.TOWN_1.ordinal();
+    }
+
+    /**
+     * The wall-walk: a second, inner course of planks as high as the wall's top, so defenders
+     * (and later arrow towers) stand behind the battlements. Ladders go up beside each gate.
+     */
+    private static void walk(ServerLevel level, Territory t, Building b, List<int[]> cols, int[] rails, boolean[] gate, List<Placement> out) {
+        int r = b.fenceRadius, n = cols.size();
+        double[] bearings = new double[n];
+        for (int i = 0; i < n; i++) bearings[i] = bearing(t.center, cols.get(i)[0], cols.get(i)[1]);
+        java.util.Set<Long> wall = new java.util.HashSet<>();
+        for (int[] c : cols) wall.add(((long) c[0] << 32) ^ (c[1] & 0xffffffffL));
+        BlockState plank = Blocks.OAK_PLANKS.defaultBlockState(), deck = Blocks.SPRUCE_PLANKS.defaultBlockState();
+        for (int[] c : fenceColumns(t.center, r - 1)) {
+            int x = c[0], z = c[1];
+            if (wall.contains(((long) x << 32) ^ (z & 0xffffffffL))) continue;
+            double brg = bearing(t.center, x, z);
+            int j = 0;
+            double best = 999;
+            for (int i = 0; i < n; i++) {
+                double diff = Math.abs(((brg - bearings[i]) % 360 + 540) % 360 - 180);
+                if (diff < best) {
+                    best = diff;
+                    j = i;
+                }
+            }
+            boolean nearGate = false, besideGate = false;
+            for (int k = -2; k <= 2; k++) if (gate[Math.floorMod(j + k, n)]) nearGate = true;
+            for (int k = -4; k <= 4; k++) if (gate[Math.floorMod(j + k, n)]) besideGate = true;
+            if (nearGate) continue;
+            if (!level.isLoaded(new BlockPos(x, 64, z))) continue;
+            int y = Math.min(groundAt(level, x, z), rails[j]);
+            for (int yy = y - 1; yy < rails[j]; yy++) out.add(new Placement(new BlockPos(x, yy, z), plank));
+            out.add(new Placement(new BlockPos(x, rails[j], z), deck));
+            if (besideGate) {
+                // A ladder up on the inside.
+                double rad = Math.toRadians(brg);
+                int lx = x - (int) Math.round(Math.cos(rad)), lz = z - (int) Math.round(Math.sin(rad));
+                Direction in = Direction.getNearest(-Math.cos(rad), 0, -Math.sin(rad));
+                if (lx == x && lz == z) continue;
+                int ly = groundAt(level, lx, lz);
+                for (int yy = ly; yy <= rails[j]; yy++)
+                    out.add(new Placement(new BlockPos(lx, yy, lz), Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, in)));
+            }
+        }
     }
 
     /** Height of the first free block above the ground, ignoring leaves, plants and old fence. */
@@ -843,7 +1017,9 @@ public final class BuildingDesigns {
             BlockState below = level.getBlockState(new BlockPos(x, y - 1, z));
             Block bl = below.getBlock();
             boolean manMade = bl instanceof net.minecraft.world.level.block.FenceBlock || bl instanceof FenceGateBlock
-                    || below.is(Blocks.OAK_PLANKS) || below.is(net.minecraft.tags.BlockTags.LOGS);
+                    || below.is(Blocks.OAK_PLANKS) || below.is(Blocks.SPRUCE_PLANKS) || below.is(Blocks.DARK_OAK_PLANKS)
+                    || below.is(net.minecraft.tags.BlockTags.LOGS) || below.is(net.minecraft.tags.BlockTags.SLABS)
+                    || bl instanceof LanternBlock || bl instanceof LadderBlock;
             if (!manMade) break;
             y--;
         }

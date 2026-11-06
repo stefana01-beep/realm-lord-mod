@@ -254,24 +254,43 @@ public class VillageTests {
         helper.assertTrue(fence.gates.length == 2, "expected the two chosen gates");
         BlockPos east = fencePost(t, fence, 0), north = fencePost(t, fence, 270);
         helper.assertTrue(level.getBlockState(east).getBlock() instanceof net.minecraft.world.level.block.FenceGateBlock, "no gate at the east: " + level.getBlockState(east));
-        helper.assertTrue(level.getBlockState(north).is(Blocks.OAK_FENCE) && level.getBlockState(north.above()).is(Blocks.OAK_FENCE), "north post not two fences high");
-        BlockPos top = north.above(2);
-        while (level.getBlockState(top).is(Blocks.OAK_FENCE) && top.getY() < north.getY() + 8) top = top.above();
-        helper.assertTrue(level.getBlockState(north.below()).is(Blocks.OAK_PLANKS) && level.getBlockState(top).is(Blocks.OAK_PLANKS),
-                "north post should have a plank in the ground and a plank rail: " + level.getBlockState(north.below()) + " / " + level.getBlockState(top));
-        // No gaps: every post of the ring stands, fence or gate, from its footing to its rail.
+        helper.assertTrue(level.getBlockState(east.above(3)).is(Blocks.DARK_OAK_PLANKS) || level.getBlockState(east.above(4)).is(Blocks.DARK_OAK_PLANKS), "the gateway has no beam over it");
+        helper.assertTrue(wallAt(level, north) && wallAt(level, north.above()) && wallAt(level, north.above(2)), "the palisade should stand three blocks high at the north");
+        helper.assertTrue(level.getBlockState(north.below()).is(Blocks.OAK_PLANKS), "the palisade should be set into the ground");
+        // No gaps: every column of the ring stands three high, or is a gateway.
         var cols = com.realmlord.village.BuildingDesigns.fenceColumns(t.center, fence.fenceRadius);
         int gaps = 0;
         for (int i = 0; i < cols.size(); i++) {
             var post = new BlockPos(cols.get(i)[0], fence.fenceYs[i], cols.get(i)[1]);
             var st = level.getBlockState(post);
-            if (!(st.is(Blocks.OAK_FENCE) || st.getBlock() instanceof net.minecraft.world.level.block.FenceGateBlock)) gaps++;
+            if (st.getBlock() instanceof net.minecraft.world.level.block.FenceGateBlock) continue;
+            if (!wallAt(level, post) || !wallAt(level, post.above()) || !wallAt(level, post.above(2))) gaps++;
         }
-        helper.assertTrue(gaps == 0, gaps + " posts missing from the fence");
-        // Moving the gates changes the posts at once.
+        helper.assertTrue(gaps == 0, gaps + " gaps in the palisade");
+        // Moving the gates: the builders change the wall over.
         Village.setGates(level, t, new int[]{270});
+        helper.assertTrue(!fence.complete, "moving the gates should send the builders back");
+        for (int i = 0; i < 400 && !fence.complete; i++) {
+            fence.lastWork = level.getGameTime() - Sites.STALL_TICKS - 1;
+            Village.construct(level, t, (int) (fence.workNeeded / 50) + 1);
+        }
         helper.assertTrue(level.getBlockState(north).getBlock() instanceof net.minecraft.world.level.block.FenceGateBlock, "gate not moved to the north");
-        helper.assertTrue(level.getBlockState(east).is(Blocks.OAK_FENCE), "old east gate not closed up");
+        helper.assertTrue(wallAt(level, east) && wallAt(level, east.above(2)), "old east gate not closed up");
+        // A town's palisade gains a wall-walk behind it.
+        t.level = com.realmlord.territory.TerritoryLevel.TOWN_1;
+        Village.refitFence(level, t);
+        helper.assertTrue(!fence.complete && fence.fenceStyle == 3, "the fence was not refitted for a town");
+        for (int i = 0; i < 400 && !fence.complete; i++) {
+            fence.lastWork = level.getGameTime() - Sites.STALL_TICKS - 1;
+            Village.construct(level, t, (int) (fence.workNeeded / 50) + 1);
+        }
+        helper.assertTrue(fence.complete, "town wall never finished");
+        int decks = 0;
+        for (int[] c : com.realmlord.village.BuildingDesigns.fenceColumns(t.center, fence.fenceRadius - 1))
+            for (int y = t.center.getY() - 3; y <= t.center.getY() + 8; y++)
+                if (level.getBlockState(new BlockPos(c[0], y, c[1])).is(Blocks.SPRUCE_PLANKS)) decks++;
+        helper.assertTrue(decks > 50, "no wall-walk behind the town wall: " + decks);
+        t.level = com.realmlord.territory.TerritoryLevel.VILLAGE_1;
         // Taking the hall down returns three quarters of its wood and stone.
         long wood = t.wood, stone = t.stone;
         Village.demolish(level, t, b);
@@ -289,6 +308,11 @@ public class VillageTests {
                 for (int y = 0; y < 6; y++) if (!level.getBlockState(b.origin.offset(x, y, z)).isAir()) left++;
         helper.assertTrue(left < 10, "blocks left standing after demolition: " + left);
         done(helper, p, t);
+    }
+
+    private static boolean wallAt(net.minecraft.server.level.ServerLevel level, BlockPos p) {
+        var st = level.getBlockState(p);
+        return st.is(Blocks.OAK_PLANKS) || st.is(Blocks.SPRUCE_PLANKS) || st.is(Blocks.STRIPPED_SPRUCE_LOG);
     }
 
     /** The post of a fence nearest a bearing, at its fence height. */

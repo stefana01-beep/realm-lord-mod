@@ -80,6 +80,7 @@ public final class Sites {
 
     /** Anything standing on the footprint, highest first. */
     private static Op nextClear(ServerLevel level, Building b) {
+        if (b.clearCols != null) return nextClearCols(level, b);
         int y0 = b.origin.getY();
         // Working down layer by layer: start from the layer reached, not the top, every time.
         for (int y = Math.min(b.clearTop, y0 + height(b) - 1); y >= y0; y--) {
@@ -97,6 +98,48 @@ public final class Sites {
         return null;
     }
 
+    /** A clearing's columns, top layer first: anything at or above a column's cut. */
+    private static Op nextClearCols(ServerLevel level, Building b) {
+        int[] c = b.clearCols;
+        int lo = Integer.MAX_VALUE, hi = Integer.MIN_VALUE, h = height(b);
+        for (int i = 0; i + 3 < c.length; i += 4) {
+            if (c[i + 2] == Building.NO_CUT) continue;
+            lo = Math.min(lo, c[i + 2]);
+            hi = Math.max(hi, c[i + 2] + h - 1);
+        }
+        for (int y = Math.min(b.clearTop, hi); y >= lo; y--) {
+            for (int i = 0; i + 3 < c.length; i += 4) {
+                int cut = c[i + 2];
+                if (cut == Building.NO_CUT || y < cut || y >= cut + h) continue;
+                BlockPos p = new BlockPos(c[i], y, c[i + 1]);
+                if (!level.isLoaded(p)) continue;
+                BlockState s = level.getBlockState(p);
+                if (!s.isAir()) {
+                    b.clearTop = y;
+                    return new Op(Kind.CLEAR, p, s, -1);
+                }
+            }
+        }
+        b.clearTop = Integer.MAX_VALUE;
+        return null;
+    }
+
+    /** A clearing's columns: the lowest gap beneath each one's fill level. */
+    private static Op nextFillCols(ServerLevel level, Building b) {
+        int[] c = b.clearCols;
+        for (int i = 0; i + 3 < c.length; i += 4) {
+            int fill = c[i + 3];
+            if (fill == Building.NO_FILL) continue;
+            BlockPos top = new BlockPos(c[i], fill - 1, c[i + 1]);
+            if (!level.isLoaded(top) || solid(level.getBlockState(top))) continue;
+            int y = fill - 2;
+            while (y > fill - 1 - DEPTH && !solid(level.getBlockState(new BlockPos(c[i], y, c[i + 1])))) y--;
+            BlockPos p = new BlockPos(c[i], y + 1, c[i + 1]);
+            return new Op(Kind.FILL, p, p.getY() == fill - 1 ? Blocks.GRASS_BLOCK.defaultBlockState() : Blocks.DIRT.defaultBlockState(), -1);
+        }
+        return null;
+    }
+
     /** How high above its floor a site is cleared. */
     public static int height(Building b) {
         return b.type == BuildingType.CLEARING && b.clearHeight > 0 ? b.clearHeight : HEIGHT;
@@ -108,6 +151,7 @@ public final class Sites {
 
     /** The lowest gap beneath the footprint's floor. */
     private static Op nextFill(ServerLevel level, Building b) {
+        if (b.clearCols != null) return nextFillCols(level, b);
         int y0 = b.origin.getY();
         for (int x = 0; x < b.sizeX(); x++)
             for (int z = 0; z < b.sizeZ(); z++) {
@@ -246,7 +290,7 @@ public final class Sites {
      */
     public static void work(ServerLevel level, Territory t, Building b, int budget) {
         if (!loaded(level, b)) return;
-        if (!b.demolishing && b.stage == Building.CLEAR && b.footprint()) {
+        if (!b.demolishing && b.stage == Building.CLEAR && b.footprint() && b.clearCols == null) {
             int y0 = b.origin.getY();
             for (int y = Math.min(b.clearTop, y0 + height(b) - 1); y >= y0 && budget > 0; y--)
                 for (int x = 0; x < b.sizeX() && budget > 0; x++)

@@ -406,7 +406,17 @@ public class LaborTests {
         for (int x = 31; x <= 32; x++)
             for (int y = -1; y <= 0; y++) level.setBlock(new BlockPos(cx + x, gy + y, cz), Blocks.AIR.defaultBlockState(), 2);
 
-        helper.assertTrue("realmlord.build.err.manor".equals(Village.startClearing(p, t, cx - 3, cz - 3, cx + 3, cz + 3, 0)), "the manor yard should not be cleared");
+        helper.assertTrue("realmlord.clear.err.nothing".equals(Village.startClearing(p, t, cx - 3, cz - 3, cx + 3, cz + 3, 0)), "the manor yard should not be cleared");
+        // A finished building inside the area is left alone; a rock just outside it is cut back in a slope.
+        Building hut = new Building();
+        hut.id = t.nextBuildingId++;
+        hut.type = BuildingType.BATHROOM;
+        hut.origin = new BlockPos(cx + 33, gy + 1, cz - 6);
+        hut.complete = true;
+        hut.workNeeded = hut.progress = 1;
+        t.buildings.add(hut);
+        level.setBlock(new BlockPos(cx + 34, gy + 1, cz - 5), Blocks.GOLD_BLOCK.defaultBlockState(), 2);
+        for (int y = 1; y <= 6; y++) level.setBlock(new BlockPos(cx + 37, gy + y, cz), Blocks.STONE.defaultBlockState(), 2);
         helper.assertTrue("realmlord.clear.err.big".equals(Village.startClearing(p, t, cx + 10, cz - 30, cx + 10 + Village.MAX_CLEARING, cz + 30, 0)), "too large an area was allowed");
         String err = Village.startClearing(p, t, cx + 20, cz - 6, cx + 35, cz + 6, 0);
         helper.assertTrue(err == null, "could not order a clearing: " + err);
@@ -420,11 +430,25 @@ public class LaborTests {
         helper.assertTrue(level.getBlockState(new BlockPos(cx + 25, gy + 1, cz)).isAir() && level.getBlockState(new BlockPos(cx + 26, gy + 3, cz + 1)).isAir(), "the hump was not cut away");
         helper.assertTrue(!level.getBlockState(new BlockPos(cx + 31, gy, cz)).isAir() && !level.getBlockState(new BlockPos(cx + 32, gy - 1, cz)).isAir(), "the hole was not filled");
         helper.assertTrue(t.stone - stone >= 40, "the rock cut away should go to the stores: +" + (t.stone - stone));
+        helper.assertTrue(level.getBlockState(new BlockPos(cx + 34, gy + 1, cz - 5)).is(Blocks.GOLD_BLOCK), "a finished building was cleared away");
+        helper.assertTrue(level.getBlockState(new BlockPos(cx + 37, gy + 5, cz)).isAir() && level.getBlockState(new BlockPos(cx + 37, gy + 2, cz)).is(Blocks.STONE),
+                "the edge should be cut back in a slope, not a cliff");
         helper.assertTrue(Village.shift(t, Job.CONSTRUCTION, 2) > 0 || Village.count(t, Job.CONSTRUCTION) > 0, "no builders");
         Village.construct(level, t, 20);
         Village.construct(level, t, 20);
         helper.assertTrue(t.building(c.id) == null, "a finished clearing should be done with");
 
+        t.buildings.remove(hut);
+        // The larger courtyards sleep fifty and a hundred.
+        for (BuildingType type : new BuildingType[]{BuildingType.MEDIUM_RESIDENTIAL_COURTYARD, BuildingType.LARGE_RESIDENTIAL_COURTYARD}) {
+            Building yard = new Building();
+            yard.id = 9000 + type.ordinal();
+            yard.type = type;
+            yard.origin = t.center.offset(200, 0, 200);
+            long beds = com.realmlord.village.BuildingDesigns.design(level, t, yard).stream().filter(pl -> pl.state().getBlock() == Blocks.YELLOW_BED
+                    && pl.state().getValue(net.minecraft.world.level.block.BedBlock.PART) == net.minecraft.world.level.block.state.properties.BedPart.HEAD).count();
+            helper.assertTrue(beds >= type.housing(), type.id() + " should hold " + type.housing() + " beds, has " + beds);
+        }
         // The Lord's residence: rebuilt at Grade 2, with nothing lost and no residents' beds.
         for (int x = -9; x <= 9; x++)
             for (int z = -9; z <= 9; z++) {

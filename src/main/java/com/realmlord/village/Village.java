@@ -583,6 +583,7 @@ public final class Village {
             b.stage = Building.BUILD;
             b.fenceRadius = t.radius() - 2;
             b.gates = gates == null ? new int[]{0, 90, 180, 270} : cleanGates(gates);
+            b.fenceStyle = fenceStyle(t);
         }
         t.buildings.add(b);
         level.playSound(null, b.center(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, 1.0F, 0.8F);
@@ -613,27 +614,43 @@ public final class Village {
             long dx = c[0] - t.center.getX(), dz = c[1] - t.center.getZ();
             if (dx * dx + dz * dz > (long) inner * inner) return "realmlord.build.err.border";
         }
-        BlockPos m = t.center;
-        if (ax <= m.getX() + MANOR_YARD && m.getX() - MANOR_YARD <= ax + sx - 1 && az <= m.getZ() + MANOR_YARD && m.getZ() - MANOR_YARD <= az + sz - 1)
-            return "realmlord.build.err.manor";
-        for (Building b : t.buildings) if (b.footprint() && b.overlaps(ax, az, sx, sz, 0)) return "realmlord.build.err.overlap";
+        // Sites still being built are in the way; finished buildings are simply left alone.
+        for (Building b : t.buildings) if (!b.complete && b.footprint() && b.overlaps(ax, az, sx, sz, 0)) return "realmlord.clear.err.site";
+        java.util.Set<Long> keep = keptColumns(t, ax - SKIRT, az - SKIRT, sx + 2 * SKIRT, sz + 2 * SKIRT);
         List<Integer> heights = new ArrayList<>();
-        int[][] ground = new int[sx][sz];
         for (int x = 0; x < sx; x++)
             for (int z = 0; z < sz; z++) {
                 if (!level.isLoaded(new BlockPos(ax + x, 64, az + z))) return "realmlord.path.err.unloaded";
-                ground[x][z] = groundAt(level, ax + x, az + z);
-                heights.add(ground[x][z]);
+                if (!keep.contains(colKey(ax + x, az + z))) heights.add(groundAt(level, ax + x, az + z));
             }
+        if (heights.isEmpty()) return "realmlord.clear.err.nothing";
         java.util.Collections.sort(heights);
         int y = heights.get(heights.size() / 2) + Mth.clamp(offset, -8, 8);
+        List<int[]> cols = new ArrayList<>();
         long cut = 0, fill = 0;
         int top = y;
-        for (int[] col : ground)
-            for (int g : col) {
-                cut += Math.max(0, g - y);
-                fill += Math.min(Sites.DEPTH, Math.max(0, y - g));
-                top = Math.max(top, g);
+        for (int x = -SKIRT; x < sx + SKIRT; x++)
+            for (int z = -SKIRT; z < sz + SKIRT; z++) {
+                int wx = ax + x, wz = az + z;
+                if (keep.contains(colKey(wx, wz))) continue;
+                int d = Math.max(Math.max(-x, x - (sx - 1)), Math.max(-z, z - (sz - 1)));
+                if (!level.isLoaded(new BlockPos(wx, 64, wz))) continue;
+                int g = groundAt(level, wx, wz);
+                if (d <= 0) {
+                    cols.add(new int[]{wx, wz, y, y});
+                    cut += Math.max(0, g - y);
+                    fill += Math.min(Sites.DEPTH, Math.max(0, y - g));
+                    top = Math.max(top, g);
+                } else {
+                    // The edges: cut back and banked up one block per block outwards, so no cliff is left.
+                    int c = g > y + d ? y + d : Building.NO_CUT, f = g < y - d ? y - d : Building.NO_FILL;
+                    if (c == Building.NO_CUT && f == Building.NO_FILL) continue;
+                    cols.add(new int[]{wx, wz, c, f});
+                    if (c != Building.NO_CUT) {
+                        cut += g - c;
+                        top = Math.max(top, g);
+                    } else fill += Math.min(Sites.DEPTH, f - g);
+                }
             }
         Building b = new Building();
         b.id = t.nextBuildingId++;
@@ -642,13 +659,57 @@ public final class Village {
         b.w = sx;
         b.d = sz;
         b.stage = Building.CLEAR;
+        b.clearCols = new int[cols.size() * 4];
+        for (int i = 0; i < cols.size(); i++) System.arraycopy(cols.get(i), 0, b.clearCols, i * 4, 4);
         // Up to the highest ground, with room for the trees on it.
-        b.clearHeight = Mth.clamp(top - y + 12, 6, 40);
-        b.workNeeded = Math.max(1, (cut + fill + (long) sx * sz / 4) * CLEARING_WORK);
+        b.clearHeight = Mth.clamp(top - y + 12, 6, 48);
+        b.workNeeded = Math.max(1, (cut + fill + (long) cols.size() / 4) * CLEARING_WORK);
         b.lastWork = level.getGameTime();
         t.buildings.add(b);
         Notify.player(p, Component.translatable("realmlord.clear.started", sx, sz, y, cut, fill));
         return null;
+    }
+
+    /** How far beyond a clearing its edges are sloped. */
+    public static final int SKIRT = 8;
+
+    private static long colKey(int x, int z) {
+        return ((long) x << 32) ^ (z & 0xffffffffL);
+    }
+
+    /**
+     * Columns in an area that clearing must leave alone: finished buildings with a block around
+     * them, paths, the fence ring and the manor yard, and anything near or past the border.
+     */
+    public static java.util.Set<Long> keptColumns(Territory t, int x0, int z0, int sx, int sz) {
+        java.util.Set<Long> out = new java.util.HashSet<>();
+        int cx = t.center.getX(), cz = t.center.getZ(), inner = t.radius() - 3;
+        Building fence = null;
+        for (Building b : t.buildings) if (b.type == BuildingType.SIMPLE_FENCE && !b.demolishing) fence = b;
+        for (int x = x0; x < x0 + sx; x++)
+            for (int z = z0; z < z0 + sz; z++) {
+                long dx = x - cx, dz = z - cz;
+                double dist = Math.sqrt(dx * dx + dz * dz);
+                boolean kept = dist > inner || (Math.abs(dx) <= MANOR_YARD && Math.abs(dz) <= MANOR_YARD);
+                if (!kept && fence != null) {
+                    int fr = fence.fenceRadius > 0 ? fence.fenceRadius : t.radius() - 2;
+                    kept = dist >= fr - 3 && dist <= fr + 2;
+                }
+                if (!kept) {
+                    for (Building b : t.buildings) {
+                        if (b.footprint() && b.type != BuildingType.CLEARING && b.overlaps(x, z, 1, 1, 1)) {
+                            kept = true;
+                            break;
+                        }
+                    }
+                }
+                if (kept) out.add(colKey(x, z));
+            }
+        for (Building b : t.buildings) {
+            if (b.type != BuildingType.PATH || b.pathCols == null) continue;
+            for (int i = 0; i + 3 < b.pathCols.length; i += 4) out.add(colKey(b.pathCols[i], b.pathCols[i + 2]));
+        }
+        return out;
     }
 
     /** The most common ground height across a footprint. */
@@ -861,25 +922,59 @@ public final class Village {
         return out.stream().mapToInt(Integer::intValue).toArray();
     }
 
-    /** Moves the fence's gates. Posts already up are changed over at once. */
+    /** The fence design a territory calls for: the plank palisade, with a wall-walk from Town Grade 1. */
+    public static int fenceStyle(Territory t) {
+        return BuildingDesigns.walkway(t) ? 3 : 2;
+    }
+
+    /**
+     * Sends the builders back to a fence to bring it in line with its design (new gates, the
+     * palisade replacing the old post-and-rail fence, or a town's wall-walk). Nothing is charged;
+     * blocks already right are passed over.
+     */
+    public static void refit(Territory t, Building fence) {
+        BuildingDesigns.forget(fence);
+        fence.fenceStyle = fenceStyle(t);
+        fence.complete = false;
+        fence.placed = 0;
+        fence.verified = false;
+        fence.verifyCursor = 0;
+        fence.progress = fence.workNeeded;
+        fence.stage = Building.BUILD;
+    }
+
+    /** Moves the fence's gates; the builders change the wall over. */
     public static boolean setGates(ServerLevel level, Territory t, int[] gates) {
         Building fence = null;
         for (Building b : t.buildings) if (b.type == BuildingType.SIMPLE_FENCE && !b.demolishing) fence = b;
         if (fence == null) return false;
         fence.gates = cleanGates(gates);
-        BuildingDesigns.forget(fence);
-        List<BuildingDesigns.Placement> design = BuildingDesigns.design(level, t, fence);
-        if (design == null) return true;
-        int upTo = fence.complete ? design.size() : Math.min(fence.placed, design.size());
-        for (int i = 0; i < upTo; i++) {
-            BuildingDesigns.Placement p = design.get(i);
-            if (!level.isLoaded(p.pos())) continue;
-            BlockState now = level.getBlockState(p.pos());
-            boolean fenceBit = now.isAir() || now.getBlock() instanceof net.minecraft.world.level.block.FenceBlock
-                    || now.getBlock() instanceof net.minecraft.world.level.block.FenceGateBlock;
-            if (fenceBit && now != p.state()) level.setBlock(p.pos(), p.state(), Block.UPDATE_ALL);
+        if (fence.complete) {
+            refit(t, fence);
+        } else {
+            BuildingDesigns.forget(fence);
+            fence.placed = 0;
+            fence.verified = false;
+            fence.verifyCursor = 0;
         }
         return true;
+    }
+
+    /** Old fences, and fences of a territory that has grown into a town, are rebuilt to the current design. */
+    public static void refitFence(ServerLevel level, Territory t) {
+        for (Building b : t.buildings) {
+            if (b.type != BuildingType.SIMPLE_FENCE || b.demolishing) continue;
+            int want = fenceStyle(t);
+            if (b.fenceStyle >= want) continue;
+            if (b.complete) {
+                refit(t, b);
+                ServerPlayer owner = t.owner == null ? null : level.getServer().getPlayerList().getPlayer(t.owner);
+                if (owner != null) Notify.player(owner, Component.translatable("realmlord.fence.refit", t.name));
+            } else {
+                b.fenceStyle = want;
+                BuildingDesigns.forget(b);
+            }
+        }
     }
 
     // ================================================================== upgrading
@@ -1102,6 +1197,7 @@ public final class Village {
         catchUp(level, t);
         construct(level, t, 20);
         if (t.waitingSettlers > 0) admitWaiting(level, t);
+        refitFence(level, t);
         if (com.realmlord.territory.Residence.upgrade(level, t)) {
             ServerPlayer owner = t.owner == null ? null : server.getPlayerList().getPlayer(t.owner);
             if (owner != null) Notify.player(owner, Component.translatable("realmlord.manor.rebuilt", t.name));

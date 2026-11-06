@@ -173,8 +173,9 @@ def add(L):
         L[f"realmlord.spawn.biome.{k}"] = name
         L[f"realmlord.spawn.biome.{k}.desc"] = desc
     L["realmlord.building.simple_fence.desc"] = (
-        "A weak fortification that keeps out wild animals. Rings the whole territory border: each post is an oak "
-        "plank set in the ground, two fence blocks and a plank rail on top. You choose where the gates go. +10 Security.")
+        "A wooden palisade around the whole territory border: oak planks three blocks high, set into the ground, "
+        "with spruce posts and lanterns. You choose where the gates go; each gateway has a beam, a little tiled roof "
+        "and lanterns. From Town Grade 1 it gains battlements and a wall-walk behind them. +10 Security.")
     L["realmlord.building.small_residential_courtyard.desc"] = (
         "A walled courtyard in the old style: a hall across the back and a wing down each side around a yard. "
         "Straw beds for 20 residents (23 in all), who sleep here at night.")
@@ -250,11 +251,18 @@ ROUND_CLEARING = {
     "realmlord.clear.raise": "Raise",
     "realmlord.clear.go": "Clear area",
     "realmlord.clear.again": "Pick corners again",
-    "realmlord.clear.hint": "Builders fell the trees, cut away the ground above the level and fill dips below it with earth, keeping everything useful in the stores. The level starts at the usual ground height there. It can't cover buildings, sites or the manor yard, and must stay inside the fence.",
+    "realmlord.clear.hint": "Builders fell the trees, cut away the ground above the level and fill dips below it with earth, keeping everything useful in the stores. The edges are sloped so no cliff is left. Finished buildings, paths, the fence and the manor yard are left as they are.",
     "realmlord.clear.cancel_hint": "%s x %s. Calling it off stops the work; what's done stays done.",
     "realmlord.clear.started": "Builders will clear and level %s x %s blocks at height %s (about %s blocks to cut, %s to fill).",
     "realmlord.clear.done": "The %s x %s clearing in %s is level.",
     "realmlord.clear.err.small": "Mark out at least 2 x 2 blocks.",
     "realmlord.clear.err.big": "That area is too large: 48 x 48 blocks at most.",
+    "realmlord.clear.err.site": "A building site is in the way. Wait until it's finished, or mark out ground around it.",
+    "realmlord.clear.err.nothing": "There is nothing there to level: it's all buildings, paths, the fence or the manor yard.",
+    "realmlord.fence.refit": "Your builders are rebuilding the fence of %s to its new design.",
+    "realmlord.building.medium_residential_courtyard": "Medium Residential Courtyard",
+    "realmlord.building.medium_residential_courtyard.desc": "A larger courtyard with a two-storey hall across the back and a wing down each side. Straw beds for 50 residents.",
+    "realmlord.building.large_residential_courtyard": "Large Residential Courtyard",
+    "realmlord.building.large_residential_courtyard.desc": "A great courtyard, every range two storeys high around a yard with a well. Straw beds for 100 residents.",
     "realmlord.manor.rebuilt": "The Lord's Manor in %s has been rebuilt as the Lord's residence. The residents now sleep in the residential courtyards.",
 }

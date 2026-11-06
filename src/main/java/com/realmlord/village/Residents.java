@@ -122,7 +122,7 @@ public final class Residents {
     private static void scanBeds(ServerLevel level, BlockPos o, int sx, int sz, List<BlockPos> out) {
         for (int x = 0; x < sx; x++)
             for (int z = 0; z < sz; z++)
-                for (int y = 0; y <= 1; y++) {
+                for (int y = 0; y <= 5; y++) {
                     BlockPos p = o.offset(x, y, z);
                     if (!level.isLoaded(p)) continue;
                     var s = level.getBlockState(p);
