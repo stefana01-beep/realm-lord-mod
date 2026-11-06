@@ -184,7 +184,7 @@ public class LaborTests {
         for (int x = -2; x < 22; x++)
             for (int z = -2; z < 22; z++) {
                 for (int y = -6; y <= 0; y++) level.setBlock(new BlockPos(pad.getX() + x, gy + y, pad.getZ() + z), Blocks.STONE.defaultBlockState(), 2);
-                for (int y = 1; y < 20; y++) level.setBlock(new BlockPos(pad.getX() + x, gy + y, pad.getZ() + z), Blocks.AIR.defaultBlockState(), 2);
+                for (int y = 1; y < 64; y++) level.setBlock(new BlockPos(pad.getX() + x, gy + y, pad.getZ() + z), Blocks.AIR.defaultBlockState(), 2);
             }
         for (int x = 2; x < 6; x++)
             for (int z = 2; z < 6; z++)

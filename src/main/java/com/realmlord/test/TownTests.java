@@ -173,7 +173,7 @@ public class TownTests {
         for (int x = -6; x < 24; x++)
             for (int z = -8; z <= 8; z++) {
                 for (int y = -3; y < 0; y++) level.setBlock(a.offset(x, y, z), Blocks.DIRT.defaultBlockState(), 2);
-                for (int y = 0; y < 12; y++) level.setBlock(a.offset(x, y, z), Blocks.AIR.defaultBlockState(), 2);
+                for (int y = 0; y < 64; y++) level.setBlock(a.offset(x, y, z), Blocks.AIR.defaultBlockState(), 2);
             }
         for (int x = 0; x < 18; x++)
             for (int z = -5; z <= 5; z++) {
