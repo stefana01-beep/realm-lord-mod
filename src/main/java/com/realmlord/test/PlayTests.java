@@ -114,7 +114,14 @@ public class PlayTests {
             p.teleportTo(level, at.getX() - 15.5, at.getY(), at.getZ() + 15.5, 0, 0);
             p.teleportTo(level, at.getX() + 0.5, at.getY(), at.getZ() + 18.5, 0, 0);
         });
-        helper.runAfterDelay(170, () -> p.teleportTo(level, at.getX() + 0.5, at.getY(), at.getZ() - 30 + 0.5, 0, 0));
+        // Far off, standing in tall grass: the companion still finds room beside the Lord.
+        helper.runAfterDelay(170, () -> {
+            BlockPos far = at.offset(-18, 0, -18);
+            level.setBlock(far, Blocks.TALL_GRASS.defaultBlockState(), 2);
+            for (int x = -2; x <= 2; x++)
+                for (int z = -2; z <= 2; z++) if (x != 0 || z != 0) level.setBlock(far.offset(x, 0, z), Blocks.GRASS.defaultBlockState(), 2);
+            p.teleportTo(level, far.getX() + 0.5, far.getY(), far.getZ() + 0.5, 0, 0);
+        });
         helper.runAfterDelay(260, () -> {
             helper.assertTrue(s.distanceTo(p) < 8, "the companion did not catch up from afar: " + s.distanceTo(p));
             s.discard();
@@ -158,13 +165,13 @@ public class PlayTests {
             Beastwave.tick(server);
             helper.assertTrue(w.waveDay == day, "the beastwave did not begin at nightfall on new year's day");
             Beastwave.tick(server);
-            int beasts = level.getEntitiesOfClass(Mob.class, new AABB(t.center).inflate(t.radius() + 40), e -> e.getTags().contains(Beasts.WAVE_TAG)).size();
+            int beasts = level.getEntitiesOfClass(Mob.class, new AABB(t.center).inflate(t.radius() + 40), e -> e != null && e.getTags().contains(Beasts.WAVE_TAG)).size();
             helper.assertTrue(beasts > 0, "no beasts came in the first wave");
             // Dawn: it ends, and the beasts are gone.
             world.setDayTime((day + 1) * 24000L + 100);
             Beastwave.tick(server);
             helper.assertTrue(w.waveDay < 0 && w.lastWaveYear == 3, "the beastwave did not end at dawn");
-            helper.assertTrue(level.getEntitiesOfClass(Mob.class, new AABB(t.center).inflate(t.radius() + 40), e -> e.getTags().contains(Beasts.WAVE_TAG)).isEmpty(),
+            helper.assertTrue(level.getEntitiesOfClass(Mob.class, new AABB(t.center).inflate(t.radius() + 40), e -> e != null && e.getTags().contains(Beasts.WAVE_TAG)).isEmpty(),
                     "beasts remained after dawn");
             rule.set(cycle, server);
             world.setDayTime(time);

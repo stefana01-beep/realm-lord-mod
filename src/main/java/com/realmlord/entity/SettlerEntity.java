@@ -344,13 +344,19 @@ public class SettlerEntity extends PathfinderMob {
         if (d > 24 * 24) {
             // Lost the Lord: catch up at once, as companions do.
             BlockPos at = p.blockPosition();
-            for (int i = 0; i < 10; i++) {
-                int x = at.getX() + random.nextInt(5) - 2, z = at.getZ() + random.nextInt(5) - 2;
-                BlockPos s = new BlockPos(x, at.getY(), z);
-                if (level().getBlockState(s).isAir() && level().getBlockState(s.above()).isAir() && !level().getBlockState(s.below()).isAir()) {
-                    getNavigation().stop();
-                    teleportTo(x + 0.5, at.getY(), z + 0.5);
-                    break;
+            for (int i = 0; i < 16; i++) {
+                int x = at.getX() + (i == 0 ? 0 : random.nextInt(5) - 2), z = at.getZ() + (i == 0 ? 0 : random.nextInt(5) - 2);
+                for (int dy = 1; dy >= -2; dy--) {
+                    BlockPos s = new BlockPos(x, at.getY() + dy, z);
+                    // Grass, flowers and snow are no bar; only solid ground below and room to stand.
+                    if (level().getBlockState(s).getCollisionShape(level(), s).isEmpty()
+                            && level().getBlockState(s.above()).getCollisionShape(level(), s.above()).isEmpty()
+                            && level().getBlockState(s.below()).isFaceSturdy(level(), s.below(), net.minecraft.core.Direction.UP)
+                            && level().getFluidState(s).isEmpty()) {
+                        getNavigation().stop();
+                        teleportTo(x + 0.5, s.getY(), z + 0.5);
+                        return;
+                    }
                 }
             }
             return;

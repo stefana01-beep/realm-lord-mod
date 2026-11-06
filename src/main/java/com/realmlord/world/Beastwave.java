@@ -200,7 +200,9 @@ public final class Beastwave {
     /** Dawn: the beasts that are left melt back into the wilds, and the defenders are rewarded. */
     public static void end(MinecraftServer server, WorldState w) {
         for (ServerLevel level : server.getAllLevels()) {
-            for (Entity e : level.getAllEntities()) if (e.getTags().contains(Beasts.WAVE_TAG)) e.discard();
+            java.util.List<Entity> gone = new java.util.ArrayList<>();
+            for (Entity e : level.getAllEntities()) if (e != null && e.getTags().contains(Beasts.WAVE_TAG)) gone.add(e);
+            gone.forEach(Entity::discard);
         }
         List<Map.Entry<UUID, Integer>> rank = new ArrayList<>(w.waveKills.entrySet());
         rank.sort((a, b) -> b.getValue() - a.getValue());
