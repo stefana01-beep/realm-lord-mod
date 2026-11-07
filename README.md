@@ -6,7 +6,7 @@ Requires **Forge 47.x** for 1.20.1. No other mods needed. Runs on its own or alo
 
 **Download:** every push to `main` builds a jar and runs the in-game tests. Grab the newest from the [Releases page](../../releases).
 
-**Status:** Phases 1 and 2a of 7: Lords and Adventurers, the Village Creation quest, and running a village from Grade 1 to Grade 3. See the roadmap below.
+**Status:** Phases 1 to 3 of 7: Lords and Adventurers, the Village Creation quest, running a village from Grade 1 to Grade 3, and the town from Grade 1 to Grade 3, up to the county trial. See the roadmap below.
 
 ---
 
@@ -1068,16 +1068,8 @@ A village by the water, with a dock or on the coast, may find water bandits buil
 
 New bandits may take the water again after a couple of months.
 
-### Barbarian raids
-The barbarians of the northern steppe come south after every beastwave, and again in autumn.
-- **After a beastwave:** every village of the second level or above is raided within the week.
-- **In autumn:** from the second year, a village of forty or more may be raided once, in month 9 or 10.
-
-**The raid:**
-- Scouts give warning, and the manor panel shows that barbarians are coming.
-- The band rides in from the north and marches on the manor. It is larger and tougher for a bigger village and a later year, and weaker if the temple wards the walls or strategists saw it coming.
-- At the next dawn, those still alive ride off with grain.
-- A village nobody is near fights unseen: a wall and enough militia (sailors count half) drive the band off.
+### Barbarian raids: the county trial
+As in the novel, the barbarian raiders come once: when a town applies to become a county. See *The county trial* below.
 
 **The chieftain:**
 - Slaying him is worth 150 merit.
@@ -1111,6 +1103,154 @@ The weapons workshop can make all of them too. The engines themselves need the *
 
 **Siege ladder:** right-click the side of a wall, and a ladder runs up it, as high as sixteen blocks.
 
+## Phase 3: the town
+The novel's chapters 50 to 155: Shanhai Village becomes Shanhai Town, grows through three grades, builds a city wall, an army and a government, and wins its county upgrade against a raider attack.
+
+### Becoming a town, and its grades
+Upgrade from the Lord's Manor when every condition is met, as the system announced them to Ouyang Shuo:
+
+| Upgrade | Population | Lord's title | Also needs |
+|---|---|---|---|
+| Grade 3 Village → Grade 1 Town | 1,000 | Third-class Viscount | every Grade 3 village building; all four indexes 30 or more |
+| Grade 1 → Grade 2 Town | 2,000 | Second-class Viscount | the Grade 1 town buildings |
+| Grade 2 → Grade 3 Town | 5,000 | First-class Viscount | the Grade 2 town buildings, including the Alchemy Workshop (which needs an alchemist) |
+| Grade 3 Town → Grade 1 County | 10,000 | Third-class Earl | the Grade 3 town buildings; all four indexes 45 or more; then the **county trial** |
+
+**Each upgrade brings:**
+- Merit, more for being among the first in the world.
+- The Lord picks one of three random buildings of the new grade, free.
+- The Lord's Manor becomes the town-level manor, with a lookout pavilion on the roof and stone guardian lions at the steps.
+
+**Town bonuses:**
+- Production +20% at Grade 1 and +25% from Grade 2.
+- Two, three and four times the migrants at Grades 1, 2 and 3, and a quarter more for each Inn and Relay Station.
+
+### Town buildings
+★ marks a building needed for the next upgrade.
+
+| Grade | Building | Run by | What it does |
+|---|---|---|---|
+| Town 1 | City Wall ★ | — | A stone wall outside the old palisade, four blocks higher, with crenellations and a moat bridged at the gates. Security +20 |
+| Town 1 | Brick Kiln ★ | potter | clay into bricks (stone) or roof tiles |
+| Town 1 | Cemetery ★ | — | a walled cemetery with a memorial shrine; People's Thoughts +6 |
+| Town 1 | Orchard ★ | — | farming |
+| Town 1 | Public Toilet ★ | — | People's Thoughts +3 |
+| Town 1 | Arsenal ★ | blacksmith | weapons stock, spears, crossbows, heavy bolts; needed for crossbowmen |
+| Town 1 | Government Office ★ | civil servant | opens the town's departments |
+| Town 1 | Residential Quarter | — | 400 beds |
+| Town 1 | Recruitment Hall | civil servant | one Advanced specialist a month, for ten gold |
+| Town 1 | City Defense Camp | officer | fifty soldiers of the standing army |
+| Town 2 | Relay Station ★ | stableman | migrants, safer caravans, fees |
+| Town 2 | Vegetable Field ★, Medicine Garden ★ | — | food; herbs |
+| Town 2 | Pharmacy ★ | doctor | pills and remedies |
+| Town 2 | Textile Mill ★ | tailor | eight linen a day, or silk |
+| Town 2 | Bank ★ | merchant | interest on the treasury, up to 5,000 copper a day |
+| Town 2 | Alchemy Workshop ★ | alchemist | jewelry, pills, refined iron |
+| Town 3 | Inn ★ | cook | migrants, safer caravans, income, festival trade |
+| Town 3 | Pawnshop ★, Farmers' Market ★ | merchant; — | daily income |
+| Town 3 | Jewelry Shop ★ | alchemist | jewelry from copper |
+| Town 3 | Garment Workshop ★ | tailor | garments from linen and silk |
+| Town 3 | Vinegar ★, Soy Sauce ★ and Tofu ★ Workshops | cook | condiments; tofu feeds the town |
+| Town 3 | Large Brewery ★ | winemaker | wine by the vat |
+| Town 3 | Auction House | merchant | opens the Auction |
+
+Build the City Wall from the Construction tab. It rings the town ten blocks outside the palisade (or at the town's own ring), through the same gates.
+
+### The county trial
+In the novel, Shanhai Town applied to become a county and the system answered: *"3 days later there will be a large scale raider attack on Shanhai Town. Please get ready."*
+1. With every condition for a county met, press Upgrade. Three days later the barbarian raiders attack.
+2. They come in five waves over twelve hours: a scouting wave at three gates (north, west and east), then heavier ones, and last the elites and their chieftains, all at one gate.
+3. **Hold:** if the manor holds for the twelve hours, or every raider is dead, the town has passed. The Lord gains 1,000 merit, and the town becomes a Grade 1 County.
+4. **Fall:** if five raiders reach the manor at once, they break in and plunder a third of the treasury, food and goods. The town may apply again after seven days.
+
+A trial nobody is near is fought unseen: the city wall, towers, soldiers, sailors and militia against the raiders' numbers. The Realm tab shows the trial's progress.
+
+### Departments and the cabinet
+The Government Office opens eight new departments, the novel's divisions, held from a resident's card like the village offices:
+
+| Opens | Department | Effect |
+|---|---|---|
+| Town 1 | Security Division | Security |
+| Town 1 | Meritorious Service Division | the army drills faster |
+| Town 1 | Armory Division | production |
+| Town 2 | Internal Affairs Department | refugees taken in; People's Thoughts |
+| Town 2 | Bow and Crossbow Division | archers and crossbowmen fight harder |
+| Town 2 | Transport Division | the economy |
+| Town 3 | Procuratorate | taxes |
+| Town 3 | Auditing Division | bank interest |
+
+With eight offices held and a Government Office, the town has a **cabinet**: every index +5.
+
+### The standing army
+Enlist residents from the Duty tab of their card.
+
+| Arm | Cost | Pay a day | Needs | Fights |
+|---|---|---|---|---|
+| Infantry | 2,000 | 20 | — | sword |
+| Spearmen | 2,500 | 25 | — | spear |
+| Archers | 3,000 | 30 | — | shoot from range |
+| Crossbowmen | 4,000 | 40 | Arsenal | heavier bolts from range |
+| Cavalry | 10,000 | 80 | Stable | fast and strong |
+| Mountain Warriors | 3,000 | 30 | a mountain barbarian | elite infantry |
+
+**Places:** fifty at each City Defense Camp, twenty at each Barracks, ten for each summoned general, and more under a good Military Affairs head.
+
+**Drill and rank:** soldiers drill with the militia, a fifth faster at a camp. They rise from Soldier to Squad Leader, Platoon Leader, Company Commander and Battalion Commander.
+
+**Pay:** comes from the treasury each day. Unpaid soldiers lose loyalty.
+
+### People
+- **Recruitment Hall:** once a month, for ten gold, an Advanced (one time in five a Master) specialist of the trade chosen in its window. It is the surest way to an alchemist.
+- **Refugees:** a column comes every month to a town whose People's Thoughts are 50 or more. They camp outside and move in as beds allow, ten a day plus a fifth of the Internal Affairs head's Politics. They give up if People's Thoughts fall below 40.
+- **Visitors:** a town whose Lord has 300 reputation draws talents. Some are wandering Silver and Gold talents, like the novel's Pei Donglai and Tian Wenjing. One time in three a visitor is a historical figure not yet summoned in the world: King rank, or Emperor rank from 3,000 reputation. They stay a month. Take them into service from the Realm tab: two gold for a talent, twenty or fifty for a figure.
+- **Affiliated villages:** one for each grade of the town, founded from the Realm tab. It costs ten gold, 500 wood, 300 stone and fifty settlers. It grows by itself to 200, 500 and 1,000 people, rising a grade each time. Each day it sends a copper and half a grain a head, and takes the town's people when the town is over its limit.
+
+### Festivals
+Each is held on the first day of its month if the treasury can pay (five copper a head in a town, two in a village):
+- the Spring Festival;
+- the Lantern Festival;
+- the Qingming Sacrificial Ritual;
+- the Dragon Boat Festival (with a dock);
+- the Mid-Autumn Festival.
+
+Each festival raises People's Thoughts by 5 for the month (7 with an ancestral hall, cemetery or temple). It also gives the Lord reputation, and in a town, visitors spend more than the festival cost.
+
+### The Auction
+An Auction House opens the market's **Auction** platform. Five lots are open at a time for the whole world, each for a month:
+- rare town blueprints;
+- Gold-grade arms and secret manuals;
+- technical manuals;
+- warship and siege engine plans;
+- now and then a Summoning Token.
+
+**Bidding:**
+- Each bid is a tenth over the last, paid at once from the treasury, and refunded if you are outbid.
+- The world's rival bidders (Di Chen, Snow-War Rose, the great families) raise the price each day, up to what the lot is worth to them.
+- When a lot closes, the prize goes to the winner's storehouse.
+
+### Mountain barbarians, fortresses and ruins
+**Mountain barbarian tribes:** around a town, a tribe may settle in the wilds: a log palisade, hide huts, a totem and a fire pit, held by warriors and their chieftain.
+- They raid the fields unless thirty soldiers or militia guard them.
+- Kill the chieftain (150 merit) and the tribe submits: twenty to forty of its people come down to the refugee camp.
+- They are hardy hunters and farmers, and can be enlisted as Mountain Warriors.
+
+**Bandit fortresses:** a great stronghold with stone walls, corner towers and a keep, held by twenty tier 4 and 5 bandits and their chief.
+
+**The ruins of an ancient city:** broken walls and toppled columns, watched over by armoured Ancient Guardians.
+
+Both hold two treasure chests: gold, Gold- and Silver-grade arms and manuals, town blueprints, and now and then a Summoning Token.
+
+### The Realm tab
+The Lord's Manor has a new **Realm** tab with the town's affairs:
+- the county trial;
+- the army by arm;
+- the offices and cabinet;
+- refugees waiting;
+- business income and this month's festival;
+- visitors, with a button to take them into service;
+- affiliated villages, with a button to found one;
+- any mountain tribe nearby.
+
 ## Server settings
 `config/realmlord-common.toml`:
 - `lordRestriction` (default **off**): the novel's rule that Lords cannot leave their territory except for war. Other dimensions are exempt.
@@ -1137,13 +1277,7 @@ The order follows the novel: Ouyang Shuo summons his first general, sets up the 
    - **The village ground:** the grounds levelled to the manor on founding, walls on the ring of any grade, the territory reaching past the wall, unlimited defences on the wall, and a zoomable territory map.
    - **The wilds:** levels on every beast and bandit, graded horses, novel creatures only, three bosses, and ancient shrines, watchtowers and tombs in place of vanilla structures.
    - **Still to come:** the Auction House and special markets (ship blueprints, graded weapons and armour), more hidden buildings, and more figures.
-3. **Town grades 1–3:**
-   - More historical generals and ministers, recruited through quests and reputation.
-   - Departments growing into a cabinet.
-   - Troops beyond the militia.
-   - Ships and docks (done): fishermen take boats out, the shipyard builds the fleet, sailors man it.
-   - Barbarian raids and water bandits (done); mountain-barbarian tribes to take in.
-   - Deeper lairs and larger ruins to explore.
+3. **Town grades 1–3** (done): the town's conditions and buildings, the city wall, the county trial, departments and the cabinet, the standing army, the Recruitment Hall, refugees, festivals, visitors, affiliated villages, the Auction, mountain barbarian tribes, bandit fortresses and ancient ruins, ships and the navy, water bandits.
 4. **County:**
    - The regular army and formations.
    - Raids between lords.
