@@ -74,6 +74,10 @@ public class VillageTests {
 
     static void done(GameTestHelper helper, ServerPlayer p, Territory t) {
         TerritoryData.get(helper.getLevel().getServer()).remove(t.id);
+        // Let the village's ground go, so the test server does not hold every village in memory.
+        net.minecraft.server.level.ServerLevel level = helper.getLevel();
+        for (int cx = -12; cx <= 12; cx++)
+            for (int cz = -12; cz <= 12; cz++) level.setChunkForced((t.center.getX() >> 4) + cx, (t.center.getZ() >> 4) + cz, false);
         RealmTests.leave(p);
         helper.succeed();
     }
