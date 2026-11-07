@@ -65,7 +65,7 @@ public final class Sites {
     public static Op next(ServerLevel level, Territory t, Building b) {
         if (b.type == BuildingType.GROUNDS) return b.demolishing ? null : Grounds.next(level, t, b);
         // A wall not yet begun waits for the grounds to be levelled, so it stands on the finished ground.
-        if (b.type == BuildingType.SIMPLE_FENCE && !b.demolishing && b.placed == 0 && Grounds.active(t)) return null;
+        if (b.type.style == BuildingType.Style.FENCE && !b.demolishing && b.placed == 0 && Grounds.active(t)) return null;
         if (!loaded(level, b)) return null;
         if (b.demolishing) return nextRemove(level, t, b);
         if (b.complete) {
@@ -392,7 +392,7 @@ public final class Sites {
 
     /** Buildings that are worked and change as they are (fields, the quarry, the mine) are not repaired. */
     public static boolean repairable(Building b) {
-        return b.type.placed() && b.type.fieldJob() == null || b.type == BuildingType.SIMPLE_FENCE;
+        return b.type.placed() && b.type.fieldJob() == null || b.type.style == BuildingType.Style.FENCE;
     }
 
     /** How many of a finished building's blocks are missing or wrong (ignoring its open spaces). -1 if it can't be seen now. */

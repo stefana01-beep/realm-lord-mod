@@ -33,6 +33,10 @@ public class Resident {
     public boolean militia;
     /** A soldier of the navy (one of the militia, enlisted at the dock). */
     public boolean sailor;
+    /** A soldier of the standing army: the arm they serve in (see Army.Unit), or -1. */
+    public int unit = -1;
+    /** Of a mountain barbarian tribe that submitted to the Lord: hardy, and the stuff of elite warriors. */
+    public boolean mountain;
     /** A degree won at the imperial examination: "", xiucai, juren, jinshi or zhuangyuan. */
     public String degree = "";
     /** A historical figure who has already taught the Lord their art. */
@@ -186,6 +190,8 @@ public class Resident {
         if (entity != null) t.putUUID("entity", entity);
         t.putBoolean("militia", militia);
         if (sailor) t.putBoolean("sailor", true);
+        if (unit >= 0) t.putInt("unit", unit);
+        if (mountain) t.putBoolean("mountain", true);
         if (!degree.isEmpty()) t.putString("degree", degree);
         if (taught) t.putBoolean("taught", true);
         t.putInt("slv", soldierLevel);
@@ -225,6 +231,8 @@ public class Resident {
         r.entity = t.hasUUID("entity") ? t.getUUID("entity") : null;
         r.militia = t.getBoolean("militia");
         r.sailor = t.getBoolean("sailor");
+        r.unit = t.contains("unit") ? t.getInt("unit") : -1;
+        r.mountain = t.getBoolean("mountain");
         r.degree = t.getString("degree");
         r.taught = t.getBoolean("taught");
         r.soldierLevel = Math.max(1, t.getInt("slv"));

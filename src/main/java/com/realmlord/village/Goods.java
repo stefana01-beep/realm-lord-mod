@@ -18,7 +18,8 @@ public enum Goods {
     SALT("salt", 20), MEAT("meat", 30), FISH("fish", 15), LEATHER("leather", 50), HERBS("herbs", 25),
     FLOUR("flour", 15), WINE("wine", 100), POTTERY("pottery", 50), TOOLS("tools", 300), WEAPONS("weapons", 800),
     LINEN("linen", 1000), FINE_SILK("fine_silk", 5000), FIRE_OIL("fire_oil", 100),
-    SAND("sand", 5), CLAY("clay", 10), EARTH("earth", 2), COPPER("copper", 60), COAL("coal", 40);
+    SAND("sand", 5), CLAY("clay", 10), EARTH("earth", 2), COPPER("copper", 60), COAL("coal", 40),
+    JEWELRY("jewelry", 2000), GARMENTS("garments", 3000), CONDIMENTS("condiments", 60);
 
     public final String id;
     /** Copper per unit, before the market's 20% tax on sales. */
@@ -148,6 +149,9 @@ public enum Goods {
             case EARTH -> Items.DIRT;
             case COPPER -> Items.RAW_COPPER;
             case COAL -> Items.COAL;
+            case JEWELRY -> Items.GOLD_NUGGET;
+            case GARMENTS -> Items.LEATHER_CHESTPLATE;
+            case CONDIMENTS -> Items.HONEY_BOTTLE;
         };
     }
 

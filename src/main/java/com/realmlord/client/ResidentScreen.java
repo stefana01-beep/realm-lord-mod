@@ -20,6 +20,7 @@ import net.minecraft.world.item.ItemStack;
 public class ResidentScreen extends Screen {
     public static final int CARD = 0, WORK = 1, TRADE = 2, DUTY = 3;
     private static final int W = 320, H = 250;
+    private static final int OFFICE_ROWS = 9;
     private static final Job[] JOBS = {Job.IDLE, Job.CONSTRUCTION, Job.LOGGING, Job.QUARRYING, Job.FARMING, Job.MINING, Job.SALT_MAKING, Job.COPPER_MINING, Job.COAL_MINING, Job.FISHING, Job.ADMINISTRATION, Job.HUNTING};
 
     private int tab = CARD;
@@ -112,6 +113,22 @@ public class ResidentScreen extends Screen {
                 .tooltip(Tooltip.create(Component.translatable("realmlord.militia.join.tip"))).build();
         militia.active = r.militia && !r.sailor || !r.militia && r.office < 0 && v.getInt("militiaCount") < v.getInt("militiaCap");
         addRenderableWidget(militia);
+        if (v.getInt("armyCap") > 0 || r.unit >= 0) {
+            // The standing army: one button per arm, and one to discharge.
+            com.realmlord.village.Army.Unit[] arms = com.realmlord.village.Army.Unit.values();
+            for (int i = 0; i < arms.length; i++) {
+                com.realmlord.village.Army.Unit u = arms[i];
+                if (u == com.realmlord.village.Army.Unit.MOUNTAIN_WARRIOR && !r.mountain) continue;
+                Button ab = Button.builder(Component.translatable(u.key() + ".short"), b -> send(ResidentActionPacket.Action.ARMY, u.ordinal() + 1))
+                        .bounds(x + 10 + i * 27, y + 107, 26, 12).tooltip(Tooltip.create(Component.translatable("realmlord.army.enlist.tip",
+                                Component.translatable(u.key()), Ui.money(u.cost), Ui.money(u.pay), v.getInt("armyCount"), v.getInt("armyCap"),
+                                Component.translatable(u.key() + ".desc")))).build();
+                ab.active = r.unit != u.ordinal() && r.office < 0 && !r.sailor;
+                addRenderableWidget(ab);
+            }
+            if (r.unit >= 0) addRenderableWidget(Button.builder(Component.literal("\u2716"), b -> send(ResidentActionPacket.Action.ARMY, 0))
+                    .bounds(x + 10 + arms.length * 27, y + 107, 14, 12).tooltip(Tooltip.create(Component.translatable("realmlord.army.discharge"))).build());
+        }
         if (v.getInt("navyCap") > 0 || r.sailor) {
             Button sailor = Button.builder(r.sailor ? Component.translatable("realmlord.navy.leave")
                             : Component.translatable("realmlord.navy.join_cost", Ui.money(com.realmlord.village.Navy.ENLIST_COST)),
@@ -130,11 +147,17 @@ public class ResidentScreen extends Screen {
             CompoundTag o = offices.getCompound(i);
             final int idx = i;
             boolean mine = r.office == i;
-            Button b = Button.builder(Component.translatable(mine ? "realmlord.office.dismiss" : "realmlord.office.appoint"),
-                    btn -> send(ResidentActionPacket.Action.OFFICE, mine ? -1 : idx)).bounds(x + W - 70, y + 134 + i * 15, 60, 13).build();
+            // Two columns of nine: the village offices, then the town's departments.
+            int cx = x + 10 + (i / OFFICE_ROWS) * 152, ry = y + 134 + (i % OFFICE_ROWS) * 12;
+            Button b = Button.builder(Component.literal(mine ? "\u2212" : "+"),
+                    btn -> send(ResidentActionPacket.Action.OFFICE, mine ? -1 : idx)).bounds(cx + 128, ry - 1, 14, 11).build();
             b.active = mine || o.getBoolean("open");
-            if (!o.getBoolean("open")) b.setTooltip(Tooltip.create(Component.translatable("realmlord.office.locked", com.realmlord.village.Office.values()[i].grade)));
-            else b.setTooltip(Tooltip.create(Component.translatable(com.realmlord.village.Office.values()[i].key() + ".desc")));
+            com.realmlord.village.Office off = com.realmlord.village.Office.values()[i];
+            Component what = Component.translatable(mine ? "realmlord.office.dismiss" : "realmlord.office.appoint").append(": ")
+                    .append(Component.translatable(off.key())).append("\n").append(Component.translatable(off.key() + ".desc"));
+            if (!o.getBoolean("open")) b.setTooltip(Tooltip.create(Component.translatable(off.grade >= 4 ? "realmlord.office.locked_town" : "realmlord.office.locked",
+                    off.grade >= 4 ? off.grade - 3 : off.grade)));
+            else b.setTooltip(Tooltip.create(what));
             addRenderableWidget(b);
         }
     }
@@ -235,7 +258,10 @@ public class ResidentScreen extends Screen {
         }
         Component work = v.contains("workType") ? Component.translatable(BuildingType.byOrdinal(v.getInt("workType")).key()) : Component.translatable(r.job.key());
         yy = line(g, lx, yy, Component.translatable("realmlord.resident.job", work), Ui.INK);
-        if (r.sailor) yy = line(g, lx, yy, Component.translatable("realmlord.resident.sailor"), Ui.RED);
+        if (r.unit >= 0) yy = line(g, lx, yy, Component.translatable("realmlord.resident.soldier",
+                Component.translatable("realmlord.army.rank." + com.realmlord.village.Army.rank(r)),
+                Component.translatable(com.realmlord.village.Army.Unit.values()[Math.min(r.unit, com.realmlord.village.Army.Unit.values().length - 1)].key())), Ui.RED);
+        else if (r.sailor) yy = line(g, lx, yy, Component.translatable("realmlord.resident.sailor"), Ui.RED);
         else if (r.militia) yy = line(g, lx, yy, Component.translatable("realmlord.resident.militia"), Ui.RED);
         if (!r.degree.isEmpty()) yy = line(g, lx, yy, Component.translatable("realmlord.resident.degree", Component.translatable("realmlord.degree." + r.degree)), Ui.GOLD);
         String act = v.getString("activity");
@@ -278,10 +304,10 @@ public class ResidentScreen extends Screen {
         for (int i = 0; i < offices.size() && i < com.realmlord.village.Office.values().length; i++) {
             CompoundTag o = offices.getCompound(i);
             com.realmlord.village.Office off = com.realmlord.village.Office.values()[i];
-            int ry = y + 137 + i * 15;
-            g.drawString(font, Component.translatable(off.key()), x + 10, ry, o.getBoolean("open") ? Ui.INK : Ui.GREY, false);
-            if (o.contains("by")) g.drawString(font, o.getString("by"), x + 120, ry, r.office == i ? Ui.GOLD : Ui.JADE, false);
-            else if (o.getBoolean("open")) g.drawString(font, Component.translatable("realmlord.office.vacant"), x + 120, ry, Ui.GREY, false);
+            int cx = x + 10 + (i / OFFICE_ROWS) * 152, ry = y + 135 + (i % OFFICE_ROWS) * 12;
+            g.drawString(font, Ui.fit(font, Component.translatable(off.key()), 70), cx, ry, o.getBoolean("open") ? Ui.INK : Ui.GREY, false);
+            if (o.contains("by")) g.drawString(font, Ui.fit(font, Component.literal(o.getString("by")), 54), cx + 72, ry, r.office == i ? Ui.GOLD : Ui.JADE, false);
+            else if (o.getBoolean("open")) g.drawString(font, Ui.fit(font, Component.translatable("realmlord.office.vacant"), 54), cx + 72, ry, Ui.GREY, false);
         }
     }
 

@@ -52,6 +52,7 @@ public final class Views {
         v.putInt("stored", stored);
         v.putLongArray("storeGoods", Goods.held(t.storage));
         v.putLong("treasury", t.treasury);
+        v.put("realm", realm(p, t));
         v.putInt("navy", Navy.count(t));
         v.putInt("navyCap", Navy.cap(t));
         int ships = 0;
@@ -72,7 +73,7 @@ public final class Views {
         v.putInt("radius", t.radius());
         v.putInt("wall", t.level.wall());
         v.putInt("speed", Village.speed);
-        v.putInt("grade", Math.max(1, t.level.villageGrade() == 0 ? 3 : t.level.villageGrade()));
+        v.putInt("wallGrade", Math.max(1, Math.min(3, t.level.villageGrade() == 0 ? 3 : t.level.villageGrade())));
         v.putInt("reach", Village.reach(t));
         // Buildings
         ListTag bs = new ListTag();
@@ -188,6 +189,53 @@ public final class Views {
         return false;
     }
 
+    /** The town's affairs for the Realm tab, and the auction's lots for the market. */
+    public static CompoundTag realm(ServerPlayer p, Territory t) {
+        CompoundTag v = new CompoundTag();
+        long today = GaiaCalendar.today(p.server);
+        v.putBoolean("town", t.level.atLeast(com.realmlord.territory.TerritoryLevel.TOWN_1));
+        if (t.ext.getLong("trialDay") > 0) v.putLong("trialIn", t.ext.getLong("trialDay") - today);
+        if (t.ext.getLong("trialStart") > 0) v.putInt("trialWave", t.ext.getInt("trialWave"));
+        if (t.ext.getLong("trialRetry") > today) v.putLong("trialRetry", t.ext.getLong("trialRetry") - today);
+        v.putBoolean("trialWon", t.ext.getBoolean("trialWon"));
+        v.putInt("army", Army.count(t));
+        v.putInt("armyCap", Army.cap(t));
+        v.putInt("armyStrength", Army.strength(t));
+        int[] units = new int[Army.Unit.values().length];
+        for (Army.Unit u : Army.Unit.values()) units[u.ordinal()] = Army.count(t, u);
+        v.putIntArray("units", units);
+        v.putInt("offices", Office.held(t));
+        v.putBoolean("cabinet", Office.cabinet(t));
+        v.putInt("refugees", Refugees.waiting(t));
+        v.putLong("business", TownEconomy.income(t));
+        v.putInt("festivalMorale", Festivals.morale(t));
+        String fest = Festivals.of(GaiaCalendar.month(today));
+        if (fest != null) v.putString("festival", fest);
+        if (Visitors.present(t)) {
+            v.putString("visitor", t.ext.getString("visitorName"));
+            v.putLong("visitorFee", Visitors.fee(t));
+            v.putString("visitorFigure", t.ext.getString("visitorFigure"));
+            v.putLong("visitorLeaves", t.ext.getLong("visitorUntil") - today);
+        }
+        v.put("affiliates", Affiliates.list(t).copy());
+        v.putInt("affiliatesAllowed", Affiliates.allowed(t));
+        v.putBoolean("tribe", com.realmlord.world.Tribes.near(com.realmlord.world.WorldState.get(p.server), t.center, com.realmlord.world.Tribes.RANGE) != null);
+        v.putBoolean("auctionOpen", Auction.open(t));
+        ListTag lots = new ListTag();
+        for (net.minecraft.nbt.Tag tg : Auction.lots(com.realmlord.world.WorldState.get(p.server))) {
+            CompoundTag lot = (CompoundTag) tg, o = new CompoundTag();
+            o.putString("name", Component.Serializer.toJson(Auction.item(lot).getHoverName()));
+            o.putLong("price", lot.getLong("price"));
+            o.putLong("next", Auction.nextBid(lot));
+            o.putBoolean("mine", lot.getString("bidder").equals(p.getUUID().toString()));
+            o.putString("rival", lot.getString("rival"));
+            o.putLong("ends", lot.getLong("ends") - today);
+            lots.add(o);
+        }
+        v.put("lots", lots);
+        return v;
+    }
+
     /** A line on what a building is doing beyond its mode: a caravan on the road, a ship on the slipway. */
     public static Component status(Territory t, Building b) {
         if (b.type == BuildingType.CHAMBER_OF_COMMERCE) {
@@ -220,6 +268,8 @@ public final class Views {
         v.putInt("militiaCount", Village.militiaCount(t));
         v.putInt("navyCap", Navy.cap(t));
         v.putInt("navyCount", Navy.count(t));
+        v.putInt("armyCap", Army.cap(t));
+        v.putInt("armyCount", Army.count(t));
         com.realmlord.martial.ArtData.Art art = FigureArts.signature(r);
         if (art != null) v.putString("figureArt", art.key());
         v.putBoolean("canTeach", FigureArts.canTeach(r));

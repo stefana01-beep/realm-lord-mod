@@ -45,6 +45,8 @@ public class HumanRenderer<T extends Mob> extends HumanoidMobRenderer<T, HumanMo
     public static ResourceLocation banditSkin(BanditEntity e) {
         if (e.getFaction() == BanditEntity.Faction.WATER) return e.getRole() == BanditEntity.Role.CHIEF ? tex("water_bandit_chief")
                 : tex("water_bandit_" + Math.floorMod(e.getSkin(), BanditEntity.WATER_SKINS));
+        if (e.getFaction() == BanditEntity.Faction.MOUNTAIN) return e.getRole() == BanditEntity.Role.CHIEF ? tex("mountain_chief")
+                : tex("mountain_barbarian_" + Math.floorMod(e.getSkin(), BanditEntity.MOUNTAIN_SKINS));
         if (e.getFaction() == BanditEntity.Faction.BARBARIAN) return e.getRole() == BanditEntity.Role.CHIEF ? tex("barbarian_chief")
                 : tex("barbarian_" + Math.floorMod(e.getSkin(), BanditEntity.BARBARIAN_SKINS));
         return switch (e.getRole()) {

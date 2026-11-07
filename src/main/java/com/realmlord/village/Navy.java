@@ -45,6 +45,7 @@ public final class Navy {
             return null;
         }
         if (r.sailor) return null;
+        if (r.unit >= 0) return "realmlord.army.err.soldier";
         if (r.office >= 0) return "realmlord.militia.err.office";
         if (cap(t) == 0) return "realmlord.navy.err.no_dock";
         if (count(t) >= cap(t)) return "realmlord.navy.err.full";

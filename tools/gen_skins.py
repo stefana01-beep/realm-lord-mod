@@ -251,6 +251,13 @@ def raiders():
         out[f"barbarian_{i}"] = person(600 + i, SKINS[(i + 1) % 4], BROWN_HAIR if i == 1 else BLACK_HAIR, "long", rgb(robe), rgb("2a1d16"),
                                        rgb("3a2a1e"), rgb("2a1d16"), inner=rgb(fur), trim=rgb(fur), beard=rgb("2a1d16"),
                                        fur=rgb(fur), wrap=rgb("5a4a3a"))
+    # Mountain barbarians of the southern hills: dark skin, hide wraps, bright headbands.
+    for i, (robe, band) in enumerate([("5a3a22", "c03020"), ("4a4028", "2a8a4a"), ("6a4a2a", "d8a020")]):
+        out[f"mountain_barbarian_{i}"] = person(700 + i, SKINS[3], BLACK_HAIR, "long", rgb(robe), rgb("3a2a1a"), rgb("4a3a26"),
+                                                rgb("2a1d16"), inner=SKINS[3], band=rgb(band), wrap=rgb("8a6a40"), cuff=SKINS[3])
+    out["mountain_chief"] = person(720, SKINS[3], BLACK_HAIR, "long", rgb("3a2412"), rgb("c03020"), rgb("2a1a10"), rgb("120f0e"),
+                                   inner=rgb("e8e0c8"), trim=rgb("c9a13e"), band=rgb("c03020"), beard=rgb("1b1512"),
+                                   fur=rgb("c8b890"), bracer=rgb("c9a13e"))
     out["barbarian_chief"] = person(620, SKINS[3], BLACK_HAIR, "long", rgb("3a1e14"), rgb("c9a13e"), rgb("2a1a12"), rgb("120f0e"),
                                     inner=rgb("d8d0c0"), trim=rgb("d8d0c0"), band=rgb("c9a13e"), beard=rgb("1b1512"),
                                     fur=rgb("e8e0d0"), bracer=rgb("c9a13e"), cuff=rgb("c9a13e"))

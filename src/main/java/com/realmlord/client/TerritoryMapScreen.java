@@ -109,7 +109,7 @@ public class TerritoryMapScreen extends Screen {
         CompoundTag f = fence();
         CompoundTag v = ClientVillageData.manor;
         if (f != null) for (int g = 1; g <= 3; g++) if (com.realmlord.territory.TerritoryLevel.villageWall(g) == f.getInt("fr")) return g;
-        return v == null ? 1 : Math.max(1, Math.min(3, v.getInt("grade")));
+        return v == null ? 1 : Math.max(1, Math.min(3, v.getInt("wallGrade")));
     }
 
     /** The levelling of the grounds under way, or null. */

@@ -231,7 +231,7 @@ public final class BuildingDesigns {
     public static boolean onWall(Territory t, Building b) {
         BlockPos mid = b.center();
         for (Building f : t.buildings) {
-            if (f.type != BuildingType.SIMPLE_FENCE || f.demolishing) continue;
+            if (f.type.style != BuildingType.Style.FENCE || f.demolishing) continue;
             int fr = f.fenceRadius > 0 ? f.fenceRadius : t.level.wall();
             double dist = Math.hypot(mid.getX() - t.center.getX(), mid.getZ() - t.center.getZ());
             if (Math.abs(dist - fr) <= 2.5) return true;
@@ -961,11 +961,13 @@ public final class BuildingDesigns {
             }
             b.fenceFill = fill;
         }
-        BlockState plank = Blocks.OAK_PLANKS.defaultBlockState();
-        BlockState earth = Blocks.DIRT.defaultBlockState();
-        BlockState post = Blocks.STRIPPED_SPRUCE_LOG.defaultBlockState();
-        BlockState trim = Blocks.SPRUCE_PLANKS.defaultBlockState();
-        BlockState cap = Blocks.SPRUCE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM);
+        // The town's city wall is stone: brick courses, carved piers and crenellations, two blocks higher.
+        boolean city = b.type == BuildingType.CITY_WALL;
+        BlockState plank = city ? Blocks.STONE_BRICKS.defaultBlockState() : Blocks.OAK_PLANKS.defaultBlockState();
+        BlockState earth = city ? Blocks.COBBLESTONE.defaultBlockState() : Blocks.DIRT.defaultBlockState();
+        BlockState post = city ? Blocks.CHISELED_STONE_BRICKS.defaultBlockState() : Blocks.STRIPPED_SPRUCE_LOG.defaultBlockState();
+        BlockState trim = city ? Blocks.POLISHED_ANDESITE.defaultBlockState() : Blocks.SPRUCE_PLANKS.defaultBlockState();
+        BlockState cap = city ? Blocks.STONE_BRICK_WALL.defaultBlockState() : Blocks.SPRUCE_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM);
         boolean walkway = walkway(t);
         int[] rails = new int[n];
         boolean[] gate = new boolean[n];
@@ -973,7 +975,7 @@ public final class BuildingDesigns {
             int y = b.fenceYs[i];
             int neighbour = Math.max(b.fenceYs[Math.floorMod(i - 1, n)], b.fenceYs[Math.floorMod(i + 1, n)]);
             // The top course runs no lower than one below either neighbour's, so no gaps open in the wall.
-            rails[i] = Math.max(y, neighbour - 1) + 2;
+            rails[i] = Math.max(y, neighbour - 1) + (city ? 4 : 2);
             gate[i] = b.isGate(bearing(t.center, cols.get(i)[0], cols.get(i)[1]));
         }
         List<Placement> out = new ArrayList<>();
@@ -1011,11 +1013,33 @@ public final class BuildingDesigns {
             }
         }
         if (walkway) walk(level, t, b, cols, rails, gate, out);
+        if (city) moat(t, b, n, gate, out);
         out.removeIf(pl -> towers.contains(((long) pl.pos().getX() << 32) ^ (pl.pos().getZ() & 0xffffffffL)));
         // One block to a place: the first claim wins (the wall before the walk, the walk before a ladder).
         java.util.Set<BlockPos> taken = new java.util.HashSet<>();
         out.removeIf(pl -> !taken.add(pl.pos()));
         return out;
+    }
+
+    /**
+     * The moat outside a city wall (Shanhai's "city protection river"): a channel two wide and two
+     * deep, three blocks out, its water at the wall's foot, bridged with planks at the gates.
+     */
+    private static void moat(Territory t, Building b, int n, boolean[] gate, List<Placement> out) {
+        BlockState water = Blocks.WATER.defaultBlockState(), bridge = Blocks.SPRUCE_PLANKS.defaultBlockState();
+        BlockState bed = Blocks.COBBLESTONE.defaultBlockState(), air = AIR;
+        for (int ring = 3; ring <= 4; ring++) {
+            for (int[] c : fenceColumns(t.center, b.fenceRadius + ring)) {
+                double bear = bearing(t.center, c[0], c[1]);
+                int i = Math.floorMod((int) Math.round(bear / 360.0 * n), n);
+                int y = b.fenceYs[i];
+                boolean over = gate[i] || gate[Math.floorMod(i - 1, n)] || gate[Math.floorMod(i + 1, n)];
+                out.add(new Placement(new BlockPos(c[0], y - 3, c[1]), bed));
+                out.add(new Placement(new BlockPos(c[0], y - 2, c[1]), water));
+                out.add(new Placement(new BlockPos(c[0], y - 1, c[1]), over ? bridge : water));
+                for (int k = 0; k < 3; k++) out.add(new Placement(new BlockPos(c[0], y + k, c[1]), air));
+            }
+        }
     }
 
     /** Columns under towers (built or being built) that stand on or by the wall. */

@@ -40,23 +40,6 @@ public final class Raids {
     public static final String TERRITORY = "realmlord_raid_territory";
     public static final long CHIEF_MERIT = 150;
 
-    /** A beastwave is over: raids follow on the villages it wore down. */
-    public static void afterBeastwave(MinecraftServer server) {
-        long today = GaiaCalendar.today(server);
-        RandomSource r = server.overworld().getRandom();
-        for (Territory t : TerritoryData.get(server).all()) {
-            if (t.level.ordinal() < 1 || t.ext.getLong("raidDay") > today) continue;
-            schedule(server, t, today + 3 + r.nextInt(5));
-        }
-    }
-
-    public static void schedule(MinecraftServer server, Territory t, long day) {
-        t.ext.putLong("raidDay", day);
-        t.ext.putInt("raidYear", GaiaCalendar.year(day));
-        ServerLevel level = server.getLevel(t.dimension);
-        if (level != null) Village.tell(level, t, Component.translatable("realmlord.raid.warning", t.name, day - GaiaCalendar.today(server)));
-    }
-
     public static int bandSize(Territory t) {
         double n = 4 + t.residents.size() / 15.0 + t.level.ordinal() * 2;
         n *= Temples.warding(t) * Math.max(0.5, 1.0 - 0.1 * FigureArts.count(t, "strategist"));
@@ -67,36 +50,27 @@ public final class Raids {
         return Math.max(1, Math.min(5, 1 + t.level.ordinal() / 2 + Math.max(0, (GaiaCalendar.year(day) - 2) / 3)));
     }
 
-    /** Each village's day: autumn raids are planned, a planned raid comes, and yesterday's band withdraws. */
+    /** Each territory's day: the raider attack that answers a county application (see Trials). */
     public static void day(ServerLevel level, Territory t, long day, RandomSource rnd) {
-        long raid = t.ext.getLong("raidDay");
-        int month = GaiaCalendar.month(day);
-        int year = GaiaCalendar.year(day);
-        if (raid <= 0 && (month == 9 || month == 10) && year >= 2 && t.ext.getInt("raidYear") != year && t.residents.size() >= 40
-                && rnd.nextInt((int) Math.max(1, GaiaCalendar.daysPerMonth() * 3)) == 0) {
-            schedule(level.getServer(), t, day + 2);
-            return;
-        }
-        if (t.ext.getLong("raidEnds") > 0 && t.ext.getLong("raidEnds") <= day) withdraw(level, t);
-        if (raid > 0 && raid <= day) {
-            t.ext.remove("raidDay");
-            if (raid < day - 1) return;
-            if (level.isLoaded(t.center)) {
-                int n = spawn(level, t, day);
-                t.ext.putLong("raidEnds", day + 1);
-                Village.tell(level, t, Component.translatable("realmlord.raid.arrived", n, t.name));
-            } else offScreen(level, t, day);
-        }
+        Trials.day(level, t, day, rnd);
     }
 
     /** The band gathers on the northern side, past the border, and marches on the manor. */
     public static int spawn(ServerLevel level, Territory t, long day) {
+        return spawnBand(level, t, bandSize(t), tier(t, day), -Math.PI / 2, 1, TAG);
+    }
+
+    /**
+     * A band of n barbarian raiders (the first {@code chiefs} of them chieftains) gathering past
+     * the border around a bearing, then marching on the manor. Returns how many came.
+     */
+    public static int spawnBand(ServerLevel level, Territory t, int n, int tier, double bearing, int chiefs, String tag) {
         RandomSource r = level.getRandom();
-        int n = bandSize(t), tier = tier(t, day), made = 0;
+        int made = 0;
         for (int i = 0; i < n; i++) {
             BlockPos at = null;
             for (int tries = 0; tries < 16 && at == null; tries++) {
-                double a = -Math.PI / 2 + (r.nextDouble() - 0.5) * (tries < 5 ? 1.2 : Math.PI);
+                double a = bearing + (r.nextDouble() - 0.5) * (tries < 5 ? 1.2 : Math.PI);
                 // Past the border if that ground is loaded, closer in if not.
                 int d = tries < 8 ? t.radius() + 20 + r.nextInt(10) : tries < 12 ? t.radius() + r.nextInt(8) : t.radius() / 2 + r.nextInt(8);
                 int x = t.center.getX() + (int) (Math.cos(a) * d), z = t.center.getZ() + (int) (Math.sin(a) * d);
@@ -112,11 +86,12 @@ public final class Raids {
             b.getPersistentData().remove("realmlord_wild");
             b.setFaction(BanditEntity.Faction.BARBARIAN);
             b.setSkin(r.nextInt(BanditEntity.BARBARIAN_SKINS));
-            b.configure(i == 0 ? BanditEntity.Role.CHIEF : r.nextInt(10) < 3 ? BanditEntity.Role.ARCHER : BanditEntity.Role.SWORDSMAN, i == 0 ? tier + 1 : tier);
+            b.configure(i < chiefs ? BanditEntity.Role.CHIEF : r.nextInt(10) < 3 ? BanditEntity.Role.ARCHER : BanditEntity.Role.SWORDSMAN, i < chiefs ? tier + 1 : tier);
             b.setFaction(BanditEntity.Faction.BARBARIAN);
             b.getPersistentData().putLong(BanditEntity.RAID_TARGET, t.center.asLong());
             b.getPersistentData().putInt(TERRITORY, t.id);
             b.addTag(TAG);
+            if (!tag.equals(TAG)) b.addTag(tag);
             b.setPersistenceRequired();
             level.addFreshEntity(b);
             made++;
@@ -178,6 +153,11 @@ public final class Raids {
             }
             if (r.nextFloat() < 0.10F) chief.spawnAtLocation(com.realmlord.item.SummoningTokenItem.of(0));
             chief.spawnAtLocation(new ItemStack(net.minecraft.world.item.Items.LEATHER, 2 + r.nextInt(4)));
+        } else if (chief.getFaction() == BanditEntity.Faction.MOUNTAIN) {
+            chief.spawnAtLocation(new ItemStack(net.minecraft.world.item.Items.LEATHER, 4 + r.nextInt(6)));
+            chief.spawnAtLocation(new ItemStack(ModItems.GOLD_COIN.get(), 1 + r.nextInt(3)));
+            if (r.nextFloat() < 0.25F + 0.05F * looting) chief.spawnAtLocation(com.realmlord.martial.Arts.random(r, com.realmlord.martial.ArtGrade.GOLD));
+            if (r.nextFloat() < 0.06F) chief.spawnAtLocation(com.realmlord.item.SummoningTokenItem.of(0));
         } else if (chief.getFaction() == BanditEntity.Faction.WATER) {
             if (r.nextFloat() < 0.2F + 0.05F * looting) chief.spawnAtLocation(com.realmlord.loot.Manuals.of(com.realmlord.loot.Manuals.WARSHIPS));
             if (r.nextFloat() < 0.08F) chief.spawnAtLocation(com.realmlord.item.SummoningTokenItem.of(0));
@@ -201,6 +181,8 @@ public final class Raids {
             }
         } else if (b.getFaction() == BanditEntity.Faction.WATER) {
             WaterForts.chiefSlain(level, b, p);
+        } else if (b.getFaction() == BanditEntity.Faction.MOUNTAIN) {
+            Tribes.chiefSlain(level, b, p);
         }
     }
 }

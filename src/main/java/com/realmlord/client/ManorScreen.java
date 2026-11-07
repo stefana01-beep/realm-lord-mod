@@ -30,7 +30,7 @@ import java.util.List;
  * talents) and Market (resources and blueprints).
  */
 public class ManorScreen extends Screen {
-    public static final int OVERVIEW = 0, BUILD = 1, PEOPLE = 2, MARKET = 3, RECORDS = 4;
+    public static final int OVERVIEW = 0, BUILD = 1, PEOPLE = 2, MARKET = 3, RECORDS = 4, REALM = 5;
     private static final int W = 400, H = 248;
     private static final int ROW = 20;
 
@@ -68,25 +68,27 @@ public class ManorScreen extends Screen {
         CompoundTag v = v();
         if (v == null) return;
         int x = left(), y = top();
-        String[] tabs = {"realmlord.manor.tab.overview", "realmlord.manor.tab.build", "realmlord.manor.tab.people", "realmlord.manor.tab.market", "realmlord.manor.tab.records"};
+        String[] tabs = {"realmlord.manor.tab.overview", "realmlord.manor.tab.build", "realmlord.manor.tab.people", "realmlord.manor.tab.market",
+                "realmlord.manor.tab.records", "realmlord.manor.tab.realm"};
         for (int i = 0; i < tabs.length; i++) {
             final int idx = i;
             Button b = Button.builder(Component.translatable(tabs[i]), btn -> {
                 tab = idx;
                 scroll = 0;
                 init();
-            }).bounds(x + 8 + i * 64, y + 20, 62, 16).build();
+            }).bounds(x + 8 + i * 56, y + 20, 54, 16).build();
             b.active = tab != i;
             addRenderableWidget(b);
         }
         addRenderableWidget(Button.builder(Component.translatable("realmlord.manor.tab.map"), btn -> minecraft.setScreen(new TerritoryMapScreen(null)))
-                .bounds(x + 8 + 5 * 64, y + 20, 64, 16).build());
+                .bounds(x + 8 + 6 * 56, y + 20, 48, 16).build());
         switch (tab) {
             case OVERVIEW -> initOverview(v, x, y);
             case BUILD -> initBuild(v, x, y);
             case PEOPLE -> initPeople(v, x, y);
             case RECORDS -> {
             }
+            case REALM -> initRealm(v, x, y);
             default -> initMarket(v, x, y);
         }
     }
@@ -227,8 +229,7 @@ public class ManorScreen extends Screen {
     // ------------------------------------------------------------------ construction
 
     private List<CompoundTag> buildRows(CompoundTag v) {
-        int grade = Math.max(1, TerritoryLevel.byId(v.getInt("level")).villageGrade());
-        if (TerritoryLevel.byId(v.getInt("level")).villageGrade() == 0) grade = 3;
+        int grade = TerritoryLevel.byId(v.getInt("level")).buildGrade();
         List<CompoundTag> rows = new ArrayList<>();
         ListTag opts = v.getList("options", Tag.TAG_COMPOUND);
         for (int i = 0; i < opts.size(); i++) {
@@ -251,8 +252,9 @@ public class ManorScreen extends Screen {
             String err = o.getString("err");
             Component label = Component.translatable(free ? "realmlord.manor.place_free" : bt.placed() ? "realmlord.manor.place" : "realmlord.manor.build");
             Button b = Button.builder(label, btn -> {
-                // The fence is laid out on the map too, choosing its gates.
-                minecraft.setScreen(new TerritoryMapScreen(bt));
+                // The city wall rings the town outside the palisade, through its gates; the rest go on the map.
+                if (bt == BuildingType.CITY_WALL) send(ManorActionPacket.Action.BUILD_CITY_WALL, 0, 0);
+                else minecraft.setScreen(new TerritoryMapScreen(bt));
             }).bounds(x + W - 62, y + 44 + i * ROW, 52, 16).build();
             b.active = err.isEmpty();
             if (!err.isEmpty()) b.setTooltip(Tooltip.create(Component.translatable(err)));
@@ -297,7 +299,7 @@ public class ManorScreen extends Screen {
 
     private void renderBuild(GuiGraphics g, CompoundTag v, int x, int y) {
         List<CompoundTag> rows = buildRows(v);
-        int grade = TerritoryLevel.byId(v.getInt("level")).villageGrade();
+        int grade = TerritoryLevel.byId(v.getInt("level")).buildGrade();
         Ui.inset(g, x + 6, y + 40, W - 12, BUILD_ROWS * ROW + 4);
         for (int i = 0; i < BUILD_ROWS && i + scroll < rows.size(); i++) {
             CompoundTag o = rows.get(i + scroll);
@@ -482,8 +484,7 @@ public class ManorScreen extends Screen {
     }
 
     private List<BuildingType> blueprintRows(CompoundTag v) {
-        int grade = TerritoryLevel.byId(v.getInt("level")).villageGrade();
-        if (grade == 0) grade = 3;
+        int grade = TerritoryLevel.byId(v.getInt("level")).buildGrade();
         List<BuildingType> out = new ArrayList<>();
         for (BuildingType bt : BuildingType.values()) if (bt.blueprint && bt.grade <= grade + 1) out.add(bt);
         return out;
@@ -502,9 +503,24 @@ public class ManorScreen extends Screen {
                 scroll = 0;
                 init();
             }).bounds(x + 8 + k * 96, y + 38, 94, 14).build();
-            b.active = k < 2 && k != platform;
-            if (k >= 2) b.setTooltip(Tooltip.create(Component.translatable("realmlord.market.platform.locked")));
+            boolean auction = k == 2 && v.getCompound("realm").getBoolean("auctionOpen");
+            b.active = (k < 2 || auction) && k != platform;
+            if (k == 2 && !auction) b.setTooltip(Tooltip.create(Component.translatable("realmlord.market.platform.auction_locked")));
+            else if (k == 3) b.setTooltip(Tooltip.create(Component.translatable("realmlord.market.platform.locked")));
             addRenderableWidget(b);
+        }
+        if (platform == 2) {
+            ListTag lots = v.getCompound("realm").getList("lots", Tag.TAG_COMPOUND);
+            for (int i = 0; i < lots.size(); i++) {
+                CompoundTag lot = lots.getCompound(i);
+                final int idx = i;
+                Button bid = Button.builder(Component.translatable(lot.getBoolean("mine") ? "realmlord.auction.leading" : "realmlord.auction.bid_button"),
+                                b -> send(ManorActionPacket.Action.AUCTION_BID, idx, 0)).bounds(x + W - 92, y + 66 + i * 30, 80, 14)
+                        .tooltip(Tooltip.create(Component.translatable("realmlord.auction.bid.tip", Ui.money(lot.getLong("next"))))).build();
+                bid.active = !lot.getBoolean("mine");
+                addRenderableWidget(bid);
+            }
+            return;
         }
         if (platform == 0) {
             int n = Goods.values().length;
@@ -562,6 +578,25 @@ public class ManorScreen extends Screen {
 
     private void renderMarket(GuiGraphics g, CompoundTag v, int x, int y) {
         Component coins = Component.translatable("realmlord.market.your_coins", Ui.money(v.getLong("coins")));
+        if (platform == 2) {
+            ListTag lots = v.getCompound("realm").getList("lots", Tag.TAG_COMPOUND);
+            Ui.inset(g, x + 6, y + 54, W - 12, H - 66);
+            g.drawString(font, Component.translatable("realmlord.auction.title"), x + 10, y + 57, Ui.GOLD, false);
+            g.drawString(font, coins, x + W - 12 - font.width(coins), y + 57, Ui.INK, false);
+            for (int i = 0; i < lots.size(); i++) {
+                CompoundTag lot = lots.getCompound(i);
+                int ry = y + 68 + i * 30;
+                Component name = Component.Serializer.fromJson(lot.getString("name"));
+                if (name != null) g.drawString(font, Ui.fit(font, name, W - 120), x + 10, ry, Ui.INK, false);
+                Component who = lot.getBoolean("mine") ? Component.translatable("realmlord.auction.you_lead")
+                        : lot.getString("rival").isEmpty() ? Component.translatable("realmlord.auction.no_bids")
+                        : Component.translatable("realmlord.auction.rival_leads", lot.getString("rival"));
+                g.drawString(font, Component.translatable("realmlord.auction.line", Ui.money(lot.getLong("price")), lot.getLong("ends")), x + 10, ry + 10,
+                        Ui.MUTED, false);
+                g.drawString(font, who, x + 180, ry + 10, lot.getBoolean("mine") ? Ui.JADE : Ui.GREY, false);
+            }
+            return;
+        }
         if (platform == 0) {
             Ui.inset(g, x + 6, y + 54, W - 12, GOOD_ROWS * 15 + 18);
             g.drawString(font, Component.translatable("realmlord.market.materials_title"), x + 10, y + 57, Ui.GOLD, false);
@@ -600,6 +635,81 @@ public class ManorScreen extends Screen {
             }
             if (bps.size() > BP_ROWS) g.drawString(font, Component.translatable("realmlord.manor.scroll", scroll + 1, bps.size() - BP_ROWS + 1), x + 10, y + 236, Ui.MUTED, false);
         }
+    }
+
+    // ------------------------------------------------------------------ realm (the town's affairs)
+
+    private void initRealm(CompoundTag v, int x, int y) {
+        CompoundTag r = v.getCompound("realm");
+        if (r.contains("visitor")) {
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.visitor.recruit", Ui.money(r.getLong("visitorFee"))),
+                    b -> send(ManorActionPacket.Action.RECRUIT_VISITOR, 0, 0)).bounds(x + 206, y + 70, 184, 14).build());
+        }
+        Button found = Button.builder(Component.translatable("realmlord.affiliate.found_button"), b -> send(ManorActionPacket.Action.FOUND_AFFILIATE, 0, 0))
+                .bounds(x + 206, y + H - 26, 184, 16).tooltip(Tooltip.create(Component.translatable("realmlord.affiliate.found.tip",
+                        Ui.money(com.realmlord.village.Affiliates.COST), com.realmlord.village.Affiliates.WOOD, com.realmlord.village.Affiliates.STONE,
+                        com.realmlord.village.Affiliates.SETTLERS))).build();
+        found.active = r.getList("affiliates", Tag.TAG_COMPOUND).size() < r.getInt("affiliatesAllowed");
+        addRenderableWidget(found);
+    }
+
+    private void renderRealm(GuiGraphics g, CompoundTag v, int x, int y) {
+        CompoundTag r = v.getCompound("realm");
+        int lx = x + 10, yy = y + 46;
+        Ui.inset(g, x + 6, y + 40, 190, H - 50);
+        Ui.inset(g, x + 202, y + 40, 192, H - 50);
+        if (!r.getBoolean("town")) {
+            Ui.wrap(g, font, Component.translatable("realmlord.realm.village"), lx, yy, 180, Ui.MUTED);
+            return;
+        }
+        // The county trial.
+        g.drawString(font, Component.translatable("realmlord.realm.trial"), lx, yy, Ui.GOLD, false);
+        yy += 12;
+        Component trial = r.contains("trialWave") ? Component.translatable("realmlord.realm.trial.fighting", r.getInt("trialWave"), com.realmlord.world.Trials.WAVES)
+                : r.contains("trialIn") ? Component.translatable("realmlord.realm.trial.coming", r.getLong("trialIn"))
+                : r.getBoolean("trialWon") ? Component.translatable("realmlord.realm.trial.won")
+                : r.contains("trialRetry") ? Component.translatable("realmlord.realm.trial.retry", r.getLong("trialRetry"))
+                : Component.translatable("realmlord.realm.trial.none");
+        yy = Ui.wrap(g, font, trial, lx, yy, 180, r.contains("trialWave") ? Ui.RED : Ui.INK) + 4;
+        // The army.
+        g.drawString(font, Component.translatable("realmlord.realm.army", r.getInt("army"), r.getInt("armyCap"), r.getInt("armyStrength")), lx, yy, Ui.GOLD, false);
+        yy += 12;
+        int[] units = r.getIntArray("units");
+        for (int i = 0; i < units.length; i++) {
+            if (units[i] == 0) continue;
+            g.drawString(font, Component.translatable("realmlord.realm.unit", Component.translatable(com.realmlord.village.Army.Unit.values()[i].key()), units[i]),
+                    lx + 6, yy, Ui.INK, false);
+            yy += 10;
+        }
+        if (r.getInt("armyCap") == 0) yy = Ui.wrap(g, font, Component.translatable("realmlord.army.err.no_camp"), lx + 6, yy, 174, Ui.MUTED);
+        yy += 4;
+        g.drawString(font, Component.translatable(r.getBoolean("cabinet") ? "realmlord.realm.cabinet" : "realmlord.realm.offices",
+                r.getInt("offices"), com.realmlord.village.Office.CABINET), lx, yy, r.getBoolean("cabinet") ? Ui.JADE : Ui.INK, false);
+        yy += 12;
+        yy = line(g, lx, yy, Component.translatable("realmlord.realm.refugees", r.getInt("refugees")));
+        yy = line(g, lx, yy, Component.translatable("realmlord.realm.business", Ui.money(r.getLong("business"))));
+        if (r.contains("festival")) line(g, lx, yy, Component.translatable("realmlord.realm.festival",
+                Component.translatable("realmlord.festival." + r.getString("festival")), r.getInt("festivalMorale")));
+        // Right: visitors, affiliated villages, the mountains.
+        int rx = x + 208, ry = y + 46;
+        g.drawString(font, Component.translatable("realmlord.realm.visitor"), rx, ry, Ui.GOLD, false);
+        ry += 12;
+        if (r.contains("visitor")) {
+            Component who = r.getString("visitorFigure").isEmpty() ? Component.literal(r.getString("visitor"))
+                    : Component.translatable("realmlord.figure." + r.getString("visitorFigure"));
+            g.drawString(font, Component.translatable("realmlord.realm.visitor.here", who, r.getLong("visitorLeaves")), rx, ry, Ui.INK, false);
+        } else Ui.wrap(g, font, Component.translatable("realmlord.realm.visitor.none"), rx, ry, 180, Ui.MUTED);
+        ry = y + 92;
+        g.drawString(font, Component.translatable("realmlord.realm.affiliates", r.getList("affiliates", Tag.TAG_COMPOUND).size(), r.getInt("affiliatesAllowed")),
+                rx, ry, Ui.GOLD, false);
+        ry += 12;
+        ListTag af = r.getList("affiliates", Tag.TAG_COMPOUND);
+        for (int i = 0; i < af.size(); i++) {
+            CompoundTag a = af.getCompound(i);
+            g.drawString(font, Component.translatable("realmlord.realm.affiliate", a.getString("name"), a.getInt("grade"), a.getInt("pop")), rx + 6, ry, Ui.INK, false);
+            ry += 10;
+        }
+        if (r.getBoolean("tribe")) Ui.wrap(g, font, Component.translatable("realmlord.realm.tribe"), rx, ry + 6, 180, Ui.RED);
     }
 
     // ------------------------------------------------------------------ records
@@ -678,6 +788,7 @@ public class ManorScreen extends Screen {
                 case BUILD -> renderBuild(g, v, x, y);
                 case PEOPLE -> renderPeople(g, v, x, y);
                 case RECORDS -> renderRecords(g, v, x, y);
+                case REALM -> renderRealm(g, v, x, y);
                 default -> renderMarket(g, v, x, y);
             }
         }

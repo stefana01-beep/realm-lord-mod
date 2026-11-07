@@ -109,7 +109,7 @@ TEXT = {
     "realmlord.upgrade.need_title": "Lord title of at least %s",
     "realmlord.upgrade.need_building": "%s: %s / %s",
     "realmlord.upgrade.need_index": "All four indexes at %s or more",
-    "realmlord.upgrade.town_later": "Upgrading to a town arrives in Phase 4",
+    "realmlord.upgrade.town_later": "Growing past a Grade 1 County arrives in Phase 4",
     "realmlord.upgrade.world": "%s has made the world's no. %s %s of grade %s! Reward: %s merit.",
     "realmlord.upgrade.done": "%s is now a %s of grade %s! The Lord's Manor grows with it. Choose one of three buildings to receive for free.",
     "realmlord.upgrade.free_chosen": "You will receive a %s for free. Place it from the Construction tab.",

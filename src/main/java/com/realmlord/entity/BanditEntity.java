@@ -50,10 +50,11 @@ public class BanditEntity extends Monster implements RangedAttackMob {
     public enum Role { SWORDSMAN, ARCHER, CHIEF }
 
     /** Whose men: highwaymen, the water bandits of the rivers, or barbarians off the steppe. */
-    public enum Faction { BANDIT, WATER, BARBARIAN }
+    public enum Faction { BANDIT, WATER, BARBARIAN, MOUNTAIN }
 
     public static final int WATER_SKINS = 2;
     public static final int BARBARIAN_SKINS = 3;
+    public static final int MOUNTAIN_SKINS = 3;
     /** Persistent data: where a raiding band is marching. */
     public static final String RAID_TARGET = "realmlord_raid_target";
 
@@ -126,6 +127,7 @@ public class BanditEntity extends Monster implements RangedAttackMob {
         return switch (getFaction()) {
             case WATER -> "entity.realmlord.water_bandit_chief";
             case BARBARIAN -> "entity.realmlord.barbarian_chief";
+            case MOUNTAIN -> "entity.realmlord.mountain_chief";
             default -> "entity.realmlord.bandit_chief";
         };
     }
@@ -213,6 +215,7 @@ public class BanditEntity extends Monster implements RangedAttackMob {
 
     @Override
     protected Component getTypeName() {
+        if (getFaction() == Faction.MOUNTAIN) return Component.translatable(getRole() == Role.CHIEF ? chiefKey() : "entity.realmlord.mountain_barbarian");
         if (getFaction() == Faction.WATER) return Component.translatable(getRole() == Role.CHIEF ? chiefKey() : "entity.realmlord.water_bandit");
         if (getFaction() == Faction.BARBARIAN) return Component.translatable(getRole() == Role.CHIEF ? chiefKey()
                 : getRole() == Role.ARCHER ? "entity.realmlord.barbarian_archer" : "entity.realmlord.barbarian");

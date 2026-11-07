@@ -235,7 +235,6 @@ public final class Beastwave {
         w.waveDay = -1;
         w.touch();
         FRONTS.clear();
-        Raids.afterBeastwave(server);
     }
 
     /** For operators: start a beastwave now, or end the one running. */

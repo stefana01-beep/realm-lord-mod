@@ -24,6 +24,14 @@ public final class Ui {
      * open, so nothing is cut off. Returns true if the screen was laid out again at the new scale,
      * in which case the caller's init should stop.
      */
+    /** Text cut to a width, with an ellipsis if it had to be. */
+    public static net.minecraft.util.FormattedCharSequence fit(net.minecraft.client.gui.Font font, Component c, int w) {
+        if (font.width(c) <= w) return c.getVisualOrderText();
+        net.minecraft.network.chat.FormattedText cut = font.substrByWidth(c, w - font.width("\u2026"));
+        return net.minecraft.locale.Language.getInstance().getVisualOrder(net.minecraft.network.chat.FormattedText.composite(cut,
+                net.minecraft.network.chat.FormattedText.of("\u2026")));
+    }
+
     public static boolean fit(net.minecraft.client.gui.screens.Screen s, int w, int h) {
         net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         var win = mc.getWindow();

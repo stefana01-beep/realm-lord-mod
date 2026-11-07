@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 
 /** Client to server: buttons on the Manor screen. */
 public class ManorActionPacket {
-    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT, DEMOLISH, CREW, BUY_GOOD, SELL_GOOD, SELL_SPECIAL, HAND_IN, SELL_STORAGE, OPEN_STORAGE, TAKE_GOOD, GROUNDS, DEPOSIT, SPEED, BUY_WARE, BUY_BOOK }
+    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT, DEMOLISH, CREW, BUY_GOOD, SELL_GOOD, SELL_SPECIAL, HAND_IN, SELL_STORAGE, OPEN_STORAGE, TAKE_GOOD, GROUNDS, DEPOSIT, SPEED, BUY_WARE, BUY_BOOK, BUILD_CITY_WALL, FOUND_AFFILIATE, RECRUIT_VISITOR, AUCTION_BID }
 
     private final Action action;
     private final int a;
@@ -69,6 +69,22 @@ public class ManorActionPacket {
                     com.realmlord.village.Grounds.start(p.serverLevel(), t);
                     Notify.player(p, Component.translatable("realmlord.grounds.started", com.realmlord.village.Grounds.radius(), t.center.getY()));
                 }
+            }
+            case BUILD_CITY_WALL -> {
+                String err = Village.start(p, t, BuildingType.CITY_WALL, t.center, 0);
+                Notify.player(p, err != null ? Component.translatable(err) : Component.translatable("realmlord.city_wall.started", t.name));
+            }
+            case FOUND_AFFILIATE -> {
+                String err = com.realmlord.village.Affiliates.found(p, t);
+                if (err != null) Notify.player(p, err);
+            }
+            case RECRUIT_VISITOR -> {
+                String err = com.realmlord.village.Visitors.recruit(p, t);
+                if (err != null) Notify.player(p, err);
+            }
+            case AUCTION_BID -> {
+                String err = com.realmlord.village.Auction.bid(p, t, a);
+                if (err != null) Notify.player(p, err);
             }
             case BUILD_FENCE -> {
                 String err = Village.start(p, t, BuildingType.SIMPLE_FENCE, t.center, 0);

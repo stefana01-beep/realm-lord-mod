@@ -62,6 +62,22 @@ public enum TerritoryLevel {
         return n == null ? Integer.MAX_VALUE : n.population;
     }
 
+    /**
+     * The grade of buildings this level may build: 1-3 for a village's grades, 4-6 for a town's
+     * (and 6 above, until the county's buildings arrive).
+     */
+    public int buildGrade() {
+        return Math.min(6, ordinal() + 1);
+    }
+
+    public boolean town() {
+        return kind.equals("town");
+    }
+
+    public boolean atLeast(TerritoryLevel l) {
+        return ordinal() >= l.ordinal();
+    }
+
     /** Village grade 1-3, or 0 for towns and above. */
     public int villageGrade() {
         return kind.equals("village") ? grade : 0;

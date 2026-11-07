@@ -17,7 +17,8 @@ public enum Job {
     SALT_MAKING("salt_making"),
     COPPER_MINING("copper_mining"),
     COAL_MINING("coal_mining"),
-    FISHING("fishing");
+    FISHING("fishing"),
+    HERB_GROWING("herb_growing");
 
     public final String id;
 

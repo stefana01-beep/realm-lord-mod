@@ -31,7 +31,8 @@ public final class Trade {
     private Trade() {}
 
     public static final Goods[] CARGO = {Goods.FINE_SILK, Goods.LINEN, Goods.WINE, Goods.TOOLS, Goods.POTTERY, Goods.SALT, Goods.HERBS,
-            Goods.LEATHER, Goods.COPPER, Goods.COAL};
+            Goods.LEATHER, Goods.COPPER, Goods.COAL,
+            Goods.JEWELRY, Goods.GARMENTS, Goods.CONDIMENTS};
     /** The capitals ships can reach: Jingdu (by the Bohai), Jianye (up the Yangtze), Quanzhou (on the coast). */
     public static final boolean[] BY_SEA = {true, false, false, false, false, false, false, true, true};
     public static final double TAX = 0.10;
@@ -74,7 +75,8 @@ public final class Trade {
     public static int inns(Territory t) {
         int n = 0;
         for (Building b : t.buildings) {
-            if (b.complete && (b.designRef.endsWith(":road_inn") || b.designRef.endsWith(":relay_station"))) n++;
+            if (b.complete && (b.designRef.endsWith(":road_inn") || b.designRef.endsWith(":relay_station")
+                    || b.type == BuildingType.INN || b.type == BuildingType.RELAY_STATION)) n++;
         }
         return n;
     }

@@ -822,6 +822,117 @@ def ship_turreted():
 SHIP_MODELS = {"merchant_ship": ship_merchant, "mengchong_warship": ship_mengchong, "turreted_ship": ship_turreted}
 
 
+@design
+def cemetery():
+    # A walled cemetery (the novel's chapter 61): rows of graves with headstones, cypress, a shrine.
+    d = D(13, 6, 11)
+    d.fill(0, -1 + 1, 0, 12, 0, 10, M("grass_block")) if False else None
+    d.walls(0, 0, 0, 12, 0, 10, M("stone_brick_wall"))
+    d.set(6, 0, 0, AIR)
+    d.set(5, 0, 0, M("stone_bricks")); d.set(7, 0, 0, M("stone_bricks"))
+    d.set(5, 1, 0, LANTERN); d.set(7, 1, 0, LANTERN)
+    for z in range(1, 8):
+        d.set(6, 0, z, M("gravel")) if False else d.set(6, 0, z, AIR)
+    for gz in (2, 4, 6):
+        for gx in (2, 4, 8, 10):
+            d.set(gx, 0, gz, M("stone_brick_wall"))
+            d.set(gx, 0, gz - 1, M("coarse_dirt")) if False else d.set(gx, 0, gz - 1, M("moss_carpet"))
+    for x, z in [(1, 9), (11, 9), (1, 1), (11, 1)]:
+        d.fill(x, 0, z, x, 2, z, M("spruce_log"))
+        d.set(x, 3, z, M("spruce_leaves[persistent=true]"))
+    # The memorial shrine at the back.
+    d.fill(4, 0, 8, 8, 0, 9, M("polished_andesite"))
+    d.fill(5, 1, 9, 7, 1, 9, M("chiseled_stone_bricks"))
+    d.set(6, 2, 9, M("chiseled_stone_bricks"))
+    d.set(6, 1, 8, M("candle[candles=3,lit=true]"))
+    for x in (4, 8):
+        d.fill(x, 1, 8, x, 2, 8, RED)
+    d.fill(4, 3, 7, 8, 3, 10, M("deepslate_tile_slab[type=bottom]"))
+    return d
+
+
+@design
+def barbarian_village():
+    # A mountain barbarian village: a log palisade, hide huts round a totem and a fire pit.
+    d = D(17, 8, 17)
+    for x in range(17):
+        for z in range(17):
+            if x in (0, 16) or z in (0, 16):
+                d.fill(x, 0, z, x, 2, z, M("spruce_log"))
+                if (x + z) % 2 == 0: d.set(x, 3, z, M("spruce_fence"))
+    d.set(8, 0, 0, AIR); d.set(8, 1, 0, AIR); d.set(8, 2, 0, AIR)
+    d.set(7, 3, 0, M("skeleton_skull[rotation=8]")); d.set(9, 3, 0, M("skeleton_skull[rotation=8]"))
+    for hx, hz in [(3, 3), (11, 3), (3, 11), (11, 11)]:
+        d.walls(hx - 1, 0, hz - 1, hx + 1, 1, hz + 1, M("brown_wool"))
+        d.set(hx, 0, hz - 1 if hz > 8 else hz + 1, AIR); d.set(hx, 1, hz - 1 if hz > 8 else hz + 1, AIR)
+        d.fill(hx - 1, 2, hz - 1, hx + 1, 2, hz + 1, M("hay_block"))
+        d.set(hx, 3, hz, M("hay_block"))
+    d.set(3, 0, 3, M("chest[facing=south]"))
+    # The totem and the fire.
+    d.fill(8, 0, 8, 8, 3, 8, M("stripped_dark_oak_log"))
+    d.set(8, 4, 8, M("carved_pumpkin[facing=south]"))
+    d.set(8, 5, 8, M("bone_block"))
+    d.set(8, 0, 11, M("campfire[lit=true,facing=north]"))
+    d.set(6, 0, 6, M("bone_block[axis=x]")); d.set(10, 0, 10, M("bone_block[axis=z]"))
+    return d
+
+
+@design
+def bandit_fortress():
+    # A great bandit stronghold: stone walls with corner towers, a gatehouse, barracks and the chief's keep.
+    d = D(21, 11, 21)
+    MS, CS = M("mossy_cobblestone"), M("cobblestone")
+    for x in range(21):
+        for z in range(21):
+            if x in (0, 20) or z in (0, 20):
+                d.fill(x, 0, z, x, 3, z, CS if (x * 7 + z * 3) % 4 else MS)
+                if (x + z) % 2 == 0: d.set(x, 4, z, M("cobblestone_wall"))
+    for x, z in [(0, 0), (20, 0), (0, 20), (20, 20)]:
+        d.fill(x - (1 if x else 0), 0, z - (1 if z else 0), x + (0 if x else 1), 6, z + (0 if z else 1), CS)
+        d.set(x, 7, z, M("campfire[lit=true,facing=north]"))
+    d.clear(9, 0, 0, 11, 2, 0)
+    d.fill(9, 3, 0, 11, 3, 0, M("spruce_planks"))
+    # Barracks along the west wall.
+    d.walls(2, 0, 3, 6, 2, 12, M("spruce_planks"))
+    d.set(6, 0, 7, AIR); d.set(6, 1, 7, AIR)
+    d.fill(2, 3, 3, 6, 3, 12, M("spruce_slab[type=bottom]"))
+    for z in (5, 8, 11): d.set(3, 0, z, M("red_wool"))
+    # The keep.
+    d.walls(12, 0, 12, 18, 4, 18, M("stone_bricks"))
+    d.set(15, 0, 12, AIR); d.set(15, 1, 12, AIR)
+    d.fill(12, 5, 12, 18, 5, 18, M("stone_brick_slab[type=bottom]"))
+    d.set(16, 0, 16, M("chest[facing=north]"))
+    d.set(14, 0, 16, M("chest[facing=north]"))
+    d.set(15, 2, 13, M("lantern[hanging=true]"))
+    d.set(10, 0, 10, M("campfire[lit=true,facing=north]"))
+    return d
+
+
+@design
+def ruined_city():
+    # The ruins of an ancient city: broken walls, toppled columns, a roofless hall with its treasury.
+    d = D(25, 8, 25)
+    MS, MB, CB = M("mossy_stone_bricks"), M("cracked_stone_bricks"), M("chiseled_stone_bricks")
+    for x in range(25):
+        for z in range(25):
+            if x in (0, 24) or z in (0, 24):
+                h = (x * 13 + z * 7) % 4
+                for y in range(h): d.set(x, y, z, MS if (x + y + z) % 3 else MB)
+    for x, z in [(6, 6), (6, 18), (18, 6), (18, 18), (12, 4), (4, 12), (20, 12)]:
+        h = 1 + (x + z) % 5
+        d.fill(x, 0, z, x, h, z, M("stone_brick_wall") if h < 3 else MB)
+        if h >= 4: d.set(x, h + 1, z, CB)
+    d.walls(9, 0, 9, 15, 2, 15, MS)
+    d.clear(12, 0, 9, 12, 1, 9)
+    d.set(10, 0, 14, M("chest[facing=north]"))
+    d.set(14, 0, 14, M("chest[facing=north]"))
+    d.fill(11, 0, 13, 13, 0, 13, M("polished_andesite"))
+    d.set(12, 1, 13, M("skeleton_skull[rotation=0]"))
+    for x, z in [(3, 3), (21, 21), (3, 21), (21, 3)]:
+        d.set(x, 0, z, M("cobweb"))
+    return d
+
+
 def main():
     for name, fn in SHIP_MODELS.items():
         print(f"ship {name}: {save_ship(fn(), name)} voxels")

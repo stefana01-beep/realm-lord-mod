@@ -62,6 +62,42 @@ public enum BuildingType {
     CHAMBER_OF_COMMERCE(2, true, Occupation.MERCHANT, 0, 200, 150, 48, 11, 9, Style.DESIGN, 0, 0),
     /** The academy: the private school grown great; its scholars sit the imperial examination. */
     ACADEMY(3, true, Occupation.SCHOLAR, 2, 600, 400, 72, 15, 13, Style.DESIGN, 0, 0),
+    // ---------------------------------------------------------------- Grade 1 town (the novel's chapters 50-75)
+    /** The town's stone city wall, outside the old palisade, with gatehouses and a moat. */
+    CITY_WALL(4, false, null, 0, 600, 4000, 120, 0, 0, Style.FENCE, 4, 1),
+    BRICK_KILN(4, true, Occupation.POTTER, 0, 400, 600, 48, 9, 9, Style.WORKSHOP, 4, 1),
+    CEMETERY(4, false, null, 0, 200, 300, 24, 13, 11, Style.DESIGN, 4, 1),
+    ORCHARD(4, false, null, 0, 100, 0, 24, 13, 13, Style.FARM, 4, 1),
+    PUBLIC_TOILET(4, true, null, 0, 60, 60, 12, 5, 5, Style.HUT, 4, 1),
+    ARSENAL(4, true, Occupation.BLACKSMITH, 1, 600, 400, 48, 11, 9, Style.WORKSHOP, 4, 1),
+    /** A walled ward of courtyard houses: 400 beds. */
+    RESIDENTIAL_QUARTER(4, true, null, 0, 600, 500, 48, 27, 25, Style.COURTYARD, 0, 0),
+    /** The Recruitment Hall: one special talent a month, for 10 gold. */
+    RECRUITMENT_HALL(4, true, Occupation.CIVIL_SERVANT, 1, 300, 200, 48, 9, 9, Style.HALL, 0, 0),
+    /** The town's government offices: the departments sit here. */
+    GOVERNMENT_OFFICE(4, true, Occupation.CIVIL_SERVANT, 0, 500, 400, 48, 13, 11, Style.HALL, 4, 1),
+    // ---------------------------------------------------------------- Grade 2 town
+    RELAY_STATION(5, true, Occupation.STABLEMAN, 0, 1500, 800, 72, 11, 9, Style.SHED, 5, 1),
+    VEGETABLE_FIELD(5, false, null, 0, 400, 200, 48, 13, 13, Style.FARM, 5, 1),
+    MEDICINE_GARDEN(5, false, null, 0, 400, 200, 48, 11, 11, Style.FARM, 5, 1),
+    PHARMACY(5, true, Occupation.DOCTOR, 0, 800, 200, 48, 7, 7, Style.SHOP, 5, 1),
+    TEXTILE_MILL(5, true, Occupation.TAILOR, 0, 1800, 600, 72, 11, 9, Style.WORKSHOP, 5, 1),
+    BANK(5, true, Occupation.MERCHANT, 0, 2000, 1000, 72, 11, 9, Style.HALL, 5, 1),
+    /** The novel's sticking point: it needs an alchemist, and Shanhai waited weeks for one. */
+    ALCHEMY_WORKSHOP(5, true, Occupation.ALCHEMIST, 0, 1500, 1800, 72, 9, 9, Style.WORKSHOP, 5, 1),
+    /** The City Defense Camp: the standing army's barracks and drill ground. */
+    CITY_DEFENSE_CAMP(4, true, Occupation.OFFICER, 1, 800, 1200, 72, 15, 13, Style.CAMP, 0, 0),
+    // ---------------------------------------------------------------- Grade 3 town
+    INN(6, true, Occupation.COOK, 0, 800, 400, 48, 11, 9, Style.HALL, 6, 1),
+    PAWNSHOP(6, true, Occupation.MERCHANT, 0, 600, 400, 48, 7, 7, Style.SHOP, 6, 1),
+    JEWELRY_SHOP(6, true, Occupation.ALCHEMIST, 0, 600, 600, 48, 7, 7, Style.SHOP, 6, 1),
+    GARMENT_WORKSHOP(6, true, Occupation.TAILOR, 1, 800, 400, 48, 9, 7, Style.WORKSHOP, 6, 1),
+    FARMERS_MARKET(6, false, null, 0, 400, 200, 24, 11, 11, Style.SHED, 6, 1),
+    VINEGAR_WORKSHOP(6, true, Occupation.COOK, 0, 400, 200, 48, 7, 7, Style.WORKSHOP, 6, 1),
+    SOY_SAUCE_WORKSHOP(6, true, Occupation.COOK, 0, 400, 200, 48, 7, 7, Style.WORKSHOP, 6, 1),
+    TOFU_WORKSHOP(6, true, Occupation.COOK, 0, 300, 150, 24, 7, 7, Style.WORKSHOP, 6, 1),
+    LARGE_BREWERY(6, true, Occupation.WINEMAKER, 1, 1200, 600, 72, 11, 9, Style.WORKSHOP, 6, 1),
+    AUCTION_HOUSE(6, true, Occupation.MERCHANT, 1, 1500, 1200, 72, 13, 11, Style.HALL, 0, 0),
     // ---------------------------------------------------------------- laid on the map, any grade
     PATH(1, false, null, 0, 0, 0, 1, 0, 0, Style.PATH, 0, 0),
     /** Ground the builders clear and level on the Lord's order. */
@@ -116,7 +152,7 @@ public enum BuildingType {
 
     /** Placed by the player on the map (the fence is built around the border instead). */
     public boolean placed() {
-        return this != SIMPLE_FENCE && this != PATH && this != CLEARING && this != GROUNDS;
+        return style != Style.FENCE && this != PATH && this != CLEARING && this != GROUNDS;
     }
 
     /** Not one of the novel's buildings: kept out of the building lists (paths are laid from the map). */
@@ -138,6 +174,7 @@ public enum BuildingType {
             case SALT_FIELD -> "salt_pans";
             case CHAMBER_OF_COMMERCE -> "chamber_of_commerce";
             case ACADEMY -> "academy";
+            case CEMETERY -> "cemetery";
             default -> null;
         };
     }
@@ -152,6 +189,7 @@ public enum BuildingType {
     public int housing() {
         return switch (this) {
             case SMALL_RESIDENTIAL_COURTYARD -> 20;
+            case RESIDENTIAL_QUARTER -> 400;
             case MEDIUM_RESIDENTIAL_COURTYARD -> 50;
             case LARGE_RESIDENTIAL_COURTYARD -> 100;
             default -> 0;
@@ -166,6 +204,8 @@ public enum BuildingType {
             case FARMLAND -> Job.FARMING;
             case MINING_FIELD -> Job.MINING;
             case SALT_FIELD -> Job.SALT_MAKING;
+            case ORCHARD, VEGETABLE_FIELD -> Job.FARMING;
+            case MEDICINE_GARDEN -> Job.HERB_GROWING;
             case COPPER_MINE -> Job.COPPER_MINING;
             case COAL_MINE -> Job.COAL_MINING;
             default -> null;
@@ -194,6 +234,17 @@ public enum BuildingType {
             case SHIPYARD -> Occupation.SHIPBUILDER;
             case CHAMBER_OF_COMMERCE -> Occupation.MERCHANT;
             case ACADEMY -> Occupation.SCHOLAR;
+            case BRICK_KILN -> Occupation.POTTER;
+            case ARSENAL -> Occupation.BLACKSMITH;
+            case RECRUITMENT_HALL, GOVERNMENT_OFFICE -> Occupation.CIVIL_SERVANT;
+            case RELAY_STATION -> Occupation.STABLEMAN;
+            case PHARMACY -> Occupation.DOCTOR;
+            case TEXTILE_MILL, GARMENT_WORKSHOP -> Occupation.TAILOR;
+            case BANK, PAWNSHOP, AUCTION_HOUSE -> Occupation.MERCHANT;
+            case ALCHEMY_WORKSHOP, JEWELRY_SHOP -> Occupation.ALCHEMIST;
+            case CITY_DEFENSE_CAMP -> Occupation.OFFICER;
+            case INN, VINEGAR_WORKSHOP, SOY_SAUCE_WORKSHOP, TOFU_WORKSHOP -> Occupation.COOK;
+            case LARGE_BREWERY -> Occupation.WINEMAKER;
             default -> null;
         };
     }
@@ -232,6 +283,27 @@ public enum BuildingType {
             case CHAMBER_OF_COMMERCE -> new int[]{1, 6, 0, 0};
             case ACADEMY -> new int[]{2, 0, 10, 0};
             case COMMISSION -> new int[]{0, 0, 0, 0};
+            case CITY_WALL -> new int[]{0, 0, 0, 12};
+            case BRICK_KILN -> new int[]{0, 5, 0, 0};
+            case CEMETERY -> new int[]{3, 0, 5, 0};
+            case ORCHARD, VEGETABLE_FIELD, MEDICINE_GARDEN -> new int[]{0, 3, 0, 0};
+            case PUBLIC_TOILET -> new int[]{3, 0, 1, 0};
+            case ARSENAL -> new int[]{0, 1, 0, 8};
+            case RESIDENTIAL_QUARTER -> new int[]{0, 0, 0, 0};
+            case RECRUITMENT_HALL -> new int[]{4, 0, 2, 0};
+            case GOVERNMENT_OFFICE -> new int[]{10, 2, 2, 0};
+            case RELAY_STATION -> new int[]{3, 4, 0, 2};
+            case PHARMACY -> new int[]{2, 3, 2, 0};
+            case TEXTILE_MILL, GARMENT_WORKSHOP -> new int[]{0, 7, 0, 0};
+            case BANK -> new int[]{2, 10, 0, 0};
+            case ALCHEMY_WORKSHOP -> new int[]{0, 6, 2, 2};
+            case CITY_DEFENSE_CAMP -> new int[]{0, 0, 0, 12};
+            case INN -> new int[]{2, 5, 2, 0};
+            case PAWNSHOP, JEWELRY_SHOP -> new int[]{0, 6, 0, 0};
+            case FARMERS_MARKET -> new int[]{1, 6, 0, 0};
+            case VINEGAR_WORKSHOP, SOY_SAUCE_WORKSHOP, TOFU_WORKSHOP -> new int[]{0, 4, 0, 0};
+            case LARGE_BREWERY -> new int[]{0, 8, 0, 0};
+            case AUCTION_HOUSE -> new int[]{0, 8, 3, 0};
         };
     }
 
@@ -239,8 +311,9 @@ public enum BuildingType {
     public int morale() {
         return switch (this) {
             case DINING_HALL, CLINIC, TEMPLE, MAZU_TEMPLE -> 5;
-            case VILLAGE_TEMPLE -> 4;
-            case BATHROOM, ANCESTRAL_HALL -> 3;
+            case VILLAGE_TEMPLE, INN -> 4;
+            case CEMETERY -> 6;
+            case BATHROOM, ANCESTRAL_HALL, PUBLIC_TOILET, PHARMACY -> 3;
             default -> 0;
         };
     }
@@ -251,6 +324,8 @@ public enum BuildingType {
             case SIMPLE_FENCE -> 10;
             case ARROW_TOWER, STONE_OUTPOST, SENTRY_POST -> 5;
             case MILITARY_CAMP -> 5;
+            case CITY_WALL -> 20;
+            case CITY_DEFENSE_CAMP, ARSENAL -> 6;
             default -> 0;
         };
     }
@@ -260,7 +335,10 @@ public enum BuildingType {
         return switch (grade) {
             case 1 -> 20_000L;
             case 2 -> 50_000L;
-            default -> 100_000L;
+            case 3 -> 100_000L;
+            case 4 -> 200_000L;
+            case 5 -> 400_000L;
+            default -> 800_000L;
         };
     }
 

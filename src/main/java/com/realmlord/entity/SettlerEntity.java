@@ -365,12 +365,48 @@ public class SettlerEntity extends PathfinderMob {
             if (getHealth() > hp) setHealth((float) hp);
         }
         var a = getAttribute(Attributes.ATTACK_DAMAGE);
-        double dmg = 1 + res.force / 15.0 + (fighter ? (res.soldierLevel - 1) * 0.25 : 0);
+        com.realmlord.village.Army.Unit unit = com.realmlord.village.Army.Unit.byId(res.unit);
+        double dmg = (1 + res.force / 15.0 + (fighter ? (res.soldierLevel - 1) * 0.25 : 0)) * (unit == null ? 1.0 : 0.8 + unit.strength * 0.2);
         if (a != null && a.getBaseValue() != dmg) a.setBaseValue(dmg);
+        // Cavalry ride: they go at a gallop.
+        var sp = getAttribute(Attributes.MOVEMENT_SPEED);
+        double speed = unit == com.realmlord.village.Army.Unit.CAVALRY ? 0.7 : 0.5;
+        if (sp != null && sp.getBaseValue() != speed) sp.setBaseValue(speed);
     }
 
     /** A weapon for the fight: a diamond sword for a Gold-grade talent, iron for the rest, a bow-less spear-hand for the militia. */
+    /** One arrow (or bolt) at the target, if the archer can see it and it is not too close. */
+    private void volley() {
+        com.realmlord.village.Army.Unit u = com.realmlord.village.Army.Unit.byId(res.unit);
+        net.minecraft.world.entity.LivingEntity target = getTarget();
+        if (u == null || !u.ranged() || target == null || !target.isAlive() || !(level() instanceof ServerLevel sl)) return;
+        double d = distanceToSqr(target);
+        if (d < 9 || d > 24 * 24 || !hasLineOfSight(target)) return;
+        net.minecraft.world.entity.projectile.Arrow arrow = new net.minecraft.world.entity.projectile.Arrow(sl, this);
+        double dx = target.getX() - getX(), dz = target.getZ() - getZ();
+        double dy = target.getY(0.33) - arrow.getY();
+        arrow.shoot(dx, dy + Math.sqrt(dx * dx + dz * dz) * 0.2, dz, u == com.realmlord.village.Army.Unit.CROSSBOWMAN ? 2.4F : 1.8F, 4.0F);
+        arrow.setBaseDamage(2.0 + res.soldierLevel * 0.1 + (u == com.realmlord.village.Army.Unit.CROSSBOWMAN ? 1.5 : 0));
+        arrow.pickup = net.minecraft.world.entity.projectile.AbstractArrow.Pickup.DISALLOWED;
+        sl.addFreshEntity(arrow);
+        sl.playSound(null, blockPosition(), u == com.realmlord.village.Army.Unit.CROSSBOWMAN ? net.minecraft.sounds.SoundEvents.CROSSBOW_SHOOT
+                : net.minecraft.sounds.SoundEvents.ARROW_SHOOT, net.minecraft.sounds.SoundSource.NEUTRAL, 1.0F, 1.0F);
+        swing(net.minecraft.world.InteractionHand.MAIN_HAND);
+    }
+
     private void arm() {
+        com.realmlord.village.Army.Unit unit = res == null ? null : com.realmlord.village.Army.Unit.byId(res.unit);
+        if (unit != null && !res.isFigure()) {
+            hold(switch (unit) {
+                case ARCHER -> net.minecraft.world.item.Items.BOW;
+                case CROSSBOWMAN -> net.minecraft.world.item.Items.CROSSBOW;
+                case SPEARMAN -> com.realmlord.registry.ModArms.BLACK_IRON_SPEAR.get();
+                case CAVALRY -> com.realmlord.registry.ModArms.RING_DAO.get();
+                case MOUNTAIN_WARRIOR -> net.minecraft.world.item.Items.IRON_AXE;
+                default -> net.minecraft.world.item.Items.IRON_SWORD;
+            });
+            return;
+        }
         net.minecraft.world.item.Item weapon = res != null && res.grade >= 3 ? net.minecraft.world.item.Items.DIAMOND_SWORD
                 : activity == Activity.HUNT ? net.minecraft.world.item.Items.IRON_AXE
                 : res != null && res.militia && !res.isFigure() && res.equipTier < 2 ? net.minecraft.world.item.Items.STONE_SWORD
@@ -938,6 +974,8 @@ public class SettlerEntity extends PathfinderMob {
     @Override
     protected void customServerAiStep() {
         super.customServerAiStep();
+        // Archers and crossbowmen of the standing army loose at their foe from range.
+        if (res != null && tickCount % (res.unit == com.realmlord.village.Army.Unit.CROSSBOWMAN.ordinal() ? 40 : 30) == 0) volley();
         // Never stuck inside a wall going up around them.
         if (tickCount % 10 == 0 && isInWall() && level() instanceof ServerLevel sl) {
             BlockPos at = safeGround(sl, getBlockX(), getBlockZ());

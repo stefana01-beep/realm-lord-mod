@@ -37,6 +37,12 @@ public final class Blueprints {
 
     /** A blueprint of grade 1 to maxGrade: mostly Grade 1, a quarter Grade 2, one in eight Grade 3. */
     public static ItemStack random(RandomSource r, int maxGrade) {
+        if (maxGrade >= 4 && r.nextInt(3) == 0) {
+            // A town plan: Grade 1 to 3 of the town.
+            List<String> town = new java.util.ArrayList<>();
+            for (int g = 4; g <= Math.min(6, maxGrade); g++) for (BuildingType bt : BuildingType.ofGrade(g)) if (bt.blueprint) town.add(bt.id());
+            if (!town.isEmpty()) return of(town.get(r.nextInt(town.size())));
+        }
         int x = r.nextInt(8);
         List<String> pool = maxGrade >= 3 && x == 0 ? VILLAGE_3 : maxGrade >= 2 && x <= 2 ? VILLAGE_2 : VILLAGE_1;
         return of(pool.get(r.nextInt(pool.size())));

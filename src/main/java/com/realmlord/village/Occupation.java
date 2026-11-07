@@ -29,7 +29,9 @@ public enum Occupation {
     /** A Taoist priest: presides over the temple, refines pills and writes talismans. */
     PRIEST("priest", 0.6, true),
     /** A merchant: runs the Chamber of Commerce and its caravans. */
-    MERCHANT("merchant", 1.5, true);
+    MERCHANT("merchant", 1.5, true),
+    /** Rare, as in the novel: Shanhai waited weeks for one, and found him at last through the Recruitment Hall. */
+    ALCHEMIST("alchemist", 0.15, true);
 
     public final String id;
     public final double weight;

@@ -135,7 +135,7 @@ public final class TerritoryEvents {
         for (Territory t : TerritoryData.get(level.getServer()).all()) {
             if (!t.dimension.equals(level.dimension())) continue;
             for (Building b : t.buildings) {
-                if (b.type != BuildingType.SIMPLE_FENCE || b.demolishing) continue;
+                if (b.type.style != BuildingType.Style.FENCE || b.demolishing) continue;
                 // A fence being refitted still keeps the village safe; a new one only once it is finished.
                 if (!b.complete && b.fenceStyle == 0 && b.placed == 0) continue;
                 if (!b.complete && b.progress < b.workNeeded) continue;

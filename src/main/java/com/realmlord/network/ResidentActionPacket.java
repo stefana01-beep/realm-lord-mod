@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 
 /** Client to server: give a resident a job, or trade with them. */
 public class ResidentActionPacket {
-    public enum Action { SET_JOB, STAFF, TRADE, REFRESH, INVENTORY, FOLLOW, MILITIA, OFFICE, EQUIP, SAILOR, TEACH }
+    public enum Action { SET_JOB, STAFF, TRADE, REFRESH, INVENTORY, FOLLOW, MILITIA, OFFICE, EQUIP, SAILOR, TEACH, ARMY }
 
     private final Action action;
     private final int territory, resident, a;
@@ -125,6 +125,27 @@ public class ResidentActionPacket {
                 } else if (a == 0 && r.sailor) {
                     Navy.enlist(t, r, false);
                 }
+            }
+            case ARMY -> {
+                if (!owner) return;
+                com.realmlord.village.Army.Unit u = a <= 0 ? null : com.realmlord.village.Army.Unit.byId(a - 1);
+                if (u == null) {
+                    com.realmlord.village.Army.enlist(t, r, null);
+                    return;
+                }
+                String err = null;
+                boolean already = r.unit >= 0;
+                int was = r.unit;
+                if (!already && Coins.countWithTreasury(p) < u.cost) err = "realmlord.market.cannot_afford";
+                if (err == null) err = com.realmlord.village.Army.enlist(t, r, u);
+                if (err == null && !already && !Coins.payWithTreasury(p, u.cost)) {
+                    r.unit = was;
+                    r.militia = was >= 0;
+                    err = "realmlord.market.cannot_afford";
+                }
+                if (err != null) Notify.player(p, err);
+                else Notify.player(p, Component.translatable("realmlord.army.enlisted", r.name, Component.translatable(u.key()),
+                        Coins.format(already ? 0 : u.cost)));
             }
             case TEACH -> {
                 String err = com.realmlord.village.FigureArts.teach(p, t, r);

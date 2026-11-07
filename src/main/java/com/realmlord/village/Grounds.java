@@ -261,7 +261,7 @@ public final class Grounds {
                     for (int z = -1; z <= b.sizeZ(); z++) out.add(Village.colKeyOf(b.origin.getX() + x, b.origin.getZ() + z));
             } else if (b.type == BuildingType.PATH && b.pathCols != null) {
                 for (int i = 0; i + 3 < b.pathCols.length; i += 4) out.add(Village.colKeyOf(b.pathCols[i], b.pathCols[i + 2]));
-            } else if (b.type == BuildingType.SIMPLE_FENCE && (b.complete || b.placed > 0)) {
+            } else if (b.type.style == BuildingType.Style.FENCE && (b.complete || b.placed > 0)) {
                 int fr = b.fenceRadius > 0 ? b.fenceRadius : t.level.wall();
                 for (int x = -fr - 3; x <= fr + 3; x++)
                     for (int z = -fr - 3; z <= fr + 3; z++) {

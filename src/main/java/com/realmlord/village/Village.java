@@ -10,6 +10,7 @@ import com.realmlord.territory.Territory;
 import com.realmlord.territory.TerritoryData;
 import com.realmlord.territory.TerritoryLevel;
 import com.realmlord.territory.TokenGrade;
+import com.realmlord.world.Trials;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
@@ -96,6 +97,12 @@ public final class Village {
             if (openBeds(t) > 0) add(t, Resident.random(r, Resident.randomOccupation(r, 1.0), g));
             else t.waitingSettlers++;
         }
+    }
+
+    /** Someone leaves the territory's rolls (their figure in the world goes with them). */
+    public static void remove(Territory t, Resident r) {
+        t.residents.remove(r);
+        t.population = t.residents.size();
     }
 
     /** Beds nobody sleeps in yet (within the level's limit on people). */
@@ -190,7 +197,7 @@ public final class Village {
 
     public static int militiaCount(Territory t) {
         int n = 0;
-        for (Resident r : t.residents) if (r.militia && !r.sailor) n++;
+        for (Resident r : t.residents) if (r.militia && !r.sailor && r.unit < 0) n++;
         return n;
     }
 
@@ -199,6 +206,7 @@ public final class Village {
         if (!join) {
             r.militia = false;
             r.sailor = false;
+            r.unit = -1;
             return null;
         }
         if (r.militia) return null;
@@ -238,7 +246,8 @@ public final class Village {
             if (r.force < cap && rnd.nextDouble() < chance * forceMul) r.force++;
             if (r.occupation == Occupation.OFFICER && r.command < cap && rnd.nextDouble() < chance / 2 * (how.equals("formation") ? 2 : 1)) r.command++;
             // A day at the drill is worth something to every soldier, more under a good commander.
-            if (xpMul > 0) r.gainSoldierXp(Math.round(15 * xpMul * Office.boost(t, Office.MILITARY, 200)));
+            if (xpMul > 0) r.gainSoldierXp(Math.round(15 * xpMul * Office.boost(t, Office.MILITARY, 200)
+                    * (r.unit >= 0 ? Army.drillBonus(t) : 1.0)));
             if (how.equals("rest") && r.loyalty < 100) r.loyalty++;
         }
         if (how.equals("patrol") && soldiers > 0 && t.security < 100) t.security = Math.min(100, t.security + 1 + soldiers / 10);
@@ -432,6 +441,12 @@ public final class Village {
         ix[1] += Office.power(t, Office.TREASURER) / 10 + Office.power(t, Office.COMMERCE) / 8 + Office.power(t, Office.AGRICULTURE) / 12;
         ix[2] += Office.power(t, Office.RITES) / 5;
         ix[3] += Office.power(t, Office.MILITARY) / 8;
+        ix[0] += Office.power(t, Office.INTERNAL_AFFAIRS) / 8 + Office.power(t, Office.PROCURATORATE) / 8 + Office.power(t, Office.SECURITY) / 12;
+        ix[1] += Office.power(t, Office.AUDITING) / 8 + Office.power(t, Office.TRANSPORT) / 10;
+        ix[2] += Office.power(t, Office.MERIT) / 10;
+        ix[3] += Office.power(t, Office.ARMORY) / 10 + Office.power(t, Office.BOW_CROSSBOW) / 8 + Office.power(t, Office.SECURITY) / 12;
+        ix[3] += Army.indexBonus(t);
+        if (Office.cabinet(t)) for (int i = 0; i < 4; i++) ix[i] += 5;
         // Scholars and figures of culture lift the cultural index.
         for (Resident r : t.residents) if (r.occupation == Occupation.SCHOLAR && r.grade >= 0) ix[2] += r.isFigure() ? 4 : 1;
         for (int i = 0; i < 4; i++) ix[i] = Mth.clamp(ix[i], 0, 100);
@@ -446,7 +461,9 @@ public final class Village {
             case BLACK_IRON -> 1.05;
             default -> 1.0;
         };
-        return g * (1.0 + 0.05 * (FigureArts.count(t, "smith") + FigureArts.count(t, "weaver")));
+        // The novel's town: production capacity +20% at Grade 1, +25% from Grade 2.
+        double town = !t.level.atLeast(TerritoryLevel.TOWN_1) ? 1.0 : t.level == TerritoryLevel.TOWN_1 ? 1.2 : 1.25;
+        return g * town * (1.0 + 0.05 * (FigureArts.count(t, "smith") + FigureArts.count(t, "weaver"))) * Office.boost(t, Office.ARMORY, 600);
     }
 
     /** The token's crop bonus: Gold +50%, Silver +30%, Black Iron +15%. */
@@ -472,7 +489,17 @@ public final class Village {
 
     /** Immigrants per day, as on the novel's panel: 10 x (1 + bonus), scaled by People's Thoughts. */
     public static double immigrationRate(Territory t) {
-        return 10.0 * immigrationBonus(t) * Mth.clamp(t.peopleThoughts / 70.0, 0.3, 1.4) * Office.boost(t, Office.STEWARD, 300);
+        return 10.0 * immigrationBonus(t) * Mth.clamp(t.peopleThoughts / 70.0, 0.3, 1.4) * Office.boost(t, Office.STEWARD, 300) * townDraw(t);
+    }
+
+    /**
+     * A town draws migrants as a village cannot: twice as many at Grade 1, three and four times at
+     * Grades 2 and 3, and a quarter more again for each inn and relay station on the roads in.
+     */
+    public static double townDraw(Territory t) {
+        if (!t.level.atLeast(TerritoryLevel.TOWN_1)) return 1.0;
+        int grade = Math.min(3, t.level.ordinal() - TerritoryLevel.TOWN_1.ordinal() + 1);
+        return (1.0 + grade) * (1.0 + 0.25 * (countComplete(t, BuildingType.INN) + countComplete(t, BuildingType.RELAY_STATION)));
     }
 
     public static long foodUse(Territory t) {
@@ -508,7 +535,7 @@ public final class Village {
     public static long dailyTax(Territory t) {
         int econ = indexes(t)[1];
         return Math.round(t.residents.size() * (1.0 + econ / 10.0) * Office.boost(t, Office.TREASURER, 250)
-                * FigureArts.boost(t, "minister", 0.05) * Exams.taxBonus(t));
+                * FigureArts.boost(t, "minister", 0.05) * Exams.taxBonus(t) * Office.boost(t, Office.PROCURATORATE, 500));
     }
 
     // ================================================================== the day
@@ -566,6 +593,16 @@ public final class Village {
         Temples.day(level, t, day, rnd);
         Exams.day(level, t, day, rnd);
         Trade.day(level, t, day, rnd);
+        Army.day(level, t);
+        TownEconomy.day(level, t);
+        Recruits.day(level, t, day, rnd);
+        Refugees.day(level, t, day, rnd);
+        Festivals.day(level, t, day, rnd);
+        Visitors.day(level, t, day, rnd);
+        Affiliates.day(level, t, day, rnd);
+        Auction.day(level, day);
+        com.realmlord.world.Tribes.day(level, t, day, rnd);
+        com.realmlord.world.Lairs.day(level, t, day, rnd);
         com.realmlord.world.WaterForts.day(level, t, day, rnd);
         com.realmlord.world.Raids.day(level, t, day, rnd);
         revealHidden(level, t);
@@ -597,7 +634,8 @@ public final class Village {
         // People's Thoughts drift towards what the village offers.
         int target = 60 + Office.power(t, Office.STEWARD) / 10 + (Office.holder(t, Office.RITES) != null ? 3 + Office.power(t, Office.RITES) / 20 : 0);
         for (Building b : t.buildings) if (b.complete) target += b.type.morale();
-        target += Temples.morale(t) + 2 * FigureArts.count(t, "doctor") + Exams.morale(t);
+        target += Temples.morale(t) + 2 * FigureArts.count(t, "doctor") + Exams.morale(t) + Office.power(t, Office.INTERNAL_AFFAIRS) / 10
+                + Festivals.morale(t);
         if (hungry) target -= 30;
         if (t.residents.size() > housing(t)) target -= 10;
         target = Mth.clamp(target, 0, 100);
@@ -605,7 +643,7 @@ public final class Village {
         if (hungry) t.peopleThoughts = Math.max(0, t.peopleThoughts - 5);
         int secTarget = 50 + indexes(t)[3] / 4 + Office.power(t, Office.MILITARY) / 10;
         for (Building b : t.buildings) if (b.complete) secTarget += b.type.security();
-        secTarget += Temples.security(t) + 3 * FigureArts.count(t, "strategist") - (t.ext.getBoolean("waterBandits") ? 5 : 0);
+        secTarget += Temples.security(t) + 3 * FigureArts.count(t, "strategist") + Office.power(t, Office.SECURITY) / 5 - (t.ext.getBoolean("waterBandits") ? 5 : 0);
         secTarget = Mth.clamp(secTarget, 0, 100);
         t.security += Integer.signum(secTarget - t.security) * Math.min(3, Math.abs(secTarget - t.security));
         // People leave a hungry or unhappy village.
@@ -732,7 +770,7 @@ public final class Village {
         }
         // Nothing may block a gateway; only towers may stand on the fence.
         for (Building f : t.buildings) {
-            if (f.type != BuildingType.SIMPLE_FENCE || f.demolishing) continue;
+            if (f.type.style != BuildingType.Style.FENCE || f.demolishing) continue;
             int fr = f.fenceRadius > 0 ? f.fenceRadius : t.level.wall();
             for (int x = 0; x < sx; x++)
                 for (int z = 0; z < sz; z++) {
@@ -789,7 +827,7 @@ public final class Village {
 
     /** What is missing to construct a building (resources, blueprint, specialist), or null. */
     public static String checkCost(ServerPlayer p, Territory t, BuildingType type, boolean free) {
-        if (type.grade > t.level.villageGrade() && t.level.villageGrade() > 0) return "realmlord.build.err.grade";
+        if (type.grade > t.level.buildGrade()) return "realmlord.build.err.grade";
         if (free) return null;
         if (t.wood < type.wood || t.stone < type.stone) return "realmlord.build.err.resources";
         if (type.blueprint && !knowsBlueprint(p, t, type)) return "realmlord.build.err.blueprint";
@@ -840,6 +878,9 @@ public final class Village {
         if (type == BuildingType.SIMPLE_FENCE) {
             for (Building b : t.buildings) if (b.type == BuildingType.SIMPLE_FENCE && !b.demolishing) return "realmlord.build.err.fence_exists";
             origin = t.center;
+        } else if (type == BuildingType.CITY_WALL) {
+            for (Building b : t.buildings) if (b.type == BuildingType.CITY_WALL && !b.demolishing) return "realmlord.build.err.city_wall_exists";
+            origin = t.center;
         } else {
             err = checkPlacement(level, t, type, origin, rotation);
             if (err != null) return err;
@@ -877,6 +918,15 @@ public final class Village {
             b.stage = Building.BUILD;
             b.fenceRadius = wallGrade > 0 ? TerritoryLevel.villageWall(wallGrade) : t.level.wall();
             b.gates = gates == null ? new int[]{0, 90, 180, 270} : cleanGates(gates);
+            if (type == BuildingType.CITY_WALL) {
+                // Outside the old palisade: the town's own ring, or eight blocks beyond the palisade.
+                int inner = 0;
+                for (Building f : t.buildings) if (f.type == BuildingType.SIMPLE_FENCE && !f.demolishing) {
+                    inner = f.fenceRadius > 0 ? f.fenceRadius : t.level.wall();
+                    if (gates == null && f.gates != null) b.gates = f.gates.clone();
+                }
+                b.fenceRadius = Math.max(TerritoryLevel.TOWN_1.wall(), inner + 10);
+            }
             b.fenceStyle = fenceStyle(t);
         }
         t.buildings.add(b);
@@ -1439,13 +1489,12 @@ public final class Village {
         List<Component> out = new ArrayList<>();
         TerritoryLevel next = t.level.next();
         if (next == null) return out;
-        if (t.level.villageGrade() == 0 || next.villageGrade() == 0) {
-            out.add(Component.translatable("realmlord.upgrade.town_later"));
-        }
+        if (next.atLeast(TerritoryLevel.COUNTY_2)) out.add(Component.translatable("realmlord.upgrade.town_later"));
+        if (next == TerritoryLevel.COUNTY_1 && Trials.underway(t)) out.add(Component.translatable("realmlord.trial.underway"));
         if (t.residents.size() < next.population) out.add(Component.translatable("realmlord.upgrade.need_pop", t.residents.size(), next.population));
         if (owner != null && !owner.getTitle().atLeast(next.title)) out.add(Component.translatable("realmlord.upgrade.need_title", Component.translatable(next.title.key())));
         for (BuildingType bt : BuildingType.values()) {
-            if (bt.requiredFor != t.level.villageGrade() || bt.requiredFor == 0) continue;
+            if (bt.requiredFor != t.level.buildGrade() || bt.requiredFor == 0) continue;
             if (bt.housing() > 0) {
                 // The novel's ten courtyards are beds for 200: any mix of courtyards will do.
                 int need = bt.housing() * bt.requiredCount, beds = courtyardBeds(t);
@@ -1473,6 +1522,16 @@ public final class Village {
     public static boolean upgrade(ServerPlayer p, Territory t) {
         if (!upgradeMissing(t, Profiles.get(p)).isEmpty()) return false;
         TerritoryLevel next = t.level.next();
+        // Town to county: the system answers the application with a raider attack in three days.
+        if (next == TerritoryLevel.COUNTY_1 && !t.ext.getBoolean("trialWon")) return Trials.apply(p, t);
+        t.ext.remove("trialWon");
+        return promote(p, t);
+    }
+
+    /** Raises the territory one level, with the merit, manor and free building that brings. */
+    public static boolean promote(ServerPlayer p, Territory t) {
+        TerritoryLevel next = t.level.next();
+        if (next == null) return false;
         TerritoryData data = TerritoryData.get(p.server);
         t.level = next;
         int place = data.reach(next);
@@ -1484,7 +1543,7 @@ public final class Village {
         Profiles.grantMerit(p, merit, Component.translatable("realmlord.reason.upgrade"));
         t.freeChoices.clear();
         List<BuildingType> pool = new ArrayList<>();
-        for (BuildingType bt : BuildingType.ofGrade(next.villageGrade())) if (bt.placed()) pool.add(bt);
+        for (BuildingType bt : BuildingType.ofGrade(next.buildGrade())) if (bt.placed() && bt.specialist != Occupation.ALCHEMIST) pool.add(bt);
         RandomSource r = p.getRandom();
         while (t.freeChoices.size() < 3 && !pool.isEmpty()) t.freeChoices.add(pool.remove(r.nextInt(pool.size())));
         data.touch();

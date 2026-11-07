@@ -219,6 +219,44 @@ public final class Workshops {
                 out.add(items("turreted_ships", Goods.WOOD, 1200, 0.1, com.realmlord.registry.ModCrafts.TURRETED_SHIP.get())
                         .need(com.realmlord.registry.ModCrafts.PINE_TAR, 10).plan(com.realmlord.loot.Manuals.WARSHIPS));
             }
+            case BRICK_KILN -> {
+                out.add(stock("bricks", Goods.CLAY, 10, Goods.STONE, 30));
+                out.add(stock("roof_tiles", Goods.CLAY, 10, Goods.POTTERY, 6));
+            }
+            case ARSENAL -> {
+                out.add(stock("arms_stock", Goods.IRON_ORE, 20, Goods.WEAPONS, 2));
+                out.add(items("army_spears", Goods.IRON_ORE, 6, 2, ModArms.BLACK_IRON_SPEAR.get()));
+                out.add(items("army_crossbows", Goods.WOOD, 10, 2, Items.CROSSBOW));
+                out.add(items("heavy_bolts", Goods.IRON_ORE, 4, 2, com.realmlord.registry.ModCrafts.HEAVY_BOLT.get()).each(4));
+            }
+            case RECRUITMENT_HALL -> {
+                for (Occupation o : Recruits.TRADES) out.add(discipline("recruit_" + o.id));
+            }
+            case PHARMACY -> {
+                out.add(items("pills", Goods.HERBS, 8, 3, ModArms.HEALING_PILL.get(), com.realmlord.registry.ModCrafts.CLARITY_PILL.get()));
+                out.add(stock("remedies", null, 0, Goods.HERBS, 10));
+            }
+            case TEXTILE_MILL -> {
+                out.add(stock("linen", null, 0, Goods.LINEN, 8));
+                out.add(stock("fine_silk", null, 0, Goods.FINE_SILK, 2));
+            }
+            case GARMENT_WORKSHOP -> {
+                out.add(stock("garments", Goods.LINEN, 2, Goods.GARMENTS, 2));
+                out.add(stock("silk_robes", Goods.FINE_SILK, 1, Goods.GARMENTS, 3));
+            }
+            case ALCHEMY_WORKSHOP -> {
+                out.add(stock("jewelry", Goods.COPPER, 10, Goods.JEWELRY, 1));
+                out.add(items("alchemy_pills", Goods.HERBS, 20, 2, com.realmlord.registry.ModCrafts.CLARITY_PILL.get()).each(2));
+                out.add(stock("refined_iron", Goods.IRON_ORE, 20, Goods.TOOLS, 2));
+            }
+            case JEWELRY_SHOP -> out.add(stock("jewelry", Goods.COPPER, 6, Goods.JEWELRY, 1));
+            case VINEGAR_WORKSHOP -> out.add(stock("vinegar", Goods.GRAIN, 30, Goods.CONDIMENTS, 20));
+            case SOY_SAUCE_WORKSHOP -> out.add(stock("soy_sauce", Goods.GRAIN, 30, Goods.CONDIMENTS, 24));
+            case TOFU_WORKSHOP -> out.add(stock("tofu", Goods.GRAIN, 20, Goods.MEAT, 15));
+            case LARGE_BREWERY -> {
+                out.add(stock("wine", Goods.GRAIN, 120, Goods.WINE, 60));
+                out.add(items("bottled_wine", Goods.GRAIN, 30, 2, ModItems.THREE_FLOWER_WINE.get()).each(4));
+            }
             case CHAMBER_OF_COMMERCE -> {
                 for (String c : com.realmlord.worldgen.ChinaMap.CAPITALS) out.add(discipline("route_" + c.toLowerCase(java.util.Locale.ROOT)));
             }

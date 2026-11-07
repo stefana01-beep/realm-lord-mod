@@ -40,7 +40,7 @@ public final class Residence {
 
     /** Which manor a level calls for: 1 the refugees' hall, 2 the residence, 3 the grand residence. */
     public static int tierFor(TerritoryLevel l) {
-        return l == TerritoryLevel.VILLAGE_1 ? 1 : l == TerritoryLevel.VILLAGE_2 ? 2 : 3;
+        return l == TerritoryLevel.VILLAGE_1 ? 1 : l == TerritoryLevel.VILLAGE_2 ? 2 : l.atLeast(TerritoryLevel.TOWN_1) ? 4 : 3;
     }
 
     /** The way the manor's door faces: stored, or found from the door of an older manor. */
@@ -310,7 +310,18 @@ public final class Residence {
                     p.set(u, y, v, ring <= inner ? TILE : TILE_SLAB);
                 }
         }
-        p.set(0, 9 + tiers.length, 0, Blocks.GOLD_BLOCK.defaultBlockState());
+        if (tier >= 4) {
+            // The town-level Lord's Manor: a lookout pavilion crowns the roof.
+            int top = 9 + tiers.length;
+            for (int u : new int[]{-1, 1}) for (int v : new int[]{-1, 1}) for (int y = top; y < top + 3; y++) p.set(u, y, v, POST);
+            for (int u = -1; u <= 1; u++) for (int v = -1; v <= 1; v++) if (u != 0 || v != 0) p.set(u, top, v, BEAM);
+            for (int u = -2; u <= 2; u++)
+                for (int v = -2; v <= 2; v++) p.set(u, top + 3, v, Math.max(Math.abs(u), Math.abs(v)) == 2 ? TILE_SLAB : TILE);
+            p.set(0, top + 2, 0, HANGING);
+            p.set(0, top + 4, 0, Blocks.GOLD_BLOCK.defaultBlockState());
+        } else {
+            p.set(0, 9 + tiers.length, 0, Blocks.GOLD_BLOCK.defaultBlockState());
+        }
         if (tier >= 3) for (int u : new int[]{-7, 7}) for (int v : new int[]{-7, 7}) p.set(u, 8, v, HANGING);
     }
 
@@ -322,6 +333,15 @@ public final class Residence {
         if (tier >= 3) {
             for (int u : new int[]{-3, 3}) p.set(u, 3, 7, Blocks.RED_WALL_BANNER.defaultBlockState().setValue(WallBannerBlock.FACING, p.f));
             p.set(0, -1, 7, Blocks.POLISHED_ANDESITE.defaultBlockState());
+        }
+        if (tier >= 4) {
+            // A pair of stone guardian lions at the steps, and gilded lanterns.
+            for (int u : new int[]{-3, 3}) {
+                p.set(u, 0, 8, Blocks.CHISELED_STONE_BRICKS.defaultBlockState());
+                p.set(u, 1, 8, Blocks.STONE_BRICK_STAIRS.defaultBlockState().setValue(net.minecraft.world.level.block.StairBlock.FACING, p.back));
+                p.set(u, 2, 8, AIR);
+            }
+            for (int u : new int[]{-2, 2}) p.set(u, 2, 7, Blocks.GOLD_BLOCK.defaultBlockState());
         }
     }
 }

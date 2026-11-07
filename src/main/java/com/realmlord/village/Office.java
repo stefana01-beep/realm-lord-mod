@@ -14,7 +14,29 @@ public enum Office {
     AGRICULTURE("agriculture", 2, Stat.INTELLIGENCE),
     MILITARY("military", 2, Stat.COMMAND),
     COMMERCE("commerce", 3, Stat.POLITICS),
-    RITES("rites", 3, Stat.INTELLIGENCE);
+    RITES("rites", 3, Stat.INTELLIGENCE),
+    // The town's departments (the novel's divisions), opened by the Government Office.
+    SECURITY("security", 4, Stat.COMMAND),
+    MERIT("merit", 4, Stat.POLITICS),
+    ARMORY("armory", 4, Stat.INTELLIGENCE),
+    INTERNAL_AFFAIRS("internal_affairs", 5, Stat.POLITICS),
+    BOW_CROSSBOW("bow_crossbow", 5, Stat.COMMAND),
+    TRANSPORT("transport", 5, Stat.INTELLIGENCE),
+    PROCURATORATE("procuratorate", 6, Stat.POLITICS),
+    AUDITING("auditing", 6, Stat.INTELLIGENCE);
+
+    /** A full cabinet: eight offices or more held, and the town runs as a government. */
+    public static final int CABINET = 8;
+
+    public static int held(Territory t) {
+        int n = 0;
+        for (Resident r : t.residents) if (r.office >= 0) n++;
+        return n;
+    }
+
+    public static boolean cabinet(Territory t) {
+        return held(t) >= CABINET && Village.countComplete(t, BuildingType.GOVERNMENT_OFFICE) > 0;
+    }
 
     public enum Stat { COMMAND, FORCE, INTELLIGENCE, POLITICS }
 
@@ -52,7 +74,7 @@ public enum Office {
     }
 
     public boolean open(Territory t) {
-        return grade(t) >= grade;
+        return grade(t) >= grade && (grade < 4 || Village.countComplete(t, BuildingType.GOVERNMENT_OFFICE) > 0);
     }
 
     public static Resident holder(Territory t, Office o) {
