@@ -26,6 +26,12 @@ public class BoarKingEntity extends WildBoarEntity {
         setPersistenceRequired();
     }
 
+    /** A king is never a piglet (a hoglin spawns as a baby one time in five, and babies drop nothing). */
+    @Override
+    public boolean isBaby() {
+        return false;
+    }
+
     @Override
     public float baseScale() {
         return 1.6F;
