@@ -184,38 +184,41 @@ public class NovelRealmTests {
         int reach = (t.radius() + 40) >> 4;
         for (int cx = -reach; cx <= reach; cx++)
             for (int cz = -reach; cz <= 1; cz++) level.setChunkForced((t.center.getX() >> 4) + cx, (t.center.getZ() >> 4) + cz, true);
-        int n = Raids.spawn(level, t, day);
-        helper.assertTrue(n >= 3, "the barbarian band was too small: " + n);
-        int seen = 0, chiefs = 0;
-        for (net.minecraft.world.entity.Entity e : level.getAllEntities()) {
-            if (!(e instanceof BanditEntity b) || !b.getTags().contains(Raids.TAG) || b.getPersistentData().getInt(Raids.TERRITORY) != t.id) continue;
-            seen++;
-            helper.assertTrue(b.getFaction() == BanditEntity.Faction.BARBARIAN, "a raider was not a barbarian");
-            if (b.getRole() == BanditEntity.Role.CHIEF) chiefs++;
-            helper.assertTrue(b.getZ() <= t.center.getZ() + 1, "barbarians should come from the north");
-        }
-        helper.assertTrue(seen >= n - 1 && seen > 0 && chiefs == 1, "expected " + n + " barbarians with one chieftain, saw " + seen + " with " + chiefs);
-        Raids.withdraw(level, t);
-        helper.assertTrue(level.getEntitiesOfClass(BanditEntity.class, new net.minecraft.world.phys.AABB(t.center).inflate(t.radius() + 60),
-                b -> b.getTags().contains(Raids.TAG)).isEmpty(), "the raiders did not withdraw");
-        // A water bandits' fort: while it stands the village suffers; killing the chief breaks it.
-        WorldState w = WorldState.get(level.getServer());
-        CompoundTag fort = new CompoundTag();
-        fort.putLong("pos", t.center.offset(80, 0, 0).asLong());
-        fort.putInt("id", 424242);
-        ListTag forts = WaterForts.forts(w);
-        forts.add(fort);
-        w.ext.put("forts", forts);
-        WaterForts.day(level, t, day, level.getRandom());
-        helper.assertTrue(t.ext.getBoolean("waterBandits"), "a fort nearby should harry the village");
-        BanditEntity chief = ModEntities.BANDIT.get().create(level);
-        chief.setFaction(BanditEntity.Faction.WATER);
-        chief.configure(BanditEntity.Role.CHIEF, 2);
-        chief.getPersistentData().putInt("realmlord_fort", 424242);
-        WaterForts.chiefSlain(level, chief, p);
-        helper.assertTrue(!t.ext.getBoolean("waterBandits"), "breaking the fort did not free the village");
-        helper.assertTrue(WaterForts.near(w, t.center, WaterForts.RANGE) == null, "the fort still stands");
-        VillageTests.done(helper, p, t);
+        // Forced chunks load their entities a moment later.
+        helper.runAfterDelay(40, () -> {
+            int n = Raids.spawn(level, t, day);
+            helper.assertTrue(n >= 3, "the barbarian band was too small: " + n);
+            int seen = 0, chiefs = 0;
+            for (net.minecraft.world.entity.Entity e : level.getAllEntities()) {
+                if (!(e instanceof BanditEntity b) || !b.getTags().contains(Raids.TAG) || b.getPersistentData().getInt(Raids.TERRITORY) != t.id) continue;
+                seen++;
+                helper.assertTrue(b.getFaction() == BanditEntity.Faction.BARBARIAN, "a raider was not a barbarian");
+                if (b.getRole() == BanditEntity.Role.CHIEF) chiefs++;
+                helper.assertTrue(b.getZ() <= t.center.getZ() + 1, "barbarians should come from the north");
+            }
+            helper.assertTrue(seen >= n - 1 && seen > 0 && chiefs == 1, "expected " + n + " barbarians with one chieftain, saw " + seen + " with " + chiefs);
+            Raids.withdraw(level, t);
+            helper.assertTrue(level.getEntitiesOfClass(BanditEntity.class, new net.minecraft.world.phys.AABB(t.center).inflate(t.radius() + 60),
+                    b -> b.getTags().contains(Raids.TAG)).isEmpty(), "the raiders did not withdraw");
+            // A water bandits' fort: while it stands the village suffers; killing the chief breaks it.
+            WorldState w = WorldState.get(level.getServer());
+            CompoundTag fort = new CompoundTag();
+            fort.putLong("pos", t.center.offset(80, 0, 0).asLong());
+            fort.putInt("id", 424242);
+            ListTag forts = WaterForts.forts(w);
+            forts.add(fort);
+            w.ext.put("forts", forts);
+            WaterForts.day(level, t, day, level.getRandom());
+            helper.assertTrue(t.ext.getBoolean("waterBandits"), "a fort nearby should harry the village");
+            BanditEntity chief = ModEntities.BANDIT.get().create(level);
+            chief.setFaction(BanditEntity.Faction.WATER);
+            chief.configure(BanditEntity.Role.CHIEF, 2);
+            chief.getPersistentData().putInt("realmlord_fort", 424242);
+            WaterForts.chiefSlain(level, chief, p);
+            helper.assertTrue(!t.ext.getBoolean("waterBandits"), "breaking the fort did not free the village");
+            helper.assertTrue(WaterForts.near(w, t.center, WaterForts.RANGE) == null, "the fort still stands");
+            VillageTests.done(helper, p, t);
+        });
     }
 
     @GameTest(template = "empty", timeoutTicks = 300, batch = "realm_siege")

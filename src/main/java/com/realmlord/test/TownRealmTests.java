@@ -84,26 +84,29 @@ public class TownRealmTests {
         helper.assertTrue(!Trials.apply(p, t), "applied twice");
         for (int cx = -12; cx <= 12; cx++)
             for (int cz = -12; cz <= 12; cz++) level.setChunkForced((t.center.getX() >> 4) + cx, (t.center.getZ() >> 4) + cz, true);
-        Trials.day(level, t, today + Trials.WARNING_DAYS, level.getRandom());
-        helper.assertTrue(t.ext.getLong("trialStart") > 0 && t.ext.getInt("trialWave") == 1, "the attack did not begin");
-        java.util.List<BanditEntity> raiders = level.getEntitiesOfClass(BanditEntity.class, new AABB(t.center).inflate(t.radius() + 80),
-                b -> b.getTags().contains(Trials.TAG));
-        helper.assertTrue(raiders.size() >= 4, "the first wave was too small: " + raiders.size());
-        // Five at the manor is a breach: the town is plundered and must wait to try again.
-        if (raiders.size() < Trials.BREACH) com.realmlord.world.Raids.spawnBand(level, t, Trials.BREACH, 3, 0, 0, Trials.TAG);
-        raiders = level.getEntitiesOfClass(BanditEntity.class, new AABB(t.center).inflate(t.radius() + 80), b -> b.getTags().contains(Trials.TAG));
-        for (BanditEntity b : raiders) b.moveTo(t.center.getX() + 0.5, t.center.getY() + 1, t.center.getZ() + 0.5);
-        helper.assertTrue(raiders.size() >= Trials.BREACH, "too few raiders to breach: " + raiders.size());
-        t.treasury = 9_000;
-        Trials.update(level, t);
-        helper.assertTrue(t.ext.getLong("trialStart") == 0 && t.treasury == 6_000, "a breach should end the trial and plunder a third");
-        helper.assertTrue(t.ext.getLong("trialRetry") > today, "a failed town should wait to apply again");
-        helper.assertTrue(level.getEntitiesOfClass(BanditEntity.class, new AABB(t.center).inflate(t.radius() + 80), b -> b.getTags().contains(Trials.TAG)).isEmpty(),
-                "the raiders stayed after the trial");
-        // A won trial is remembered until the upgrade goes through.
-        Trials.win(level, t, java.util.List.of());
-        helper.assertTrue(t.ext.getBoolean("trialWon") && t.level == TerritoryLevel.TOWN_3, "a won trial with conditions unmet should wait for them");
-        VillageTests.done(helper, p, t);
+        // Forced chunks load their entities a moment later.
+        helper.runAfterDelay(40, () -> {
+            Trials.day(level, t, today + Trials.WARNING_DAYS, level.getRandom());
+            helper.assertTrue(t.ext.getLong("trialStart") > 0 && t.ext.getInt("trialWave") == 1, "the attack did not begin");
+            java.util.List<BanditEntity> raiders = level.getEntitiesOfClass(BanditEntity.class, new AABB(t.center).inflate(t.radius() + 80),
+                    b -> b.getTags().contains(Trials.TAG));
+            helper.assertTrue(raiders.size() >= 3, "the first wave was too small: " + raiders.size());
+            // Five at the manor is a breach: the town is plundered and must wait to try again.
+            if (raiders.size() < Trials.BREACH) com.realmlord.world.Raids.spawnBand(level, t, Trials.BREACH, 3, 0, 0, Trials.TAG);
+            java.util.List<BanditEntity> all = level.getEntitiesOfClass(BanditEntity.class, new AABB(t.center).inflate(t.radius() + 80), b -> b.getTags().contains(Trials.TAG));
+            for (BanditEntity b : all) b.moveTo(t.center.getX() + 0.5, t.center.getY() + 1, t.center.getZ() + 0.5);
+            helper.assertTrue(all.size() >= Trials.BREACH, "too few raiders to breach: " + all.size());
+            t.treasury = 9_000;
+            Trials.update(level, t);
+            helper.assertTrue(t.ext.getLong("trialStart") == 0 && t.treasury == 6_000, "a breach should end the trial and plunder a third");
+            helper.assertTrue(t.ext.getLong("trialRetry") > today, "a failed town should wait to apply again");
+            helper.assertTrue(level.getEntitiesOfClass(BanditEntity.class, new AABB(t.center).inflate(t.radius() + 80), b -> b.getTags().contains(Trials.TAG)).isEmpty(),
+                    "the raiders stayed after the trial");
+            // A won trial is remembered until the upgrade goes through.
+            Trials.win(level, t, java.util.List.of());
+            helper.assertTrue(t.ext.getBoolean("trialWon") && t.level == TerritoryLevel.TOWN_3, "a won trial with conditions unmet should wait for them");
+            VillageTests.done(helper, p, t);
+        });
     }
 
     @GameTest(template = "empty", timeoutTicks = 300, batch = "town_army")
