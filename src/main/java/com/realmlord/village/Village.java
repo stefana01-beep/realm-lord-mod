@@ -184,7 +184,8 @@ public final class Village {
             if (b.type == BuildingType.MILITARY_CAMP) n += 10;
             if (b.type == BuildingType.BARRACKS) n += 50;
         }
-        return n == 0 ? 0 : n + Office.power(t, Office.MILITARY) / 5 + 5 * FigureArts.count(t, "general");
+        // Generals train more men, but only where there is a camp to drill them.
+        return n == 0 ? 0 : n + Office.power(t, Office.MILITARY) / 5 + (n > BASE_MILITIA ? 5 * FigureArts.count(t, "general") : 0);
     }
 
     public static int militiaCount(Territory t) {

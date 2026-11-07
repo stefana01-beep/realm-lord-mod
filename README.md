@@ -1021,7 +1021,7 @@ A summoned figure with Loyalty 60 or more lends the village the gift of their ki
 
 | Kind | Gift (each) |
 |---|---|
-| General | +5 militia places |
+| General | +5 militia places (with a military camp or barracks) |
 | Admiral | +10 sailors; better fishing and sea trade |
 | Strategist | Security +3; raiders 10% weaker; safer caravans |
 | Minister | +5% tax |
