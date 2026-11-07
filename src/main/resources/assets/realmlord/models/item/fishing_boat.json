@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "minecraft:item/birch_boat",
+    "layer1": "realmlord:item/fishing_boat_overlay"
+  }
+}

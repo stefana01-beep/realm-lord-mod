@@ -37,5 +37,10 @@ public class ClientModEvents {
         event.registerEntityRenderer(ModEntities.FIRE_OIL.get(), net.minecraft.client.renderer.entity.ThrownItemRenderer::new);
         BeastRenderers.register(event);
         event.registerEntityRenderer(ModEntities.SETTLER.get(), ctx -> new HumanRenderer<>(ctx, HumanRenderer::settlerSkin));
+        event.registerEntityRenderer(ModEntities.FISHING_BOAT.get(), ctx -> new ShipRenderer<>(ctx, com.realmlord.ship.ShipKind.FISHING_BOAT));
+        event.registerEntityRenderer(ModEntities.CIMA_BOAT.get(), ctx -> new ShipRenderer<>(ctx, com.realmlord.ship.ShipKind.CIMA_BOAT));
+        event.registerEntityRenderer(ModEntities.MERCHANT_SHIP.get(), ctx -> new ShipRenderer<>(ctx, com.realmlord.ship.ShipKind.MERCHANT_SHIP));
+        event.registerEntityRenderer(ModEntities.MENGCHONG.get(), ctx -> new ShipRenderer<>(ctx, com.realmlord.ship.ShipKind.MENGCHONG));
+        event.registerEntityRenderer(ModEntities.TURRETED_SHIP.get(), ctx -> new ShipRenderer<>(ctx, com.realmlord.ship.ShipKind.TURRETED_SHIP));
     }
 }

@@ -1,0 +1,34 @@
+{
+  "type": "realmlord:manual",
+  "manual": "meng_chong",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "LIL",
+      "PFP",
+      "PTP"
+    ],
+    "key": {
+      "L": {
+        "item": "minecraft:leather"
+      },
+      "I": {
+        "item": "minecraft:iron_ingot"
+      },
+      "F": {
+        "item": "realmlord:fishing_boat"
+      },
+      "P": {
+        "tag": "minecraft:planks"
+      },
+      "T": {
+        "item": "realmlord:pine_tar"
+      }
+    },
+    "result": {
+      "item": "realmlord:mengchong_warship",
+      "count": 1
+    }
+  }
+}

@@ -544,13 +544,14 @@ Items a workshop makes are graded by the master as before. A piece that has a gr
 ### Technical manuals for every trade
 As in the novel, "<Mingguang Armor Manufacturing Technology Manual>: After use, gain knowledge of crafting the mingguang armor." A technical manual teaches you to make things at an ordinary crafting table. Until you have learned it, its recipes do nothing.
 
-- **Who can learn them:** anyone can learn a Junior manual that only teaches recipes (any player can craft with the right knowledge). Every other manual needs its trade at the manual's rank or higher (Intermediate, Advanced, Master).
-- **Techniques:** some manuals teach a technique rather than recipes, and it simply works for you once learned.
+- **Who can learn them:** anyone can learn a Junior manual that only teaches recipes or a building (any player can craft with the right knowledge). Every other manual needs its trade at the manual's rank or higher.
+- **Techniques:** some manuals teach a technique, which simply works for you once learned.
+- **Structure manuals:** these come with a building plan (see Building plans below).
 - **Your trade's bonus:** when you make something from a manual of your own trade, you gain work experience, and now and then you make one extra. At Advanced rank and above, your trade's arms and armour sometimes come out a grade higher.
-- **Where to get them:** the market's new **Manuals** page sells every manual (Junior 50 silver, Intermediate 3 gold, Advanced 10 gold, Master 30 gold). Bandit chiefs carry them, and ruins hold them.
-- **Your manuals:** the character panel (J) has a new **Arts & Manuals** tab listing the manuals you know.
+- **Where to get them:** the market's **Manuals** page sells every manual (Junior 50 silver, Intermediate 3 gold, Advanced 10 gold, Master 30 gold). Bandit chiefs carry them, and ruins hold them.
+- **Your manuals:** the **Arts & Manuals** tab of the character panel (J) lists what you know.
 
-There are 82 manuals, five to seven for each trade; ★ marks one taken from the novel.
+There are 111 manuals, at least six for every trade; ★ marks one taken from the novel.
 
 **Blacksmith**
 
@@ -563,6 +564,7 @@ There are 82 manuals, five to seven for each trade; ★ marks one taken from the
 | Song Dynasty Buren Armor Making Manual ★ | Intermediate | The Song infantry's heavy armour of nearly two thousand scales: hard to knock down. |
 | Mingguang Armor Manufacturing Technology Manual ★ | Advanced | The bright-light armour of the Tang cavalry, two polished mirrors on the breast. |
 | Hundred-Refined Steel Manual | Master | Forge a steel blade again, folding in three more bars of refined steel and gold: it comes out Gold grade without a beast core. |
+| Forge Drawings | Junior | A smithy: blast furnace, anvil, grindstone and a chimney. Comes with the plan for the Forge. |
 
 **Tailor**
 
@@ -585,6 +587,7 @@ There are 82 manuals, five to seven for each trade; ★ marks one taken from the
 | Rhino Horn Poison Curing Pill Formula ★ | Intermediate | Bianque's antidote: cures poison and wither, and wards them off for two minutes. |
 | Peiyuan Pill Formula ★ | Advanced | Solidifies the primordial Qi: effective for the badly injured. |
 | Bianque's Medical Classic | Master | The special pills without a beast core. |
+| Herb Garden Drawings | Junior | Beds of medicinal flowers between paths. Comes with the plan for the Herb Garden. |
 
 **Architect**
 
@@ -597,6 +600,13 @@ There are 82 manuals, five to seven for each trade; ★ marks one taken from the
 | Luopan Geomancy Manual | Intermediate | The geomancer's compass: reads the land wherever you stand. |
 | Yingzao Fashi | Advanced | The Song court's building standards: one block in five you place is not used up. |
 | Kaogong Ji | Master | The Records of Trades of the Rites of Zhou: two more blocks of reach. |
+| Lu Ban's Square | Junior | The architect's drafting square: draw what you have built into a plan, and raise it again anywhere. |
+| Road Inn Construction Drawings | Intermediate | An inn for the roads between cities: a hall with tables, a counter and beds. Comes with the plan for the Road Inn. |
+| Relay Station Drawings | Intermediate | A courier relay: stalls, hay and water for the post horses. Comes with the plan for the Relay Station. |
+| Village Temple Construction Drawings ★ | Intermediate | A Taoist temple on a raised terrace, red pillars and a tiled roof, for a priest to preside over. Comes with the plan for the Village Temple. |
+| Granary Drawings | Intermediate | A raised granary that keeps the grain dry. Comes with the plan for the Granary. |
+| Siheyuan Drawings | Advanced | A courtyard house: four wings around a garden, a red gate at the front. Comes with the plan for the Siheyuan. |
+| Pagoda Drawings | Master | A five-storey pagoda with eaves on every floor. Comes with the plan for the Pagoda. |
 
 **Breeder**
 
@@ -608,6 +618,7 @@ There are 82 manuals, five to seven for each trade; ★ marks one taken from the
 | Panda Rearing Technical Manual ★ | Advanced | Bamboo feed that makes pandas breed and cubs grow. |
 | Wild Beast Taming Technique ★ | Advanced | The wild era's taming art: wolves, cats, parrots and horses take to you at the first try. |
 | Iron Armored Beast Domestication Manual ★ | Master | Animals you tame come out tougher: +20 health and +6 armour. |
+| Stable Construction Drawings | Intermediate | A stable with stalls, hay and water troughs. Comes with the plan for the Stable. |
 
 **Fisherman**
 
@@ -620,6 +631,7 @@ There are 82 manuals, five to seven for each trade; ★ marks one taken from the
 | Pearl Diving Manual | Intermediate | Hold your breath far longer under water. |
 | Cormorant Fishing Manual | Advanced | Trained cormorants bring in a third more fish. |
 | Mazu's Sea Charts | Master | The sea goddess's favour: one catch in ten brings a treasure up with it. |
+| Fishing Hut Drawings | Junior | A hut on stilts over the water. Comes with the plan for the Fishing Hut. |
 
 **Farmer**
 
@@ -631,6 +643,7 @@ There are 82 manuals, five to seven for each trade; ★ marks one taken from the
 | Seed Selection Manual | Intermediate | Crops you harvest replant themselves. |
 | Spring Weathering Talisman ★ | Advanced | A talisman that brings spring to the fields around it at once. |
 | Fan Shengzhi Shu | Master | The Han agricultural classic: crops around you grow faster. |
+| Irrigated Field Drawings | Junior | A sown field with a water channel down the middle. Comes with the plan for the Irrigated Field. |
 
 **Veterinarian**
 
@@ -641,6 +654,7 @@ There are 82 manuals, five to seven for each trade; ★ marks one taken from the
 | Beast Whistle Manual | Intermediate | A tusk whistle that calls all your animals to you. |
 | Guardian Charm Manual | Advanced | Carried, it saves one of your animals from death once. |
 | Hundred Beasts Classic | Master | Your tamed animals strike a third harder and heal as they fight. |
+| Animal Pen Drawings | Junior | A fenced pen with a gate, hay and water. Comes with the plan for the Animal Pen. |
 
 **Winemaker**
 
@@ -665,6 +679,7 @@ There are 82 manuals, five to seven for each trade; ★ marks one taken from the
 | Military Grain Pill Recipe ★ | Intermediate | One small pill sustains a soldier for a day. |
 | Roast Duck Recipe | Advanced | Lacquered, glazed and roasted. |
 | Manchu Han Imperial Feast | Master | The imperial banquet: one dish of it fills you and lends every strength. |
+| Kitchen Drawings | Junior | An open kitchen: stove, smoker, water and a table. Comes with the plan for the Kitchen. |
 
 **Carpenter**
 
@@ -676,6 +691,9 @@ There are 82 manuals, five to seven for each trade; ★ marks one taken from the
 | South-Pointing Chariot Technical Manual ★ | Advanced | The geared carriage whose figure always points south, and here also home. |
 | Wooden Ox and Flowing Horse | Master | Zhuge Liang's pack carrier: a saddled, laden mule that follows you. |
 | Substitute Doll Carving ★ | Master | A wooden doll that dies in your place, once. |
+| Mail Post Drawings | Junior | A roadside mail post. Comes with the plan for the Mail Post. |
+| Pavilion Drawings | Junior | A roadside pavilion with red pillars and double eaves. Comes with the plan for the Pavilion. |
+| Arrow Tower Drawings | Intermediate | A wooden arrow tower with slits and a railed platform. Comes with the plan for the Arrow Tower. |
 
 **Mason**
 
@@ -687,6 +705,10 @@ There are 82 manuals, five to seven for each trade; ★ marks one taken from the
 | Jingdezhen Porcelain Manual | Intermediate | Blue-and-white porcelain vases: the market pays well. |
 | Jade Carving Manual | Advanced | A jade pendant: held in the off hand, it brings luck and health. |
 | Great Wall Masonry | Master | Deepslate bricks by the eight, and stone breaks half again as fast in your hands. |
+| Village Well Drawings | Junior | A stone well with a roof over it. Comes with the plan for the Village Well. |
+| Beacon Tower Drawings | Intermediate | A stone beacon tower with battlements and a signal fire. Comes with the plan for the Beacon Tower. |
+| Paifang Drawings | Intermediate | A stone memorial archway with a golden tablet. Comes with the plan for the Paifang. |
+| Zhaozhou Bridge Drawings | Advanced | Li Chun's stone arch bridge, seventeen blocks long: build it from one bank across the water. Comes with the plan for the Zhaozhou Bridge. |
 
 **Shipbuilder**
 
@@ -697,7 +719,15 @@ There are 82 manuals, five to seven for each trade; ★ marks one taken from the
 | Rope and Rigging Manual | Junior | Rope from kelp, and leads. |
 | Lifebuoy Manual | Intermediate | Held in the off hand in water: breathe and swim fast. |
 | Ming Dynasty Shipbuilding Technical Manual ★ | Advanced | Harbour lights and the diving bell for hull work. |
-| Meng Chong Warship Manufacturing Manual ★ | Master | Master of naval war: in water you have Conduit Power. |
+| Meng Chong Warship Manufacturing Manual ★ | Advanced | The rawhide-covered warship built to ram: four seats, four times as tough as a boat; it strikes and throws aside what it runs down. |
+| Fishing Boat Manual ★ | Junior | An ordinary fishing boat that carries two fishermen; fish caught from it come in a third more often. |
+| Cima Boat Manual ★ | Intermediate | The fleet's scout: a red-sailed boat half again as fast as any other. |
+| Merchant Ship Manual ★ | Intermediate | A trading ship: three seats and a hold. |
+| Turreted Ship Construction Manual ★ | Master | The floating fortress with watertight bulkheads: six seats, seven times as tough, crossbowmen who shoot at foes and clapper poles that strike those close. Its master has Conduit Power in water. |
+| Dock Construction Drawings ★ | Junior | A wooden pier out into the water: build it from the shore. Comes with the plan for the Dock. |
+| Ferry Construction Drawings ★ | Junior | Stone steps down to the water for a ferry. Comes with the plan for the Ferry Landing. |
+| Shipyard Construction Drawings ★ | Intermediate | A slipway into the water, framed and craned, with the shipwright's benches. Comes with the plan for the Shipyard. |
+| Lighthouse Drawings | Advanced | A stone lighthouse for the harbour mouth. Comes with the plan for the Lighthouse. |
 
 **New things to make:**
 - **Armour:**
@@ -738,6 +768,62 @@ There are 82 manuals, five to seven for each trade; ★ marks one taken from the
   - Three Flower Wine, Dukang, Maotai, medicinal wine, tiger bone wine and the Drunken Immortal Brew.
 - **Goods the market buys:** rainbow silk, porcelain vases and jade.
 - **Materials:** silk cocoons, tea leaves, soy sauce and pine tar.
+
+### Building plans
+A building plan raises a whole building from what you carry.
+1. Right-click the ground with the plan. Sparks mark where the building will stand, in front of you with its entrance facing you, and chat lists what it needs and what you lack.
+2. Crouch and right-click the same spot to build.
+
+**While it builds:**
+- The building goes up a couple of dozen blocks a tick: the plan's empty spaces are cleared (soft blocks only, which drop as items), then the walls, then everything that hangs on them.
+- Every block is paid for from your pack. In creative, it is free.
+- Whatever you can't pay for is left out and listed at the end.
+- An architect's hand saves materials (5% per rank, plus 20% with the *Yingzao Fashi*).
+
+**Ready-made buildings:** each structure manual comes with the plan for one of 24 buildings, and you need the manual to build from the plan.
+
+| Trade | Buildings |
+|---|---|
+| Architect | Road Inn, Relay Station, Village Temple ★, Granary, Siheyuan courtyard house, five-storey Pagoda |
+| Mason | Village Well, Beacon Tower, Paifang archway, Zhaozhou Bridge (17 long; build it from one bank) |
+| Carpenter | Mail Post, Pavilion, Arrow Tower |
+| Shipbuilder | Dock ★, Ferry Landing ★, Shipyard ★, Lighthouse |
+| Farmer | Irrigated Field |
+| Physician | Herb Garden |
+| Breeder | Stable |
+| Veterinarian | Animal Pen |
+| Fisherman | Fishing Hut |
+| Cook | Kitchen |
+| Blacksmith | Forge |
+
+The road inn, relay station and mail post are the start of the road network's buildings.
+
+### The architect's own plans
+Architects can draw their own plans with **Lu Ban's Square**, which the Junior manual of the same name teaches you to make from two sticks and an iron ingot.
+1. Right-click two corners of something you built.
+2. Crouch and right-click, with a sheet of paper in your pack, to draw it into a plan. The plan keeps the way round you drew it, and is raised the same way round, facing you.
+3. Rename the plan on an anvil if you like.
+
+How large a plan you can draw depends on your architect rank: Junior 9 blocks across, Intermediate 15, Advanced 21, Master 31. Drawing gives architect experience. Anyone you give a plan to can build from it, and it keeps working in that world.
+
+### Ships
+The shipbuilder's ships, after the novel's fleet: fishing boats for two fishermen, cima boats as scouts, merchant ships, Mengchong warships and the turreted ship. They are launched like a boat (right-click on water).
+
+| Ship | Manual | Rank | Seats | Speed | Hull | What else it does |
+|---|---|---|---|---|---|---|
+| Fishing Boat ★ | Fishing Boat Manual | Junior | 2 | as a boat | as a boat | fish caught from it come in a third more often |
+| Cima Boat ★ | Cima Boat Manual | Intermediate | 2 | half again as fast | as a boat | the red-sailed scout |
+| Merchant Ship ★ | Merchant Ship Manual | Intermediate | 3 | a little slower | 2× | a hold of 27 slots (crouch and right-click) |
+| Mengchong Warship ★ | Meng Chong Warship Manufacturing Manual | Advanced | 4 | a little faster | 4× | rams: what it runs down at speed is hurt and thrown aside |
+| Turreted Ship ★ | Turreted Ship Construction Manual | Master | 6 | slower | 7× | its crossbowmen shoot the nearest foe within 18 blocks; clapper poles strike foes close by. Its manual's master has Conduit Power in water |
+
+**How they are built:**
+- Every ship is built from planks and pine tar.
+- The Mengchong is built from a fishing boat, and the turreted ship from a Mengchong.
+
+**How they look:**
+- Each ship is drawn larger than a boat (the turreted ship twice as large), painted in its own wood.
+- Each carries what stands on its deck: a mast and sail, a rawhide deckhouse, or a two-storey red tower.
 
 ### Martial arts secret manuals
 Secret manuals for players, as in the novel.

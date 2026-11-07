@@ -55,4 +55,22 @@ public class ModEntities {
     public static final RegistryObject<EntityType<SettlerEntity>> SETTLER = ENTITIES.register("settler",
             () -> EntityType.Builder.<SettlerEntity>of(SettlerEntity::new, MobCategory.MISC)
                     .sized(0.6F, 1.8F).clientTrackingRange(10).build(RealmLord.id("settler").toString()));
+
+    // ------------------------------------------------------------------ ships
+
+    private static <T extends net.minecraft.world.entity.vehicle.Boat> RegistryObject<EntityType<T>> ship(String id, EntityType.EntityFactory<T> f, com.realmlord.ship.ShipKind k) {
+        return ENTITIES.register(id, () -> EntityType.Builder.<T>of(f, MobCategory.MISC).sized(1.375F * k.scale, 0.5625F * Math.max(1.0F, k.scale * 0.8F))
+                .clientTrackingRange(10).build(RealmLord.id(id).toString()));
+    }
+
+    public static final RegistryObject<EntityType<com.realmlord.ship.ShipEntity>> FISHING_BOAT = ship("fishing_boat",
+            (t, l) -> new com.realmlord.ship.ShipEntity(t, l, com.realmlord.ship.ShipKind.FISHING_BOAT), com.realmlord.ship.ShipKind.FISHING_BOAT);
+    public static final RegistryObject<EntityType<com.realmlord.ship.ShipEntity>> CIMA_BOAT = ship("cima_boat",
+            (t, l) -> new com.realmlord.ship.ShipEntity(t, l, com.realmlord.ship.ShipKind.CIMA_BOAT), com.realmlord.ship.ShipKind.CIMA_BOAT);
+    public static final RegistryObject<EntityType<com.realmlord.ship.CargoShipEntity>> MERCHANT_SHIP = ship("merchant_ship",
+            (t, l) -> new com.realmlord.ship.CargoShipEntity(t, l, com.realmlord.ship.ShipKind.MERCHANT_SHIP), com.realmlord.ship.ShipKind.MERCHANT_SHIP);
+    public static final RegistryObject<EntityType<com.realmlord.ship.ShipEntity>> MENGCHONG = ship("mengchong_warship",
+            (t, l) -> new com.realmlord.ship.ShipEntity(t, l, com.realmlord.ship.ShipKind.MENGCHONG), com.realmlord.ship.ShipKind.MENGCHONG);
+    public static final RegistryObject<EntityType<com.realmlord.ship.ShipEntity>> TURRETED_SHIP = ship("turreted_ship",
+            (t, l) -> new com.realmlord.ship.ShipEntity(t, l, com.realmlord.ship.ShipKind.TURRETED_SHIP), com.realmlord.ship.ShipKind.TURRETED_SHIP);
 }

@@ -57,8 +57,14 @@ PRICE = {J: 5_000, I: 30_000, A: 100_000, M: 300_000}
 WOODS = ["oak", "spruce", "birch", "jungle", "acacia", "dark_oak", "mangrove", "cherry"]
 
 
-def T(id, trade, tier, name, desc, recipes=None, passive=False, novel=False):
-    return {"id": id, "trade": trade, "tier": tier, "name": name, "desc": desc, "recipes": recipes or {}, "passive": passive, "novel": novel}
+def T(id, trade, tier, name, desc, recipes=None, passive=False, novel=False, structures=()):
+    return {"id": id, "trade": trade, "tier": tier, "name": name, "desc": desc, "recipes": recipes or {}, "passive": passive, "novel": novel,
+            "structures": list(structures)}
+
+
+def S(id, trade, tier, name, desc, structure, novel=False):
+    """A structure manual: its building plan comes with it."""
+    return T(id, trade, tier, name, desc, novel=novel, structures=[structure])
 
 
 TECHS = [
@@ -263,8 +269,59 @@ TECHS = [
     T("ming_shipbuilding", "SHIPBUILDER", A, "Ming Dynasty Shipbuilding Technical Manual", "Harbour lights and the diving bell for hull work.", {
         "diving_bell": shaped(["III", "G G", "GGG"], {"I": "iron_ingot", "G": "glass"}, RL("diving_bell")),
         "sea_lantern_harbour": shapeless(["glass", "glowstone_dust", "glowstone_dust", "dried_kelp"], "sea_lantern", 2)}, novel=True),
-    T("meng_chong", "SHIPBUILDER", M, "Meng Chong Warship Manufacturing Manual", "Master of naval war: in water you have Conduit Power.", passive=True, novel=True),
+    T("meng_chong", "SHIPBUILDER", A, "Meng Chong Warship Manufacturing Manual", "The rawhide-covered warship built to ram: four seats, four times as tough as a boat; it strikes and throws aside what it runs down.", {
+        "mengchong_warship": shaped(["LIL", "PFP", "PTP"], {"L": "leather", "I": "iron_ingot", "F": RL("fishing_boat"), "P": "#planks", "T": RL("pine_tar")}, RL("mengchong_warship"))}, novel=True),
+    T("fishing_boat", "SHIPBUILDER", J, "Fishing Boat Manual", "An ordinary fishing boat that carries two fishermen; fish caught from it come in a third more often.", {
+        "fishing_boat": shaped(["P P", "PTP", "PPP"], {"P": "#planks", "T": RL("pine_tar")}, RL("fishing_boat"))}, novel=True),
+    T("cima_boat", "SHIPBUILDER", I, "Cima Boat Manual", "The fleet's scout: a red-sailed boat half again as fast as any other.", {
+        "cima_boat": shaped([" R ", "PTP", "PPP"], {"R": "red_wool", "P": "#planks", "T": RL("pine_tar")}, RL("cima_boat"))}, novel=True),
+    T("merchant_ship", "SHIPBUILDER", I, "Merchant Ship Manual", "A trading ship: three seats and a hold.", {
+        "merchant_ship": shaped(["WCW", "PTP", "PPP"], {"W": "white_wool", "C": "chest", "P": "#planks", "T": RL("pine_tar")}, RL("merchant_ship"))}, novel=True),
+    T("turreted_ship", "SHIPBUILDER", M, "Turreted Ship Construction Manual", "The floating fortress with watertight bulkheads: six seats, seven times as tough, crossbowmen who shoot at foes and clapper poles that strike those close. Its master has Conduit Power in water.", {
+        "turreted_ship": shaped(["RWR", "LML", "PTP"], {"R": RL("refined_steel"), "W": "red_wool", "L": "#logs", "M": RL("mengchong_warship"), "P": "#planks", "T": RL("pine_tar")}, RL("turreted_ship"))},
+      passive=True, novel=True),
+    # ------------------------------------------------------------ structure manuals: each comes with its building plan
+    T("architects_drafting", "ARCHITECT", J, "Lu Ban's Square", "The architect's drafting square: draw what you have built into a plan, and raise it again anywhere.", {
+        "drafting_square": shaped(["SI", "S "], {"S": "stick", "I": "iron_ingot"}, RL("drafting_square"))}),
+    S("road_inn_plan", "ARCHITECT", I, "Road Inn Construction Drawings", "An inn for the roads between cities: a hall with tables, a counter and beds.", "road_inn"),
+    S("relay_station_plan", "ARCHITECT", I, "Relay Station Drawings", "A courier relay: stalls, hay and water for the post horses.", "relay_station"),
+    S("village_temple_plan", "ARCHITECT", I, "Village Temple Construction Drawings", "A Taoist temple on a raised terrace, red pillars and a tiled roof, for a priest to preside over.", "taoist_shrine", novel=True),
+    S("granary_plan", "ARCHITECT", I, "Granary Drawings", "A raised granary that keeps the grain dry.", "granary"),
+    S("courtyard_house_plan", "ARCHITECT", A, "Siheyuan Drawings", "A courtyard house: four wings around a garden, a red gate at the front.", "courtyard_house"),
+    S("pagoda_plan", "ARCHITECT", M, "Pagoda Drawings", "A five-storey pagoda with eaves on every floor.", "pagoda"),
+    S("village_well_plan", "MASON", J, "Village Well Drawings", "A stone well with a roof over it.", "village_well"),
+    S("beacon_tower_plan", "MASON", I, "Beacon Tower Drawings", "A stone beacon tower with battlements and a signal fire.", "beacon_tower"),
+    S("paifang_plan", "MASON", I, "Paifang Drawings", "A stone memorial archway with a golden tablet.", "paifang"),
+    S("zhaozhou_bridge_plan", "MASON", A, "Zhaozhou Bridge Drawings", "Li Chun's stone arch bridge, seventeen blocks long: build it from one bank across the water.", "arch_bridge"),
+    S("mail_post_plan", "CARPENTER", J, "Mail Post Drawings", "A roadside mail post.", "mail_post"),
+    S("pavilion_plan", "CARPENTER", J, "Pavilion Drawings", "A roadside pavilion with red pillars and double eaves.", "pavilion"),
+    S("arrow_tower_plan", "CARPENTER", I, "Arrow Tower Drawings", "A wooden arrow tower with slits and a railed platform.", "arrow_tower"),
+    S("dock_plan", "SHIPBUILDER", J, "Dock Construction Drawings", "A wooden pier out into the water: build it from the shore.", "wharf", novel=True),
+    S("ferry_plan", "SHIPBUILDER", J, "Ferry Construction Drawings", "Stone steps down to the water for a ferry.", "ferry_landing", novel=True),
+    S("shipyard_plan", "SHIPBUILDER", I, "Shipyard Construction Drawings", "A slipway into the water, framed and craned, with the shipwright's benches.", "shipyard", novel=True),
+    S("lighthouse_plan", "SHIPBUILDER", A, "Lighthouse Drawings", "A stone lighthouse for the harbour mouth.", "lighthouse"),
+    S("irrigated_field_plan", "FARMER", J, "Irrigated Field Drawings", "A sown field with a water channel down the middle.", "irrigated_field"),
+    S("herb_garden_plan", "PHYSICIAN", J, "Herb Garden Drawings", "Beds of medicinal flowers between paths.", "herb_garden"),
+    S("stable_plan", "BREEDER", I, "Stable Construction Drawings", "A stable with stalls, hay and water troughs.", "stable"),
+    S("animal_pen_plan", "VETERINARIAN", J, "Animal Pen Drawings", "A fenced pen with a gate, hay and water.", "animal_pen"),
+    S("fishing_hut_plan", "FISHERMAN", J, "Fishing Hut Drawings", "A hut on stilts over the water.", "fishing_hut"),
+    S("kitchen_plan", "COOK", J, "Kitchen Drawings", "An open kitchen: stove, smoker, water and a table.", "kitchen"),
+    S("forge_plan", "BLACKSMITH", J, "Forge Drawings", "A smithy: blast furnace, anvil, grindstone and a chimney.", "forge"),
 ]
+
+DESIGN_NAMES = {
+    "road_inn": ("Road Inn", "A hall with tables, a counter and beds."), "relay_station": ("Relay Station", "Stalls, hay and water for post horses."),
+    "taoist_shrine": ("Village Temple", "A Taoist temple on a terrace."), "granary": ("Granary", "A raised granary."),
+    "courtyard_house": ("Siheyuan", "A courtyard house of four wings."), "pagoda": ("Pagoda", "Five storeys."),
+    "village_well": ("Village Well", "A stone well with a roof."), "beacon_tower": ("Beacon Tower", "A signal fire on a stone tower."),
+    "paifang": ("Paifang", "A stone memorial archway."), "arch_bridge": ("Zhaozhou Bridge", "A stone arch bridge; build it from one bank."),
+    "mail_post": ("Mail Post", "A roadside mail post."), "pavilion": ("Pavilion", "A roadside pavilion."), "arrow_tower": ("Arrow Tower", "A wooden arrow tower."),
+    "wharf": ("Dock", "A pier out into the water; build it from the shore."), "ferry_landing": ("Ferry Landing", "Steps down to the water."),
+    "shipyard": ("Shipyard", "A slipway into the water."), "lighthouse": ("Lighthouse", "A light for the harbour mouth."),
+    "irrigated_field": ("Irrigated Field", "A sown field with a channel."), "herb_garden": ("Herb Garden", "Beds of medicinal flowers."),
+    "stable": ("Stable", "Stalls, hay and troughs."), "animal_pen": ("Animal Pen", "A fenced pen."), "fishing_hut": ("Fishing Hut", "A hut on stilts."),
+    "kitchen": ("Kitchen", "An open kitchen."), "forge": ("Forge", "A smithy with a chimney."),
+}
 
 TRADE_NAMES = {"BLACKSMITH": "Blacksmith", "TAILOR": "Tailor", "PHYSICIAN": "Physician", "ARCHITECT": "Architect", "BREEDER": "Breeder",
                "FISHERMAN": "Fisherman", "FARMER": "Farmer", "VETERINARIAN": "Veterinarian", "WINEMAKER": "Winemaker", "COOK": "Cook",
@@ -666,6 +723,50 @@ def composite_bow(pull=0):
     return img
 
 
+def plan_img():
+    img, px = blank()
+    for y in range(2, 14):
+        for x in range(2, 14): px[x, y] = shade(hexc("d8e4f0"), 1.0 - 0.01 * y)
+    for x in range(2, 14): px[x, 2] = px[x, 13] = hexc("2a4a8a")
+    for y in range(2, 14): px[2, y] = px[13, y] = hexc("2a4a8a")
+    for (x, y) in [(4, 10), (5, 9), (6, 8), (7, 7), (8, 8), (9, 9), (10, 10), (5, 10), (10, 11), (5, 11), (5, 12), (10, 12)]: px[x, y] = hexc("2a4a8a")
+    for x in range(4, 12): px[x, 6] = hexc("c42a24")
+    return img
+
+
+def square_img():
+    img, px = blank()
+    for i in range(2, 14):
+        px[3, i] = px[4, i] = hexc("8a5a30")
+        px[i, 12] = px[i, 13] = hexc("8a5a30")
+    for i in range(4, 14, 2): px[4, i] = px[i, 12] = hexc("e8d8a0")
+    px[3, 13] = px[4, 13] = hexc("c8a24a")
+    return img
+
+
+def ship_overlay(kind):
+    img, px = blank()
+    col = {"fishing_boat": None, "cima_boat": "c42a24", "merchant_ship": "f0f0f0", "mengchong_warship": "8a5a30", "turreted_ship": "c42a24"}[kind]
+    if kind == "fishing_boat":
+        for y in range(3, 8): px[8, y] = hexc("6a4424")
+        for (x, y) in [(9, 3), (10, 4), (9, 4), (9, 5)]: px[x, y] = hexc("e8dcc0")
+        return img
+    for y in range(1, 9): px[7, y] = hexc("4a3020")
+    if kind == "turreted_ship":
+        for y in range(3, 9):
+            for x in range(4, 11): px[x, y] = hexc("6a1a14") if y % 2 else hexc(col)
+        for x in range(3, 12): px[x, 3] = hexc("2a2a30")
+        return img
+    if kind == "mengchong_warship":
+        for y in range(5, 9):
+            for x in range(3, 12): px[x, y] = shade(hexc(col), 1.1 - 0.05 * y)
+        for x in range(3, 12, 2): px[x, 5] = hexc("8c8e96")
+        return img
+    for y in range(2, 8):
+        for x in range(8, 13 - max(0, y - 5)): px[x, y] = shade(hexc(col), 1.0 - 0.03 * y)
+    return img
+
+
 ITEMS = {
     # id: (name, description, painter)
     "rainbow_silk": ("Rainbow Silk", "Top-quality dyed silk cloth. The market pays well.", silk_bolt),
@@ -710,8 +811,18 @@ ITEMS = {
     "tang_hengdao": ("Tang Hengdao", "", tang_hengdao),
     "mo_dao": ("Mo Dao", "", mo_dao),
     "composite_bow": ("Composite Bow", "", lambda: composite_bow(0)),
+    "building_plan": ("Building Plan", "", lambda: plan_img()),
+    "drafting_square": ("Lu Ban's Square", "", lambda: square_img()),
     "tech_manual": ("Technical Manual", "", lambda: book("6a4424", "e8dcb8", [(9, 5), (10, 7), (9, 9)])),
     "secret_manual": ("Secret Manual", "", lambda: book("2e4a7a", "c8a24a", [(9, 5), (10, 6), (9, 8), (10, 9)])),
+}
+
+SHIPS = {
+    "fishing_boat": ("Fishing Boat", "Two fishermen; fish caught from it come in a third more often."),
+    "cima_boat": ("Cima Boat", "The red-sailed scout: the fastest thing on the water."),
+    "merchant_ship": ("Merchant Ship", "Three seats and a hold (crouch and right-click it to open)."),
+    "mengchong_warship": ("Mengchong Warship", "Covered in rawhide: four seats, very tough, and it rams what it runs down."),
+    "turreted_ship": ("Turreted Ship", "A floating fortress: six seats, crossbowmen and clapper poles."),
 }
 
 # New armour: kind -> (piece ids for helmet, chest, legs, boots, display names)
@@ -820,6 +931,12 @@ def textures_and_models():
         "overrides": [{"predicate": {"pulling": 1}, "model": "realmlord:item/composite_bow_pulling_0"},
                       {"predicate": {"pulling": 1, "pull": 0.65}, "model": "realmlord:item/composite_bow_pulling_1"},
                       {"predicate": {"pulling": 1, "pull": 0.9}, "model": "realmlord:item/composite_bow_pulling_2"}]})
+    vanilla_boat = {"fishing_boat": "birch_boat", "cima_boat": "mangrove_boat", "merchant_ship": "spruce_chest_boat",
+                    "mengchong_warship": "acacia_boat", "turreted_ship": "dark_oak_boat"}
+    for k, v in vanilla_boat.items():
+        ship_overlay(k).save(os.path.join(item, k + "_overlay.png"))
+        write(os.path.join(models, k + ".json"), {"parent": "minecraft:item/generated",
+                                                  "textures": {"layer0": f"minecraft:item/{v}", "layer1": f"realmlord:item/{k}_overlay"}})
     armour = os.path.join(ASSETS, "textures", "models", "armor")
     for k, (ids, _) in NEW_ARMOUR.items():
         for n, slot in zip(ids, ["helmet", "chest", "legs", "boots"]):
@@ -852,7 +969,8 @@ def java():
     lines = []
     for t in TECHS:
         outs = ", ".join(f'"{o}"' for o in outputs(t))
-        lines.append(f'            new Tech("{t["id"]}", WorkOccupation.{t["trade"]}, {t["tier"]}, {PRICE[t["tier"]]}L, new String[]{{{outs}}}, {str(t["passive"]).lower()}, {str(t["novel"]).lower()}),')
+        sts = ", ".join(f'"{o}"' for o in t["structures"])
+        lines.append(f'            new Tech("{t["id"]}", WorkOccupation.{t["trade"]}, {t["tier"]}, {PRICE[t["tier"]]}L, new String[]{{{outs}}}, {str(t["passive"]).lower()}, {str(t["novel"]).lower()}, new String[]{{{sts}}}),')
     src = f'''package com.realmlord.work;
 
 import com.realmlord.profile.WorkOccupation;
@@ -864,7 +982,7 @@ public final class TechData {{
     private TechData() {{}}
 
     /** @param tier the trade rank needed to learn it (0 Junior .. 3 Master); outputs: item ids it teaches to make. */
-    public record Tech(String id, WorkOccupation trade, int tier, long price, String[] outputs, boolean passive, boolean novel) {{
+    public record Tech(String id, WorkOccupation trade, int tier, long price, String[] outputs, boolean passive, boolean novel, String[] structures) {{
         public String key() {{
             return "realmlord.tech." + id;
         }}
@@ -922,6 +1040,21 @@ def lang():
         for n, nm in zip(ids, names):
             if n: L[f"item.realmlord.{n}"] = nm
     L["item.realmlord.zhuge_crossbow"] = "Zhuge Repeating Crossbow"
+    for k, (n, desc) in DESIGN_NAMES.items():
+        L[f"realmlord.design.{k}"] = n
+        L[f"realmlord.design.{k}.desc"] = desc
+    for k, (n, desc) in SHIPS.items():
+        L[f"item.realmlord.{k}"] = n
+        L[f"item.realmlord.{k}.desc"] = desc
+    L["item.realmlord.building_plan"] = "Building Plan"
+    L["item.realmlord.building_plan.named"] = "Building Plan: %s"
+    L["item.realmlord.building_plan.drawn"] = "Architect's Plan (%s)"
+    L["item.realmlord.drafting_square"] = "Lu Ban's Square"
+    L["entity.realmlord.fishing_boat"] = "Fishing Boat"
+    L["entity.realmlord.cima_boat"] = "Cima Boat"
+    L["entity.realmlord.merchant_ship"] = "Merchant Ship"
+    L["entity.realmlord.mengchong_warship"] = "Mengchong Warship"
+    L["entity.realmlord.turreted_ship"] = "Turreted Ship"
     L["item.realmlord.tech_manual.named"] = "<%s>"
     L["item.realmlord.secret_manual.named"] = "<%s>"
     for t in TECHS:
@@ -1011,6 +1144,36 @@ def lang():
         "realmlord.craft.tame": "%s takes to you at once.",
         # Trade crafting
         "realmlord.tech.bonus": "Your trade shows: one more.",
+        "realmlord.tech.tooltip.builds": "Builds: %s (its plan comes with the manual)",
+        "realmlord.tech.plan_given": "You receive the plan: %s.",
+        # Building from plans
+        "realmlord.build.preview": "%s: %s×%s×%s, %s blocks. The sparks mark where it will stand, its entrance facing you.",
+        "realmlord.build.needs": "Needs: %s",
+        "realmlord.build.lacking": "You lack: %s (those parts will be left out).",
+        "realmlord.build.confirm": "Crouch and right-click the same spot to build.",
+        "realmlord.build.started": "Building %s (%s blocks)...",
+        "realmlord.build.done": "%s is built: %s blocks placed.",
+        "realmlord.build.missing": "Left out for want of materials: %s",
+        "realmlord.build.more": " and %s more",
+        "realmlord.build.no_design": "This plan's design is lost.",
+        "realmlord.build.need_manual": "You must learn <%s> to build from this plan.",
+        "realmlord.build.busy": "You are already building something.",
+        "realmlord.build.tooltip.size": "%s wide, %s high, %s deep",
+        "realmlord.build.tooltip.manual": "Needs <%s>",
+        "realmlord.build.tooltip.author": "Drawn by %s",
+        "realmlord.build.tooltip.use": "Right-click the ground to see where it will stand and what it needs; crouch and right-click the same spot to build it from what you carry. An architect saves materials.",
+        # The architect's square
+        "realmlord.draft.tip": "Right-click two corners of something you built; crouch and right-click (with paper) to draw it into a plan.",
+        "realmlord.draft.sizes": "Largest plan by rank: Junior %s, Intermediate %s, Advanced %s, Master %s blocks across.",
+        "realmlord.draft.architects_only": "Only an architect can draw plans.",
+        "realmlord.draft.first": "First corner: %s %s %s",
+        "realmlord.draft.second": "Marked %s×%s×%s (your largest: %s). Crouch and right-click to draw it.",
+        "realmlord.draft.mark_first": "Mark two corners first.",
+        "realmlord.draft.too_big": "Too big to draw: your largest plan is %s blocks across.",
+        "realmlord.draft.paper": "You need a sheet of paper to draw on.",
+        "realmlord.draft.drawn": "Drawn: a plan %s×%s×%s, %s blocks. Rename it on an anvil.",
+        # Ships
+        "realmlord.ship.stats": "%s seats · speed %s%% · hull %s%% of a boat's toughness",
     })
     return L
 

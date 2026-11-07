@@ -83,6 +83,8 @@ public class ModCreativeTabs {
             .displayItems((params, out) -> {
                 for (var a : com.realmlord.martial.ArtData.ALL) out.accept(com.realmlord.martial.Arts.manual(a));
                 for (var t : com.realmlord.work.TechData.ALL) out.accept(com.realmlord.work.TechManuals.manual(t));
+                for (var t : com.realmlord.work.TechData.ALL)
+                    for (String st : t.structures()) out.accept(com.realmlord.item.PlanItem.builtin(st, t.id()));
             })
             .build());
 

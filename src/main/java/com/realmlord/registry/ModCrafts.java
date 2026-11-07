@@ -94,7 +94,31 @@ public final class ModCrafts {
                     .effect(() -> new MobEffectInstance(MobEffects.LUCK, 12000, 1), 1.0F)
                     .effect(() -> new MobEffectInstance(MobEffects.DAMAGE_BOOST, 12000, 0), 1.0F).build()), CraftItem.Kind.DRINK));
 
+    // ------------------------------------------------------------------ building and ships
+
+    /** A building plan: a ready-made design or an architect's own. */
+    public static final RegistryObject<Item> BUILDING_PLAN = ModItems.ITEMS.register("building_plan",
+            () -> new com.realmlord.item.PlanItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));
+    /** Lu Ban's square, the architect's drafting tool. */
+    public static final RegistryObject<Item> DRAFTING_SQUARE = ModItems.ITEMS.register("drafting_square",
+            () -> new com.realmlord.item.DraftingSquareItem(new Item.Properties().stacksTo(1)));
+
+    public static final RegistryObject<Item> FISHING_BOAT = ModItems.ITEMS.register("fishing_boat",
+            () -> new com.realmlord.item.ShipItem(new Item.Properties().stacksTo(1), com.realmlord.ship.ShipKind.FISHING_BOAT, ModEntities.FISHING_BOAT));
+    public static final RegistryObject<Item> CIMA_BOAT = ModItems.ITEMS.register("cima_boat",
+            () -> new com.realmlord.item.ShipItem(new Item.Properties().stacksTo(1), com.realmlord.ship.ShipKind.CIMA_BOAT, ModEntities.CIMA_BOAT));
+    public static final RegistryObject<Item> MERCHANT_SHIP = ModItems.ITEMS.register("merchant_ship",
+            () -> new com.realmlord.item.ShipItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON), com.realmlord.ship.ShipKind.MERCHANT_SHIP, ModEntities.MERCHANT_SHIP));
+    public static final RegistryObject<Item> MENGCHONG_WARSHIP = ModItems.ITEMS.register("mengchong_warship",
+            () -> new com.realmlord.item.ShipItem(new Item.Properties().stacksTo(1).rarity(Rarity.RARE), com.realmlord.ship.ShipKind.MENGCHONG, ModEntities.MENGCHONG));
+    public static final RegistryObject<Item> TURRETED_SHIP = ModItems.ITEMS.register("turreted_ship",
+            () -> new com.realmlord.item.ShipItem(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC), com.realmlord.ship.ShipKind.TURRETED_SHIP, ModEntities.TURRETED_SHIP));
+
+    public static List<RegistryObject<Item>> ships() {
+        return List.of(FISHING_BOAT, CIMA_BOAT, MERCHANT_SHIP, MENGCHONG_WARSHIP, TURRETED_SHIP);
+    }
+
     public static List<RegistryObject<Item>> all() {
-        return List.of(RAINBOW_SILK, SILK_COCOON, PINE_TAR, TEA_LEAVES, SOY_SAUCE, PORCELAIN_VASE, JADE_PENDANT, DETOX_DRAUGHT, CLARITY_PILL, ACUPUNCTURE_NEEDLES, RHINO_HORN_PILL, PEIYUAN_PILL, FODDER, HORSE_FEED, BAMBOO_FEED, ANIMAL_SALVE, HORSE_TONIC, BEAST_WHISTLE, GUARDIAN_CHARM, LUOPAN, FISHING_NET, SPRING_TALISMAN, SOUTH_POINTING_CHARIOT, WOODEN_OX, SUBSTITUTE_DOLL, LIFEBUOY, DIVING_BELL, DRIED_FISH, DUMPLINGS, NOODLE_SOUP, GREEN_TEA, MOONCAKE, MILITARY_GRAIN_PILL, ROAST_DUCK, IMPERIAL_FEAST, DUKANG_WINE, MAOTAI, MEDICINAL_WINE, IMMORTAL_WINE);
+        return List.of(DRAFTING_SQUARE, FISHING_BOAT, CIMA_BOAT, MERCHANT_SHIP, MENGCHONG_WARSHIP, TURRETED_SHIP, RAINBOW_SILK, SILK_COCOON, PINE_TAR, TEA_LEAVES, SOY_SAUCE, PORCELAIN_VASE, JADE_PENDANT, DETOX_DRAUGHT, CLARITY_PILL, ACUPUNCTURE_NEEDLES, RHINO_HORN_PILL, PEIYUAN_PILL, FODDER, HORSE_FEED, BAMBOO_FEED, ANIMAL_SALVE, HORSE_TONIC, BEAST_WHISTLE, GUARDIAN_CHARM, LUOPAN, FISHING_NET, SPRING_TALISMAN, SOUTH_POINTING_CHARIOT, WOODEN_OX, SUBSTITUTE_DOLL, LIFEBUOY, DIVING_BELL, DRIED_FISH, DUMPLINGS, NOODLE_SOUP, GREEN_TEA, MOONCAKE, MILITARY_GRAIN_PILL, ROAST_DUCK, IMPERIAL_FEAST, DUKANG_WINE, MAOTAI, MEDICINAL_WINE, IMMORTAL_WINE);
     }
 }

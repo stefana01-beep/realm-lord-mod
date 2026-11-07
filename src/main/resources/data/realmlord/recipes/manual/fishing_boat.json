@@ -1,0 +1,25 @@
+{
+  "type": "realmlord:manual",
+  "manual": "fishing_boat",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "P P",
+      "PTP",
+      "PPP"
+    ],
+    "key": {
+      "P": {
+        "tag": "minecraft:planks"
+      },
+      "T": {
+        "item": "realmlord:pine_tar"
+      }
+    },
+    "result": {
+      "item": "realmlord:fishing_boat",
+      "count": 1
+    }
+  }
+}

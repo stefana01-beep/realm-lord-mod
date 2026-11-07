@@ -32,6 +32,12 @@ public class TechManualItem extends Item {
         prof.learnTech(t.id());
         Profiles.applyAttributes(sp);
         Profiles.sync(sp);
+        // A structure manual comes with its building plan.
+        for (String st : t.structures()) {
+            ItemStack plan = PlanItem.builtin(st, t.id());
+            if (!sp.getInventory().add(plan)) sp.drop(plan, false);
+            sp.displayClientMessage(Component.translatable("realmlord.tech.plan_given", Component.translatable("realmlord.design." + st)).withStyle(ChatFormatting.AQUA), false);
+        }
         return null;
     }
 
@@ -76,6 +82,8 @@ public class TechManualItem extends Item {
             }
             tooltip.add(Component.translatable("realmlord.tech.tooltip.teaches", list).withStyle(ChatFormatting.AQUA));
         }
+        for (String st : t.structures())
+            tooltip.add(Component.translatable("realmlord.tech.tooltip.builds", Component.translatable("realmlord.design." + st)).withStyle(ChatFormatting.AQUA));
         if (t.passive()) tooltip.add(Component.translatable("realmlord.tech.tooltip.passive").withStyle(ChatFormatting.AQUA));
         if (t.novel()) tooltip.add(Component.translatable("realmlord.tech.tooltip.novel").withStyle(ChatFormatting.DARK_GRAY));
         if (TechManuals.CLIENT_KNOWN.contains(t.id())) tooltip.add(Component.translatable("realmlord.tech.tooltip.known").withStyle(ChatFormatting.GREEN));

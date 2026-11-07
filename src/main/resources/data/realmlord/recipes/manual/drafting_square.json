@@ -1,0 +1,24 @@
+{
+  "type": "realmlord:manual",
+  "manual": "architects_drafting",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "SI",
+      "S "
+    ],
+    "key": {
+      "S": {
+        "item": "minecraft:stick"
+      },
+      "I": {
+        "item": "minecraft:iron_ingot"
+      }
+    },
+    "result": {
+      "item": "realmlord:drafting_square",
+      "count": 1
+    }
+  }
+}

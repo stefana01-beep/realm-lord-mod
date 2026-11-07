@@ -1,0 +1,31 @@
+{
+  "type": "realmlord:manual",
+  "manual": "merchant_ship",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "WCW",
+      "PTP",
+      "PPP"
+    ],
+    "key": {
+      "W": {
+        "item": "minecraft:white_wool"
+      },
+      "C": {
+        "item": "minecraft:chest"
+      },
+      "P": {
+        "tag": "minecraft:planks"
+      },
+      "T": {
+        "item": "realmlord:pine_tar"
+      }
+    },
+    "result": {
+      "item": "realmlord:merchant_ship",
+      "count": 1
+    }
+  }
+}

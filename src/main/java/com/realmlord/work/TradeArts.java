@@ -289,6 +289,11 @@ public final class TradeArts {
     public static void fished(ItemFishedEvent event) {
         Player p = event.getEntity();
         if (p.level().isClientSide || event.getDrops().isEmpty()) return;
+        boolean boat = p.getVehicle() instanceof com.realmlord.ship.ShipEntity s && s.kind == com.realmlord.ship.ShipKind.FISHING_BOAT;
+        if (boat && p.getRandom().nextFloat() < 0.33F) {
+            ItemStack extra = event.getDrops().get(0).copy();
+            if (!p.getInventory().add(extra)) p.drop(extra, false);
+        }
         if (knows(p, "cormorant_fishing") && p.getRandom().nextFloat() < 0.33F) {
             ItemStack extra = event.getDrops().get(0).copy();
             if (!p.getInventory().add(extra)) p.drop(extra, false);
@@ -332,7 +337,7 @@ public final class TradeArts {
         }
         if (prof.knowsTech("pearl_diving") && p.isEyeInFluid(net.minecraft.tags.FluidTags.WATER))
             p.setAirSupply(Math.min(p.getMaxAirSupply(), p.getAirSupply() + 20));
-        if (prof.knowsTech("meng_chong") && wet) p.addEffect(new MobEffectInstance(MobEffects.CONDUIT_POWER, 100, 0, true, false));
+        if (prof.knowsTech("turreted_ship") && wet) p.addEffect(new MobEffectInstance(MobEffects.CONDUIT_POWER, 100, 0, true, false));
         if (prof.knowsTech("fan_shengzhi") && p.level() instanceof ServerLevel sl) {
             for (int i = 0; i < 6; i++) {
                 BlockPos at = p.blockPosition().offset(p.getRandom().nextInt(11) - 5, p.getRandom().nextInt(3) - 1, p.getRandom().nextInt(11) - 5);
