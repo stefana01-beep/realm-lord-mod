@@ -130,6 +130,7 @@ public class TownRealmTests {
         helper.assertTrue(Army.cap(t) == 0, "a town without a camp kept an army");
         VillageTests.built(t, BuildingType.CITY_DEFENSE_CAMP);
         helper.assertTrue(Army.cap(t) >= 50, "a City Defense Camp should hold fifty");
+        int militia = Village.militiaCount(t);
         Resident a = null, b = null;
         for (Resident r : t.residents) {
             if (r.office >= 0 || r.isFigure() || r.militia) continue;
@@ -141,7 +142,7 @@ public class TownRealmTests {
         VillageTests.built(t, BuildingType.ARSENAL);
         helper.assertTrue(Army.enlist(t, b, Army.Unit.CROSSBOWMAN) == null, "could not enlist a crossbowman");
         helper.assertTrue(Army.enlist(t, b, Army.Unit.MOUNTAIN_WARRIOR) != null || b.mountain, "a lowlander became a mountain warrior");
-        helper.assertTrue(Army.count(t) == 2 && Village.militiaCount(t) == 0 && Army.strength(t) > 0, "the army should count apart from the militia");
+        helper.assertTrue(Army.count(t) == 2 && Village.militiaCount(t) == militia && Army.strength(t) > 0, "the army should count apart from the militia");
         helper.assertTrue(Army.rank(a).equals("soldier"), "a new soldier should be a Soldier");
         t.treasury = 1_000;
         Army.day(level, t);

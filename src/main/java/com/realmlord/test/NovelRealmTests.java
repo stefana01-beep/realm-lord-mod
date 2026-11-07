@@ -187,8 +187,8 @@ public class NovelRealmTests {
         int n = Raids.spawn(level, t, day);
         helper.assertTrue(n >= 3, "the barbarian band was too small: " + n);
         int seen = 0, chiefs = 0;
-        for (BanditEntity b : level.getEntitiesOfClass(BanditEntity.class, new net.minecraft.world.phys.AABB(t.center).inflate(t.radius() + 60))) {
-            if (!b.getTags().contains(Raids.TAG)) continue;
+        for (net.minecraft.world.entity.Entity e : level.getAllEntities()) {
+            if (!(e instanceof BanditEntity b) || !b.getTags().contains(Raids.TAG) || b.getPersistentData().getInt(Raids.TERRITORY) != t.id) continue;
             seen++;
             helper.assertTrue(b.getFaction() == BanditEntity.Faction.BARBARIAN, "a raider was not a barbarian");
             if (b.getRole() == BanditEntity.Role.CHIEF) chiefs++;

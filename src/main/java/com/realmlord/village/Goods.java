@@ -112,6 +112,9 @@ public enum Goods {
         if (i == com.realmlord.registry.ModItems.TIGER_BONE_WINE.get()) return new Unit(WINE, 3);
         if (i == Items.IRON_PICKAXE || i == Items.IRON_AXE || i == Items.IRON_SHOVEL || i == Items.IRON_HOE) return new Unit(TOOLS, 1);
         if (i == Items.IRON_SWORD || i == Items.BOW || i == Items.CROSSBOW) return new Unit(WEAPONS, 1);
+        if (i == Items.GOLD_NUGGET) return new Unit(JEWELRY, 1);
+        if (i == Items.LEATHER_CHESTPLATE) return new Unit(GARMENTS, 1);
+        if (i == Items.HONEY_BOTTLE) return new Unit(CONDIMENTS, 1);
         return null;
     }
 
