@@ -39,6 +39,8 @@ public class Territory {
     public final java.util.Set<String> blueprints = new java.util.LinkedHashSet<>();
     /** Forging and alchemy manuals the village's masters have learned (plan ids). */
     public final java.util.Set<String> plans = new java.util.LinkedHashSet<>();
+    /** State of the later systems (caravans, the examination, the temple's wards, raids), kept together. */
+    public net.minecraft.nbt.CompoundTag ext = new net.minecraft.nbt.CompoundTag();
     /** People's Thoughts and Security (the novel's "Law and Order"), 0-100. */
     public int peopleThoughts = 70;
     public int security = 65;
@@ -168,6 +170,7 @@ public class Territory {
         t.put("storage", storage.createTag());
         t.putString("blueprints", String.join(",", blueprints));
         t.putString("plans", String.join(",", plans));
+        t.put("ext", ext);
         return t;
     }
 
@@ -198,6 +201,7 @@ public class Territory {
         r.storage.fromTag(t.getList("storage", net.minecraft.nbt.Tag.TAG_COMPOUND));
         for (String s : t.getString("blueprints").split(",")) if (!s.isBlank()) r.blueprints.add(s);
         for (String s : t.getString("plans").split(",")) if (!s.isBlank()) r.plans.add(s);
+        r.ext = t.getCompound("ext");
         r.peopleThoughts = t.contains("thoughts") ? t.getInt("thoughts") : 70;
         r.security = t.contains("security") ? t.getInt("security") : 65;
         net.minecraft.nbt.ListTag rs = t.getList("residents", net.minecraft.nbt.Tag.TAG_COMPOUND);

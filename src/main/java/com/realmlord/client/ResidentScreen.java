@@ -20,7 +20,7 @@ import net.minecraft.world.item.ItemStack;
 public class ResidentScreen extends Screen {
     public static final int CARD = 0, WORK = 1, TRADE = 2, DUTY = 3;
     private static final int W = 320, H = 250;
-    private static final Job[] JOBS = {Job.IDLE, Job.CONSTRUCTION, Job.LOGGING, Job.QUARRYING, Job.FARMING, Job.MINING, Job.ADMINISTRATION, Job.HUNTING};
+    private static final Job[] JOBS = {Job.IDLE, Job.CONSTRUCTION, Job.LOGGING, Job.QUARRYING, Job.FARMING, Job.MINING, Job.SALT_MAKING, Job.COPPER_MINING, Job.COAL_MINING, Job.FISHING, Job.ADMINISTRATION, Job.HUNTING};
 
     private int tab = CARD;
     private int scroll;
@@ -85,6 +85,14 @@ public class ResidentScreen extends Screen {
         if (tab == CARD && owner) {
             addRenderableWidget(Button.builder(Component.translatable("realmlord.resident.open_pack"), b -> send(ResidentActionPacket.Action.INVENTORY, 0))
                     .bounds(x + W - 92, y + H - 28, 80, 16).build());
+            if (v().contains("figureArt") && !res().taught) {
+                Button teach = Button.builder(Component.translatable("realmlord.figure.teach"), b -> send(ResidentActionPacket.Action.TEACH, 0))
+                        .bounds(x + W - 196, y + H - 28, 100, 16)
+                        .tooltip(Tooltip.create(Component.translatable("realmlord.figure.teach.tip", Component.translatable(v().getString("figureArt")),
+                                com.realmlord.village.FigureArts.TEACHES_AT))).build();
+                teach.active = v().getBoolean("canTeach");
+                addRenderableWidget(teach);
+            }
         }
         if (tab == WORK && owner) initWork(x, y);
         if (tab == TRADE) initTrade(x, y);
@@ -102,8 +110,16 @@ public class ResidentScreen extends Screen {
                         : Component.translatable("realmlord.militia.join_cost", Ui.money(com.realmlord.village.Village.ENLIST_COST)),
                 b -> send(ResidentActionPacket.Action.MILITIA, r.militia ? 0 : 1)).bounds(x + W - 130, y + 92, 120, 16)
                 .tooltip(Tooltip.create(Component.translatable("realmlord.militia.join.tip"))).build();
-        militia.active = r.militia || r.office < 0 && v.getInt("militiaCount") < v.getInt("militiaCap");
+        militia.active = r.militia && !r.sailor || !r.militia && r.office < 0 && v.getInt("militiaCount") < v.getInt("militiaCap");
         addRenderableWidget(militia);
+        if (v.getInt("navyCap") > 0 || r.sailor) {
+            Button sailor = Button.builder(r.sailor ? Component.translatable("realmlord.navy.leave")
+                            : Component.translatable("realmlord.navy.join_cost", Ui.money(com.realmlord.village.Navy.ENLIST_COST)),
+                    b -> send(ResidentActionPacket.Action.SAILOR, r.sailor ? 0 : 1)).bounds(x + W - 130, y + 72, 120, 16)
+                    .tooltip(Tooltip.create(Component.translatable("realmlord.navy.join.tip", v.getInt("navyCount"), v.getInt("navyCap")))).build();
+            sailor.active = r.sailor || !r.militia && r.office < 0 && v.getInt("navyCount") < v.getInt("navyCap");
+            addRenderableWidget(sailor);
+        }
         if (r.militia && r.equipTier < com.realmlord.village.Village.KIT_COST.length) {
             addRenderableWidget(Button.builder(Component.translatable("realmlord.militia.equip", Component.translatable("realmlord.militia.kit." + (r.equipTier + 1)),
                             Ui.money(com.realmlord.village.Village.KIT_COST[r.equipTier])), b -> send(ResidentActionPacket.Action.EQUIP, 0))
@@ -133,7 +149,7 @@ public class ResidentScreen extends Screen {
             int c = jobs.length > j.ordinal() ? jobs[j.ordinal()] : 0;
             int p = places.length > j.ordinal() ? places[j.ordinal()] : 0;
             Component label = Component.translatable(j.key()).append(p >= 9999 || j == Job.IDLE ? Component.empty() : Component.literal(" " + c + "/" + p));
-            Button b = Button.builder(label, btn -> send(ResidentActionPacket.Action.SET_JOB, j.ordinal())).bounds(x + 10, y + 56 + i * 18, 140, 16).build();
+            Button b = Button.builder(label, btn -> send(ResidentActionPacket.Action.SET_JOB, j.ordinal())).bounds(x + 10, y + 56 + i * 14, 140, 13).build();
             String err = errs.size() > j.ordinal() ? errs.getString(j.ordinal()) : "";
             b.active = r.job != j && err.isEmpty();
             if (!err.isEmpty()) b.setTooltip(Tooltip.create(Component.translatable(err)));
@@ -219,7 +235,9 @@ public class ResidentScreen extends Screen {
         }
         Component work = v.contains("workType") ? Component.translatable(BuildingType.byOrdinal(v.getInt("workType")).key()) : Component.translatable(r.job.key());
         yy = line(g, lx, yy, Component.translatable("realmlord.resident.job", work), Ui.INK);
-        if (r.militia) yy = line(g, lx, yy, Component.translatable("realmlord.resident.militia"), Ui.RED);
+        if (r.sailor) yy = line(g, lx, yy, Component.translatable("realmlord.resident.sailor"), Ui.RED);
+        else if (r.militia) yy = line(g, lx, yy, Component.translatable("realmlord.resident.militia"), Ui.RED);
+        if (!r.degree.isEmpty()) yy = line(g, lx, yy, Component.translatable("realmlord.resident.degree", Component.translatable("realmlord.degree." + r.degree)), Ui.GOLD);
         String act = v.getString("activity");
         if (!act.isEmpty()) yy = line(g, lx, yy, Component.translatable("realmlord.resident.doing", Component.translatable(act)), Ui.JADE);
         yy = Ui.wrap(g, font, Component.translatable("realmlord.resident.evaluation", Component.translatable(r.occupation.key() + ".eval")), lx, yy + 4, W - 28, Ui.GREY);

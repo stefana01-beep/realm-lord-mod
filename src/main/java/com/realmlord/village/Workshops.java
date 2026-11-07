@@ -188,6 +188,35 @@ public final class Workshops {
                 out.add(discipline("medicine"));
                 out.add(discipline("accounts"));
             }
+            case ACADEMY -> {
+                out.add(discipline("exam_prep"));
+                out.add(discipline("classics"));
+                out.add(discipline("statecraft"));
+                out.add(discipline("strategy"));
+                out.add(discipline("medicine"));
+                out.add(discipline("accounts"));
+            }
+            case VILLAGE_TEMPLE, TEMPLE -> {
+                out.add(discipline("blessing"));
+                out.add(discipline("warding"));
+                out.add(discipline("rain_prayer"));
+                out.add(items("elixirs", Goods.HERBS, 10, 2, com.realmlord.registry.ModCrafts.CLARITY_PILL.get(), ModArms.HEALING_PILL.get()));
+                out.add(items("talismans", Goods.LINEN, 1, 2, com.realmlord.registry.ModCrafts.GUARDIAN_CHARM.get(),
+                        com.realmlord.registry.ModCrafts.SPRING_TALISMAN.get()));
+            }
+            case SHIPYARD -> {
+                out.add(items("fishing_boats", Goods.WOOD, 50, 1, com.realmlord.registry.ModCrafts.FISHING_BOAT.get()));
+                out.add(items("cima_boats", Goods.WOOD, 80, 0.5, com.realmlord.registry.ModCrafts.CIMA_BOAT.get()));
+                out.add(items("merchant_ships", Goods.WOOD, 300, 0.25, com.realmlord.registry.ModCrafts.MERCHANT_SHIP.get())
+                        .need(com.realmlord.registry.ModCrafts.PINE_TAR, 2));
+                out.add(items("mengchong_warships", Goods.WOOD, 400, 1.0 / 3, com.realmlord.registry.ModCrafts.MENGCHONG_WARSHIP.get())
+                        .need(com.realmlord.registry.ModCrafts.PINE_TAR, 4).plan(com.realmlord.loot.Manuals.WARSHIPS));
+                out.add(items("turreted_ships", Goods.WOOD, 1200, 0.1, com.realmlord.registry.ModCrafts.TURRETED_SHIP.get())
+                        .need(com.realmlord.registry.ModCrafts.PINE_TAR, 10).plan(com.realmlord.loot.Manuals.WARSHIPS));
+            }
+            case CHAMBER_OF_COMMERCE -> {
+                for (String c : com.realmlord.worldgen.ChinaMap.CAPITALS) out.add(discipline("route_" + c.toLowerCase(java.util.Locale.ROOT)));
+            }
             case MILITARY_CAMP -> {
                 out.add(discipline("drill"));
                 out.add(discipline("formation"));
@@ -221,7 +250,13 @@ public final class Workshops {
             if (m == null || !m.makesItems() || !m.known(t)) continue;
             Resident master = b.type.staff() != null ? Village.staffOf(t, b) : null;
             if (b.type.staff() != null && master == null) continue;
-            for (int n = 0; n < (int) m.out(); n++) {
+            int count = (int) m.out();
+            if (m.out() < 1) {
+                // Big things (ships) take days: the work carries over until one is done.
+                if (b.modeCarry < 1) b.modeCarry += m.out() * (master != null && master.isFigure() ? 1.5 : 1.0 + 0.15 * (master == null ? 0 : master.rank));
+                count = b.modeCarry >= 1 ? 1 : 0;
+            }
+            for (int n = 0; n < count; n++) {
                 if (m.input() != null && m.input().stock(t) < m.in()) break;
                 if (m.need() != null && t.storage.countItem(m.need().get()) < m.needN()) break;
                 ItemStack made = makeOne(m, master, rnd);
@@ -229,6 +264,7 @@ public final class Workshops {
                 if (m.input() != null) m.input().add(t, -(long) m.in());
                 if (m.need() != null) take(t.storage, m.need().get(), m.needN());
                 t.storage.addItem(made);
+                if (m.out() < 1) b.modeCarry = Math.max(0, b.modeCarry - 1);
             }
         }
     }
@@ -296,7 +332,7 @@ public final class Workshops {
     /** What a building teaches: the trade it makes of its learners, and how many it takes at once (0: it doesn't teach). */
     public static int places(BuildingType type) {
         return switch (type) {
-            case PRIVATE_SCHOOL, MARTIAL_ARTS_DOJO -> 10;
+            case PRIVATE_SCHOOL, MARTIAL_ARTS_DOJO, ACADEMY -> 10;
             default -> type.staff() != null && type != BuildingType.MILITARY_CAMP ? 3 : 0;
         };
     }
@@ -328,7 +364,7 @@ public final class Workshops {
     /** Days of lessons to learn the trade (or, for one already of it, to rise a rank). */
     public static int daysToLearn(BuildingType type, Resident r) {
         if (r.occupation == teaches(type)) return 30;
-        return type == BuildingType.PRIVATE_SCHOOL || type == BuildingType.MARTIAL_ARTS_DOJO ? 20 : 15;
+        return type == BuildingType.PRIVATE_SCHOOL || type == BuildingType.MARTIAL_ARTS_DOJO || type == BuildingType.ACADEMY ? 20 : 15;
     }
 
     public static int daysToLearn(Building b, Resident r) {
@@ -373,6 +409,15 @@ public final class Workshops {
     static void lesson(Building b, Resident r, RandomSource rnd) {
         Mode m = mode(b);
         String d = m == null ? "" : m.id();
+        if (b.type == BuildingType.ACADEMY) {
+            // The academy teaches as the school does, half again as well.
+            Building school = new Building();
+            school.type = BuildingType.PRIVATE_SCHOOL;
+            school.mode = Math.max(0, b.mode - 1);
+            lesson(school, r, rnd);
+            if (rnd.nextBoolean()) lesson(school, r, rnd);
+            return;
+        }
         if (b.type == BuildingType.PRIVATE_SCHOOL) {
             switch (d) {
                 case "statecraft" -> {
@@ -447,7 +492,7 @@ public final class Workshops {
             }
             Resident master = Village.staffOf(t, b);
             if (master == null) continue;
-            r.trainingDays += 2 + master.rank + (master.isFigure() ? 2 : 0);
+            r.trainingDays += 2 + master.rank + (master.isFigure() ? 2 : 0) + (b.type == BuildingType.ACADEMY ? 1 : 0);
             lesson(b, r, rnd);
             if (r.trainingDays < daysToLearn(b, r) * 2) continue;
             Occupation trade = teaches(b);

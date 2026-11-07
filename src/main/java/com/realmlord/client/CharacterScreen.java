@@ -353,9 +353,9 @@ public class CharacterScreen extends Screen {
             net.minecraft.network.chat.MutableComponent sum = Component.empty();
             boolean any = false;
             for (int i = 0; i < 8; i++) {
-                if (b[i] <= 0) continue;
+                if (b[i] == 0) continue;
                 if (any) sum.append(", ");
-                sum.append(Component.translatable("realmlord.art.stat." + names[i], b[i]));
+                sum.append(Component.translatable("realmlord.art.stat." + names[i], b[i] > 0 ? "+" + b[i] : String.valueOf(b[i])));
                 any = true;
             }
             if (any) Ui.wrap(g, font, Component.translatable("realmlord.panel.arts.bonus", sum), x + 12, y + 156, W - 24, Ui.JADE);

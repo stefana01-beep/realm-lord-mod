@@ -359,7 +359,7 @@ public class ManorScreen extends Screen {
 
     // ------------------------------------------------------------------ people
 
-    private static final Job[] SHIFTABLE = {Job.CONSTRUCTION, Job.LOGGING, Job.QUARRYING, Job.FARMING, Job.MINING, Job.ADMINISTRATION};
+    private static final Job[] SHIFTABLE = {Job.CONSTRUCTION, Job.LOGGING, Job.QUARRYING, Job.FARMING, Job.MINING, Job.SALT_MAKING, Job.COPPER_MINING, Job.COAL_MINING, Job.FISHING, Job.ADMINISTRATION};
     private static final int TALENT_ROWS = 8;
     /** How the talents list is ordered and which of them it shows (kept while the game runs). */
     private static int talentSort, talentFilter;
@@ -396,12 +396,12 @@ public class ManorScreen extends Screen {
     private void initPeople(CompoundTag v, int x, int y) {
         for (int i = 0; i < SHIFTABLE.length; i++) {
             final int job = SHIFTABLE[i].ordinal();
-            int ry = y + 56 + i * 18;
+            int ry = y + 56 + i * 11;
             int[] deltas = {-5, -1, 1, 5};
             for (int k = 0; k < 4; k++) {
                 final int d = deltas[k];
                 addRenderableWidget(Button.builder(Component.literal(d > 0 ? "+" + d : String.valueOf(d)), b -> send(ManorActionPacket.Action.SHIFT_JOB, job, d))
-                        .bounds(x + 110 + k * 22, ry - 3, 20, 14).build());
+                        .bounds(x + 110 + k * 22, ry - 2, 20, 11).build());
             }
         }
         addRenderableWidget(Button.builder(Component.translatable("realmlord.workshop.open_list"),
@@ -433,7 +433,7 @@ public class ManorScreen extends Screen {
         g.drawString(font, Component.translatable("realmlord.manor.jobs"), x + 10, y + 43, Ui.GOLD, false);
         for (int i = 0; i < SHIFTABLE.length; i++) {
             Job j = SHIFTABLE[i];
-            int ry = y + 56 + i * 18;
+            int ry = y + 56 + i * 11;
             g.drawString(font, Component.translatable(j.key()), x + 10, ry, Ui.INK, false);
             int c = jobs.length > j.ordinal() ? jobs[j.ordinal()] : 0;
             int p = places.length > j.ordinal() ? places[j.ordinal()] : 0;

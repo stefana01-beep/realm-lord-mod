@@ -44,6 +44,8 @@ public final class Market {
             Ware.manual(com.realmlord.loot.Manuals.ALCHEMY),
             Ware.manual(com.realmlord.loot.Manuals.MOUNTAIN_PATTERN),
             Ware.manual(com.realmlord.loot.Manuals.TIGER_WAR),
+            Ware.manual(com.realmlord.loot.Manuals.WARSHIPS),
+            Ware.manual(com.realmlord.loot.Manuals.SIEGE_ENGINES),
             new Ware(() -> com.realmlord.registry.ModArms.HIDE_HELMET.get(), 1, 3_000, com.realmlord.territory.TokenGrade.BRONZE),
             new Ware(() -> com.realmlord.registry.ModArms.HIDE_JERKIN.get(), 1, 4_000, com.realmlord.territory.TokenGrade.BRONZE),
             new Ware(() -> com.realmlord.registry.ModArms.HIDE_LEGGINGS.get(), 1, 3_500, com.realmlord.territory.TokenGrade.BRONZE),

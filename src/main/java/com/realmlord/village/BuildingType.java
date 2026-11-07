@@ -47,14 +47,31 @@ public enum BuildingType {
     SENTRY_POST(3, false, null, 0, 40, 200, 24, 3, 3, Style.TOWER, 3, 1),
     STABLE(3, true, null, 0, 200, 50, 24, 11, 7, Style.SHED, 3, 1),
     LARGE_RESIDENTIAL_COURTYARD(3, true, null, 0, 250, 200, 48, 27, 25, Style.COURTYARD, 0, 0),
+    // ---------------------------------------------------------------- more of the novel's buildings
+    /** The village temple: a Taoist priest presides, blesses the village, refines pills and writes talismans. */
+    VILLAGE_TEMPLE(1, true, null, 0, 120, 80, 24, 9, 9, Style.DESIGN, 0, 0),
+    /** The dock: a pier for the village's boats; sailors are recruited here. */
+    DOCK(2, true, null, 0, 400, 200, 72, 5, 14, Style.DESIGN, 0, 0),
+    /** The shipyard: its shipbuilder builds a fishing boat a day, warships more slowly. */
+    SHIPYARD(2, true, Occupation.SHIPBUILDER, 0, 100, 50, 48, 11, 16, Style.DESIGN, 0, 0),
+    /** Salt fields: sea water dried in pans by the shore. */
+    SALT_FIELD(2, true, null, 0, 60, 40, 24, 11, 11, Style.DESIGN, 0, 0),
+    COPPER_MINE(2, false, null, 0, 60, 40, 24, 9, 9, Style.MINE, 0, 0),
+    COAL_MINE(2, false, null, 0, 60, 40, 24, 9, 9, Style.MINE, 0, 0),
+    /** The Chamber of Commerce: its merchants send caravans and merchant ships to the capitals. */
+    CHAMBER_OF_COMMERCE(2, true, Occupation.MERCHANT, 0, 200, 150, 48, 11, 9, Style.DESIGN, 0, 0),
+    /** The academy: the private school grown great; its scholars sit the imperial examination. */
+    ACADEMY(3, true, Occupation.SCHOLAR, 2, 600, 400, 72, 15, 13, Style.DESIGN, 0, 0),
     // ---------------------------------------------------------------- laid on the map, any grade
     PATH(1, false, null, 0, 0, 0, 1, 0, 0, Style.PATH, 0, 0),
     /** Ground the builders clear and level on the Lord's order. */
     CLEARING(1, false, null, 0, 0, 0, 1, 0, 0, Style.CLEARING, 0, 0),
     /** The whole village ground levelled to the manor, out to ten blocks past the Grade 3 wall. */
-    GROUNDS(1, false, null, 0, 0, 0, 1, 0, 0, Style.CLEARING, 0, 0);
+    GROUNDS(1, false, null, 0, 0, 0, 1, 0, 0, Style.CLEARING, 0, 0),
+    /** A building from a plan (a structure manual's, or an architect's own), raised by the village's builders. */
+    COMMISSION(1, false, null, 0, 0, 0, 1, 0, 0, Style.DESIGN, 0, 0);
 
-    public enum Style { PATH, CLEARING, FENCE, HALL, HUT, COURTYARD, WORKSHOP, SHOP, LOGGING, QUARRY, FARM, MINE, CAMP, TEMPLE, DOJO, GRANARY, TOWER, OUTPOST, SHED }
+    public enum Style { PATH, CLEARING, FENCE, HALL, HUT, COURTYARD, WORKSHOP, SHOP, LOGGING, QUARRY, FARM, MINE, CAMP, TEMPLE, DOJO, GRANARY, TOWER, OUTPOST, SHED, DESIGN }
 
     /** Village grade (1-3) that unlocks it. */
     public final int grade;
@@ -109,7 +126,25 @@ public enum BuildingType {
     }
 
     public boolean hidden() {
-        return this == PATH || this == CLEARING || this == GROUNDS;
+        return this == PATH || this == CLEARING || this == GROUNDS || this == COMMISSION;
+    }
+
+    /** The drawn design (data/realmlord/designs) a building of this kind is built to, or null. */
+    public String designId() {
+        return switch (this) {
+            case VILLAGE_TEMPLE -> "taoist_shrine";
+            case DOCK -> "wharf";
+            case SHIPYARD -> "shipyard";
+            case SALT_FIELD -> "salt_pans";
+            case CHAMBER_OF_COMMERCE -> "chamber_of_commerce";
+            case ACADEMY -> "academy";
+            default -> null;
+        };
+    }
+
+    /** Built at the water's edge: it reaches into the water, and the ground is not levelled for it. */
+    public boolean waterside() {
+        return this == DOCK || this == SHIPYARD || this == SALT_FIELD;
     }
 
     // ---------------------------------------------------------------- what it does once built
@@ -130,6 +165,9 @@ public enum BuildingType {
             case QUARRY -> Job.QUARRYING;
             case FARMLAND -> Job.FARMING;
             case MINING_FIELD -> Job.MINING;
+            case SALT_FIELD -> Job.SALT_MAKING;
+            case COPPER_MINE -> Job.COPPER_MINING;
+            case COAL_MINE -> Job.COAL_MINING;
             default -> null;
         };
     }
@@ -152,6 +190,10 @@ public enum BuildingType {
             case POTTERY_WORKSHOP -> Occupation.POTTER;
             case WINE_WORKSHOP -> Occupation.WINEMAKER;
             case STABLE -> Occupation.STABLEMAN;
+            case VILLAGE_TEMPLE, TEMPLE -> Occupation.PRIEST;
+            case SHIPYARD -> Occupation.SHIPBUILDER;
+            case CHAMBER_OF_COMMERCE -> Occupation.MERCHANT;
+            case ACADEMY -> Occupation.SCHOLAR;
             default -> null;
         };
     }
@@ -182,6 +224,14 @@ public enum BuildingType {
             case PATH, CLEARING, GROUNDS -> new int[]{0, 0, 0, 0};
             case BARRACKS -> new int[]{0, 0, 0, 6};
             case MAZU_TEMPLE -> new int[]{2, 2, 6, 0};
+            case VILLAGE_TEMPLE -> new int[]{1, 0, 4, 0};
+            case DOCK -> new int[]{0, 3, 0, 2};
+            case SHIPYARD -> new int[]{0, 3, 0, 3};
+            case SALT_FIELD -> new int[]{0, 4, 0, 0};
+            case COPPER_MINE, COAL_MINE -> new int[]{0, 2, 0, 0};
+            case CHAMBER_OF_COMMERCE -> new int[]{1, 6, 0, 0};
+            case ACADEMY -> new int[]{2, 0, 10, 0};
+            case COMMISSION -> new int[]{0, 0, 0, 0};
         };
     }
 
@@ -189,6 +239,7 @@ public enum BuildingType {
     public int morale() {
         return switch (this) {
             case DINING_HALL, CLINIC, TEMPLE, MAZU_TEMPLE -> 5;
+            case VILLAGE_TEMPLE -> 4;
             case BATHROOM, ANCESTRAL_HALL -> 3;
             default -> 0;
         };

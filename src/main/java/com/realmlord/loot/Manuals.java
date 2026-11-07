@@ -29,8 +29,12 @@ public final class Manuals {
     public static final Plan TIGER_WAR = new Plan("tiger_war", 300_000);
     public static final Plan ALCHEMY = new Plan("alchemy", 100_000);
     public static final Plan RATIONS = new Plan("rations", 5_000);
+    /** The Mengchong and turreted warships: the shipyard can lay them down. */
+    public static final Plan WARSHIPS = new Plan("warships", 200_000);
+    /** Bed crossbows, trebuchets and heavy bolts: the carpenter's siege engines. */
+    public static final Plan SIEGE_ENGINES = new Plan("siege_engines", 80_000);
 
-    public static final List<Plan> ALL = List.of(RATIONS, LAMELLAR, POLEARMS, ALCHEMY, MOUNTAIN_PATTERN, TIGER_WAR);
+    public static final List<Plan> ALL = List.of(RATIONS, LAMELLAR, POLEARMS, ALCHEMY, MOUNTAIN_PATTERN, TIGER_WAR, WARSHIPS, SIEGE_ENGINES);
 
     public static Plan byId(String id) {
         for (Plan p : ALL) if (p.id().equals(id)) return p;

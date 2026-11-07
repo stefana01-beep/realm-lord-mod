@@ -18,7 +18,7 @@ public enum Goods {
     SALT("salt", 20), MEAT("meat", 30), FISH("fish", 15), LEATHER("leather", 50), HERBS("herbs", 25),
     FLOUR("flour", 15), WINE("wine", 100), POTTERY("pottery", 50), TOOLS("tools", 300), WEAPONS("weapons", 800),
     LINEN("linen", 1000), FINE_SILK("fine_silk", 5000), FIRE_OIL("fire_oil", 100),
-    SAND("sand", 5), CLAY("clay", 10), EARTH("earth", 2);
+    SAND("sand", 5), CLAY("clay", 10), EARTH("earth", 2), COPPER("copper", 60), COAL("coal", 40);
 
     public final String id;
     /** Copper per unit, before the market's 20% tax on sales. */
@@ -88,6 +88,8 @@ public enum Goods {
                 || i == Items.GRASS_BLOCK || i == Items.PODZOL || i == Items.MYCELIUM) return new Unit(EARTH, 1);
         if (i == Items.MANGROVE_ROOTS || i == Items.MUDDY_MANGROVE_ROOTS || i == Items.BAMBOO) return new Unit(WOOD, 1);
         if (i == Items.RAW_IRON || i == Items.IRON_ORE || i == Items.DEEPSLATE_IRON_ORE) return new Unit(IRON_ORE, 1);
+        if (i == Items.RAW_COPPER || i == Items.COPPER_ORE || i == Items.DEEPSLATE_COPPER_ORE) return new Unit(COPPER, 1);
+        if (i == Items.COAL || i == Items.CHARCOAL) return new Unit(COAL, 1);
         if (i == Items.WHEAT || i == Items.POTATO || i == Items.CARROT || i == Items.BEETROOT) return new Unit(GRAIN, 1);
         if (i == Items.BREAD) return new Unit(FLOUR, 3);
         if (i == Items.BEEF || i == Items.PORKCHOP || i == Items.MUTTON || i == Items.CHICKEN || i == Items.RABBIT) return new Unit(MEAT, 1);
@@ -144,6 +146,8 @@ public enum Goods {
             case SAND -> Items.SAND;
             case CLAY -> Items.CLAY_BALL;
             case EARTH -> Items.DIRT;
+            case COPPER -> Items.RAW_COPPER;
+            case COAL -> Items.COAL;
         };
     }
 

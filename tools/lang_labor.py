@@ -198,6 +198,8 @@ def add(L):
     L.update(gen_arms.LANG)
     import gen_crafts
     L.update(gen_crafts.LANG)
+    import lang_realm
+    L.update(lang_realm.LANG)
 
 
 ROUND_PATHS = {

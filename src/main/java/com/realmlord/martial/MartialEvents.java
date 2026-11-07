@@ -124,6 +124,27 @@ public final class MartialEvents {
                     victim.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 60, 1));
                     announce(p, "throat_killing");
                 }
+                if ((kind == Kind.BLADE || kind == Kind.FIST) && specialOf(prof, "slaughter") > 0 && victim.getHealth() < victim.getMaxHealth() * 0.5F) {
+                    mult += 0.3;
+                }
+                if (kind == Kind.SPEAR && has(prof, "overlord_sweep", Kind.SPEAR) && r.nextInt(6) == 0) {
+                    special = true;
+                    try {
+                        for (Mob m : victim.level().getEntitiesOfClass(Mob.class, p.getBoundingBox().inflate(3), m -> m != victim && m instanceof Enemy)) {
+                            m.hurt(p.damageSources().playerAttack(p), event.getAmount() * 0.6F);
+                            Vec3 push = m.position().subtract(p.position()).normalize();
+                            m.knockback(0.8, -push.x, -push.z);
+                        }
+                    } finally {
+                        special = false;
+                    }
+                    announce(p, "overlord_sweep");
+                }
+                if (kind == Kind.SPEAR && has(prof, "crescent_cleave", Kind.SPEAR) && r.nextInt(7) == 0) {
+                    mult += 0.8;
+                    victim.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 40, 2));
+                    announce(p, "crescent_cleave");
+                }
                 if (kind == Kind.FIST && has(prof, "dragon_fist", Kind.FIST) && r.nextInt(10) == 0) {
                     special = true;
                     try {
@@ -188,6 +209,11 @@ public final class MartialEvents {
             int amp = cur == null ? 0 : Math.min(2, cur.getAmplifier() + 1);
             p.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 200, amp));
             announce(p, "seven_kills");
+        }
+        if (specialOf(prof, "slaughter") > 0 && (kind == Kind.BLADE || kind == Kind.FIST)) {
+            p.heal(2.0F + specialOf(prof, "slaughter") / 3.0F);
+            p.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 100, 0));
+            announce(p, "slaughter");
         }
     }
 

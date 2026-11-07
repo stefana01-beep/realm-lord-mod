@@ -52,6 +52,14 @@ public class PlanItem extends Item {
         return s;
     }
 
+    /** How a commissioned building names its plan. */
+    public static String ref(ItemStack s) {
+        if (!s.hasTag()) return "";
+        if (s.getTag().contains(BUILTIN)) return "builtin:" + s.getTag().getString(BUILTIN);
+        if (s.getTag().contains(DRAWN)) return "drawn:" + s.getTag().getString(DRAWN);
+        return "";
+    }
+
     /** The design a plan stands for, or null. */
     public static Design design(ItemStack s, ServerLevel level) {
         if (!s.hasTag()) return null;
@@ -90,11 +98,20 @@ public class PlanItem extends Item {
         BlockPos origin = Construction.originFor(turned, clicked, facing);
         var data = p.getPersistentData();
         long now = level.getGameTime();
-        boolean confirm = p.isShiftKeyDown() && data.getLong(PENDING + "_pos") == clicked.asLong()
+        boolean same = data.getLong(PENDING + "_pos") == clicked.asLong()
                 && data.getInt(PENDING + "_facing") == facing.get2DDataValue() && now - data.getLong(PENDING + "_time") < 400;
-        if (confirm) {
+        if (same && p.isShiftKeyDown()) {
             data.remove(PENDING + "_pos");
             Construction.start(p, turned, origin, stack.getHoverName());
+            return InteractionResult.CONSUME;
+        }
+        var village = com.realmlord.village.Village.lordsVillage(p);
+        boolean inVillage = village != null && village.contains(level.dimension(), clicked);
+        if (same && inVillage) {
+            // The village's construction team builds it from the stores.
+            data.remove(PENDING + "_pos");
+            String err = com.realmlord.village.Commissions.commission(p, village, design, ref(stack), stack.getHoverName(), clicked, facing);
+            if (err != null) p.displayClientMessage(Component.translatable(err).withStyle(ChatFormatting.RED), false);
             return InteractionResult.CONSUME;
         }
         data.putLong(PENDING + "_pos", clicked.asLong());
@@ -113,6 +130,10 @@ public class PlanItem extends Item {
         if (!p.getAbilities().instabuild && !lacking.isEmpty())
             p.displayClientMessage(Component.translatable("realmlord.build.lacking", Construction.list(lacking, 8)).withStyle(ChatFormatting.RED), false);
         p.displayClientMessage(Component.translatable("realmlord.build.confirm").withStyle(ChatFormatting.YELLOW), false);
+        if (inVillage) {
+            int[] cond = com.realmlord.village.Commissions.conditions(design);
+            p.displayClientMessage(Component.translatable("realmlord.build.commission", cond[0], cond[1], cond[2]).withStyle(ChatFormatting.AQUA), false);
+        }
         return InteractionResult.CONSUME;
     }
 

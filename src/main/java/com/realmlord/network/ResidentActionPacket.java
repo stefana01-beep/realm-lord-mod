@@ -5,6 +5,7 @@ import com.realmlord.territory.Territory;
 import com.realmlord.territory.TerritoryData;
 import com.realmlord.village.Coins;
 import com.realmlord.village.Job;
+import com.realmlord.village.Navy;
 import com.realmlord.village.Resident;
 import com.realmlord.village.Trades;
 import com.realmlord.village.Village;
@@ -19,7 +20,7 @@ import java.util.function.Supplier;
 
 /** Client to server: give a resident a job, or trade with them. */
 public class ResidentActionPacket {
-    public enum Action { SET_JOB, STAFF, TRADE, REFRESH, INVENTORY, FOLLOW, MILITIA, OFFICE, EQUIP }
+    public enum Action { SET_JOB, STAFF, TRADE, REFRESH, INVENTORY, FOLLOW, MILITIA, OFFICE, EQUIP, SAILOR, TEACH }
 
     private final Action action;
     private final int territory, resident, a;
@@ -110,6 +111,24 @@ public class ResidentActionPacket {
                 } else if (a == 0) {
                     Village.enlist(t, r, false);
                 }
+            }
+            case SAILOR -> {
+                if (!owner) return;
+                if (a == 1 && !r.sailor) {
+                    String err = r.militia ? "realmlord.navy.err.militia" : null;
+                    if (err == null) err = r.office >= 0 ? "realmlord.militia.err.office" : Navy.cap(t) == 0 ? "realmlord.navy.err.no_dock"
+                            : Navy.count(t) >= Navy.cap(t) ? "realmlord.navy.err.full" : null;
+                    if (err == null && !Coins.payWithTreasury(p, Navy.ENLIST_COST)) err = "realmlord.market.cannot_afford";
+                    if (err == null) err = Navy.enlist(t, r, true);
+                    if (err != null) Notify.player(p, err);
+                    else Notify.player(p, Component.translatable("realmlord.navy.enlisted", r.name, Coins.format(Navy.ENLIST_COST)));
+                } else if (a == 0 && r.sailor) {
+                    Navy.enlist(t, r, false);
+                }
+            }
+            case TEACH -> {
+                String err = com.realmlord.village.FigureArts.teach(p, t, r);
+                if (err != null) Notify.player(p, err);
             }
             case EQUIP -> {
                 if (!owner || !r.militia || r.equipTier >= Village.KIT_COST.length) return;

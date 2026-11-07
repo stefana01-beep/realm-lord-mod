@@ -75,21 +75,25 @@ public class SecretManualItem extends Item {
                 .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(a.grade().color)));
     }
 
+    private static String signed(int v) {
+        return v > 0 ? "+" + v : String.valueOf(v);
+    }
+
     /** "Body +2, Force +1" for an art's per-level gains. */
     public static MutableComponent perLevel(Art a) {
         MutableComponent c = Component.empty();
         boolean any = false;
         for (int i = 0; i < 4; i++) {
-            if (a.innate()[i] > 0) {
+            if (a.innate()[i] != 0) {
                 if (any) c.append(", ");
-                c.append(Component.translatable("realmlord.art.stat." + INNATE[i], a.innate()[i]));
+                c.append(Component.translatable("realmlord.art.stat." + INNATE[i], signed(a.innate()[i])));
                 any = true;
             }
         }
         for (int i = 0; i < 4; i++) {
-            if (a.stats()[i] > 0) {
+            if (a.stats()[i] != 0) {
                 if (any) c.append(", ");
-                c.append(Component.translatable("realmlord.art.stat." + STATS[i], a.stats()[i]));
+                c.append(Component.translatable("realmlord.art.stat." + STATS[i], signed(a.stats()[i])));
                 any = true;
             }
         }

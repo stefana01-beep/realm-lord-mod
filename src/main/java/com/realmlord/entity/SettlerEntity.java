@@ -520,7 +520,7 @@ public class SettlerEntity extends PathfinderMob {
                     } else idle(t);
                 }
                 case LOGGING -> work(field, Activity.CHOP, 12, t);
-                case QUARRYING, MINING -> work(field, Activity.GATHER, 3, t);
+                case QUARRYING, MINING, SALT_MAKING, COPPER_MINING, COAL_MINING -> work(field, Activity.GATHER, 3, t);
                 case FARMING -> work(field, Activity.FARM, field == null ? 4 : Math.max(field.sizeX(), field.sizeZ()) / 2, t);
                 case STAFF -> {
                     com.realmlord.village.Building w = t.building(r.workplace);

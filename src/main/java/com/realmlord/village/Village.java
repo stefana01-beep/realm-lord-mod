@@ -184,12 +184,12 @@ public final class Village {
             if (b.type == BuildingType.MILITARY_CAMP) n += 10;
             if (b.type == BuildingType.BARRACKS) n += 50;
         }
-        return n == 0 ? 0 : n + Office.power(t, Office.MILITARY) / 5;
+        return n == 0 ? 0 : n + Office.power(t, Office.MILITARY) / 5 + 5 * FigureArts.count(t, "general");
     }
 
     public static int militiaCount(Territory t) {
         int n = 0;
-        for (Resident r : t.residents) if (r.militia) n++;
+        for (Resident r : t.residents) if (r.militia && !r.sailor) n++;
         return n;
     }
 
@@ -197,6 +197,7 @@ public final class Village {
     public static String enlist(Territory t, Resident r, boolean join) {
         if (!join) {
             r.militia = false;
+            r.sailor = false;
             return null;
         }
         if (r.militia) return null;
@@ -256,6 +257,24 @@ public final class Village {
         addFraction(t, Goods.LEATHER, leather * boost);
     }
 
+    /** Salt fields, copper and coal mines: what their workers bring in. */
+    private static void fields(Territory t) {
+        double salt = 0, copper = 0, coal = 0;
+        for (Resident r : t.residents) {
+            if (r.militia) continue;
+            switch (r.job) {
+                case SALT_MAKING -> salt += 15 * r.skillAt(Job.SALT_MAKING);
+                case COPPER_MINING -> copper += 2 * r.skillAt(Job.COPPER_MINING);
+                case COAL_MINING -> coal += 4 * r.skillAt(Job.COAL_MINING);
+                default -> { }
+            }
+        }
+        double bonus = productionBonus(t);
+        addFraction(t, Goods.SALT, salt * bonus);
+        addFraction(t, Goods.COPPER, copper * bonus);
+        addFraction(t, Goods.COAL, coal * bonus);
+    }
+
     private static void addFraction(Territory t, Goods g, double units) {
         double total = t.goodsCarry[g.ordinal()] + units;
         long whole = (long) Math.floor(total);
@@ -292,6 +311,7 @@ public final class Village {
         if (job == Job.ADMINISTRATION) return ADMIN_PLACES;
         if (job == Job.STAFF) return 0;
         if (job == Job.HUNTING) return Integer.MAX_VALUE;
+        if (job == Job.FISHING) return Navy.fishingPlaces(t);
         // A field takes any number of workers; each one adds to its output.
         for (Building b : t.buildings) if (b.complete && b.type.fieldJob() == job) return Integer.MAX_VALUE;
         return 0;
@@ -372,7 +392,8 @@ public final class Village {
 
     /** Jobs can outnumber places after a field is lost; send the extra people home. */
     private static void trimJobs(Territory t) {
-        for (Job j : new Job[]{Job.LOGGING, Job.QUARRYING, Job.FARMING, Job.MINING, Job.ADMINISTRATION}) {
+        for (Job j : new Job[]{Job.LOGGING, Job.QUARRYING, Job.FARMING, Job.MINING, Job.ADMINISTRATION, Job.SALT_MAKING,
+                Job.COPPER_MINING, Job.COAL_MINING, Job.FISHING}) {
             int over = count(t, j) - places(t, j);
             if (over > 0) shift(t, j, -over);
         }
@@ -418,27 +439,34 @@ public final class Village {
 
     /** The token's "production capacity of residents" bonus: Gold 20%, Silver 10%, Black Iron 5%. */
     public static double productionBonus(Territory t) {
-        return switch (t.grade) {
+        double g = switch (t.grade) {
             case GOLD -> 1.20;
             case SILVER -> 1.10;
             case BLACK_IRON -> 1.05;
             default -> 1.0;
         };
+        return g * (1.0 + 0.05 * (FigureArts.count(t, "smith") + FigureArts.count(t, "weaver")));
     }
 
     /** The token's crop bonus: Gold +50%, Silver +30%, Black Iron +15%. */
     public static double cropBonus(Territory t) {
+        double g = switch (t.grade) {
+            case GOLD -> 1.5;
+            case SILVER -> 1.3;
+            case BLACK_IRON -> 1.15;
+            default -> 1.0;
+        };
+        return g * FigureArts.boost(t, "agronomist", 0.1) * Temples.cropBonus(t);
+    }
+
+    /** The token's immigration bonus: Gold +50%, Silver +30%, Black Iron +15%. */
+    public static double immigrationBonus(Territory t) {
         return switch (t.grade) {
             case GOLD -> 1.5;
             case SILVER -> 1.3;
             case BLACK_IRON -> 1.15;
             default -> 1.0;
         };
-    }
-
-    /** The token's immigration bonus: Gold +50%, Silver +30%, Black Iron +15%. */
-    public static double immigrationBonus(Territory t) {
-        return cropBonus(t);
     }
 
     /** Immigrants per day, as on the novel's panel: 10 x (1 + bonus), scaled by People's Thoughts. */
@@ -478,7 +506,8 @@ public final class Village {
 
     public static long dailyTax(Territory t) {
         int econ = indexes(t)[1];
-        return Math.round(t.residents.size() * (1.0 + econ / 10.0) * Office.boost(t, Office.TREASURER, 250));
+        return Math.round(t.residents.size() * (1.0 + econ / 10.0) * Office.boost(t, Office.TREASURER, 250)
+                * FigureArts.boost(t, "minister", 0.05) * Exams.taxBonus(t));
     }
 
     // ================================================================== the day
@@ -531,6 +560,11 @@ public final class Village {
         for (String name : Workshops.teach(t, rnd)) tell(level, t, Component.translatable("realmlord.workshop.learned", name, t.name));
         hunt(t);
         drill(t, rnd);
+        fields(t);
+        Navy.day(t, rnd);
+        Temples.day(level, t, day, rnd);
+        Exams.day(level, t, day, rnd);
+        Trade.day(level, t, day, rnd);
         revealHidden(level, t);
         farm(t, day);
         updateCrops(level, t, day);
@@ -560,6 +594,7 @@ public final class Village {
         // People's Thoughts drift towards what the village offers.
         int target = 60 + Office.power(t, Office.STEWARD) / 10 + (Office.holder(t, Office.RITES) != null ? 3 + Office.power(t, Office.RITES) / 20 : 0);
         for (Building b : t.buildings) if (b.complete) target += b.type.morale();
+        target += Temples.morale(t) + 2 * FigureArts.count(t, "doctor") + Exams.morale(t);
         if (hungry) target -= 30;
         if (t.residents.size() > housing(t)) target -= 10;
         target = Mth.clamp(target, 0, 100);
@@ -567,6 +602,7 @@ public final class Village {
         if (hungry) t.peopleThoughts = Math.max(0, t.peopleThoughts - 5);
         int secTarget = 50 + indexes(t)[3] / 4 + Office.power(t, Office.MILITARY) / 10;
         for (Building b : t.buildings) if (b.complete) secTarget += b.type.security();
+        secTarget += Temples.security(t) + 3 * FigureArts.count(t, "strategist") - (t.ext.getBoolean("waterBandits") ? 5 : 0);
         secTarget = Mth.clamp(secTarget, 0, 100);
         t.security += Integer.signum(secTarget - t.security) * Math.min(3, Math.abs(secTarget - t.security));
         // People leave a hungry or unhappy village.
@@ -704,6 +740,16 @@ public final class Village {
                     if (type.style != BuildingType.Style.TOWER) return "realmlord.build.err.on_fence";
                 }
         }
+        // Docks, shipyards and salt fields reach into the water: they need some, and no levelling.
+        if (type.waterside()) {
+            int wet = 0;
+            for (int x = 0; x < sx; x++)
+                for (int z = 0; z < sz; z++) {
+                    int y = groundAt(level, origin.getX() + x, origin.getZ() + z);
+                    if (!level.getFluidState(new BlockPos(origin.getX() + x, y - 1, origin.getZ() + z)).isEmpty()) wet++;
+                }
+            return wet >= Math.max(3, sx * sz / 6) ? null : "realmlord.build.err.no_water";
+        }
         // Grounds being levelled: the site will stand on the levelled ground, whatever is there now.
         boolean levelled = true;
         for (int[] c : corners) levelled &= Grounds.covers(t, origin.getX() + c[0], origin.getZ() + c[1]);
@@ -822,7 +868,7 @@ public final class Village {
             if (grounds != null && Grounds.covers(t, origin.getX(), origin.getZ())
                     && Grounds.covers(t, origin.getX() + b.sizeX() - 1, origin.getZ() + b.sizeZ() - 1)) y = grounds.origin.getY();
             b.origin = new BlockPos(origin.getX(), y, origin.getZ());
-            b.stage = Building.CLEAR;
+            b.stage = type.waterside() ? Building.BUILD : Building.CLEAR;
         } else {
             b.origin = t.center;
             b.stage = Building.BUILD;
@@ -1087,7 +1133,8 @@ public final class Village {
             for (Resident r : t.residents) {
                 if (r.job == Job.CONSTRUCTION && !r.militia && r.workplace == site.id) work += r.skillAt(Job.CONSTRUCTION);
             }
-            if (work > 0) work(level, t, site, work * Office.boost(t, Office.WORKS, 300), ticks);
+            if (work > 0) work(level, t, site, work * Office.boost(t, Office.WORKS, 300)
+                    * (1.0 + 0.15 * (FigureArts.count(t, "engineer") + FigureArts.count(t, "carpenter"))), ticks);
         }
     }
 

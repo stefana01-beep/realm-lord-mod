@@ -23,7 +23,13 @@ public enum Occupation {
     MINER("miner", 3, true),
     STABLEMAN("stableman", 1.5, true),
     CIVIL_SERVANT("civil_servant", 1.5, true),
-    OFFICER("officer", 1.5, true);
+    OFFICER("officer", 1.5, true),
+    /** Builds boats and ships at the shipyard (the novel's Zheng Dahai). */
+    SHIPBUILDER("shipbuilder", 1.5, true),
+    /** A Taoist priest: presides over the temple, refines pills and writes talismans. */
+    PRIEST("priest", 0.6, true),
+    /** A merchant: runs the Chamber of Commerce and its caravans. */
+    MERCHANT("merchant", 1.5, true);
 
     public final String id;
     public final double weight;

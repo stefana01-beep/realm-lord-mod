@@ -31,6 +31,12 @@ public class Resident {
     /** The spawned entity, if this resident is currently shown in the world. */
     public UUID entity;
     public boolean militia;
+    /** A soldier of the navy (one of the militia, enlisted at the dock). */
+    public boolean sailor;
+    /** A degree won at the imperial examination: "", xiucai, juren, jinshi or zhuangyuan. */
+    public String degree = "";
+    /** A historical figure who has already taught the Lord their art. */
+    public boolean taught;
     /** A fighter's level, won by drilling and by kills: more health and harder blows. */
     public int soldierLevel = 1;
     public long soldierXp;
@@ -92,6 +98,8 @@ public class Resident {
             case MINING -> occupation == Occupation.MINER;
             case FARMING -> occupation == Occupation.FARMER || occupation == Occupation.FRUIT_FARMER;
             case CONSTRUCTION -> occupation == Occupation.CARPENTER || occupation == Occupation.MASON;
+            case COPPER_MINING, COAL_MINING -> occupation == Occupation.MINER;
+            case SALT_MAKING -> occupation == Occupation.FISHERMAN || occupation == Occupation.GROCER;
             default -> false;
         };
         if (trade) m += 0.2 + 0.1 * rank;
@@ -177,6 +185,9 @@ public class Resident {
         t.putInt("skin", skin);
         if (entity != null) t.putUUID("entity", entity);
         t.putBoolean("militia", militia);
+        if (sailor) t.putBoolean("sailor", true);
+        if (!degree.isEmpty()) t.putString("degree", degree);
+        if (taught) t.putBoolean("taught", true);
         t.putInt("slv", soldierLevel);
         t.putLong("sxp", soldierXp);
         t.putInt("trainAt", trainingAt);
@@ -213,6 +224,9 @@ public class Resident {
         r.skin = t.getInt("skin");
         r.entity = t.hasUUID("entity") ? t.getUUID("entity") : null;
         r.militia = t.getBoolean("militia");
+        r.sailor = t.getBoolean("sailor");
+        r.degree = t.getString("degree");
+        r.taught = t.getBoolean("taught");
         r.soldierLevel = Math.max(1, t.getInt("slv"));
         r.soldierXp = t.getLong("sxp");
         r.trainingAt = t.contains("trainAt") ? t.getInt("trainAt") : -1;

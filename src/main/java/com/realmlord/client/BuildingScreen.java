@@ -120,7 +120,7 @@ public class BuildingScreen extends Screen {
 
     private static int learnersTop(CompoundTag v, int y) {
         int n = v.getList("modes", Tag.TAG_COMPOUND).size();
-        return n == 0 ? y + 46 : y + 48 + modeRows(v) * 16 + 30;
+        return n == 0 ? y + 46 : y + 48 + modeRows(v) * 16 + (v.contains("status") ? 40 : 30);
     }
 
     private int rows(int ly) {
@@ -185,7 +185,11 @@ public class BuildingScreen extends Screen {
                         m.getInt("needN"), Component.translatable(m.getString("need")), m.getInt("needHave")));
             } else what = m.contains("in") ? Component.translatable("realmlord.workshop.makes_stock_from", fmt(m.getDouble("outN")), Component.translatable(m.getString("out")), fmt(m.getDouble("inN")), Component.translatable(m.getString("in")))
                     : Component.translatable("realmlord.workshop.makes_stock", fmt(m.getDouble("outN")), Component.translatable(m.getString("out")));
-            Ui.wrap(g, font, what, x + 10, y + 50 + modeRows(v) * 16, W - 20, Ui.MUTED);
+            int wy = Ui.wrap(g, font, what, x + 10, y + 50 + modeRows(v) * 16, W - 20, Ui.MUTED);
+            if (v.contains("status")) {
+                Component st = Component.Serializer.fromJson(v.getString("status"));
+                if (st != null) Ui.wrap(g, font, st, x + 10, wy, W - 20, Ui.JADE);
+            }
         }
         if (v.getInt("places") > 0) {
             int ly = learnersTop(v, y);

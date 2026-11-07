@@ -585,7 +585,246 @@ def forge():
     return d
 
 
+
+
+# ---------------------------------------------------------------- village buildings from the novel
+
+@design
+def salt_pans():
+    # Sea water let into shallow pans to dry in the sun; the salt raked into white heaps.
+    d = D(11, 2, 11, yoff=-1)
+    for x in range(11):
+        for z in range(11):
+            walk = x % 4 == 0 or z % 4 == 0
+            d.set(x, 0, z, STONE_BRICKS if walk else WATER)
+            d.set(x, 1, z, AIR)
+    for (x, z) in [(2, 2), (6, 6), (10 - 1, 2)]:
+        d.set(x, 0, z, M("calcite"))
+    for (x, z) in [(0, 0), (4, 0), (8, 0)]:
+        d.set(x, 1, z, M("snow[layers=4]"))
+    d.set(10, 1, 10, M("barrel[facing=up]")); d.set(0, 1, 10, M("barrel[facing=up]"))
+    return d
+
+
+@design
+def academy():
+    d = D(15, 12, 13)
+    d.fill(0, 0, 0, 14, 0, 12, STONE_BRICKS)
+    d.fill(6, 0, 0, 8, 0, 0, M("stone_brick_stairs[facing=south,half=bottom]"))
+    d.clear(1, 1, 1, 13, 6, 11)
+    for y in range(1, 6):
+        d.walls(1, y, 1, 13, y, 11, M("white_terracotta"))
+        for x in (1, 4, 7, 10, 13):
+            d.set(x, y, 1, RED); d.set(x, y, 11, RED)
+        for z in (1, 6, 11):
+            d.set(1, y, z, RED); d.set(13, y, z, RED)
+    d.clear(6, 1, 1, 8, 3, 1)
+    for x in (2, 3, 5, 9, 11, 12):
+        d.set(x, 2, 1, GLASS); d.set(x, 3, 1, GLASS)
+    for z in (3, 4, 8, 9):
+        d.set(1, 3, z, GLASS); d.set(13, 3, z, GLASS)
+    # Shelves of the classics along the back and sides; desks in rows facing the master.
+    for x in range(2, 13):
+        d.set(x, 1, 10, M("bookshelf")); d.set(x, 2, 10, M("bookshelf"))
+    d.set(7, 1, 9, M("lectern[facing=south]"))
+    d.set(7, 3, 10, M("chiseled_quartz_block"))
+    for z in (4, 6):
+        for x in (3, 5, 9, 11):
+            d.set(x, 1, z, M("lectern[facing=north]"))
+    d.set(2, 1, 2, M("potted_bamboo")); d.set(12, 1, 2, M("potted_bamboo"))
+    d.fill(1, 6, 1, 13, 6, 11, DARK)
+    d.hip_ring(0, 0, 14, 12, 6, M("dark_oak_stairs"))
+    d.hip_ring(1, 1, 13, 11, 7, M("deepslate_tile_stairs"))
+    d.fill(2, 7, 2, 12, 7, 10, TILES)
+    d.hip_ring(2, 2, 12, 10, 8, M("deepslate_tile_stairs"))
+    d.fill(3, 8, 3, 11, 8, 9, TILES)
+    d.hip_ring(3, 3, 11, 9, 9, M("deepslate_tile_stairs"))
+    d.fill(4, 9, 4, 10, 9, 8, TILES)
+    d.fill(4, 10, 6, 10, 10, 6, M("deepslate_tile_slab[type=bottom]"))
+    for x in (4, 10): d.set(x, 5, 6, HANG)
+    return d
+
+
+@design
+def chamber_of_commerce():
+    d = D(11, 12, 9)
+    d.fill(0, 0, 0, 10, 0, 8, STONE_BRICKS)
+    d.clear(1, 1, 1, 9, 8, 7)
+    for y in range(1, 9):
+        d.walls(0, y, 0, 10, y, 8, SPRUCE if y != 4 else DARK)
+        for x, z in [(0, 0), (10, 0), (0, 8), (10, 8), (5, 0)]: d.set(x, y, z, RED)
+    d.clear(4, 1, 0, 6, 3, 0)
+    for x in (2, 8):
+        d.set(x, 2, 0, GLASS); d.set(x, 6, 0, GLASS)
+    d.set(4, 4, 0, M("red_banner[rotation=8]") if False else DARK)
+    # The counting-house: counter of barrels, chests and ledgers; a stair to the upper floor.
+    for x in range(2, 9): d.set(x, 1, 4, M("barrel[facing=up]"))
+    d.set(5, 2, 4, M("lantern[hanging=false]"))
+    d.set(1, 1, 7, M("chest[facing=south]")); d.set(2, 1, 7, M("chest[facing=south]"))
+    d.set(9, 1, 7, M("crafting_table"))
+    d.fill(1, 4, 1, 9, 4, 7, SPRUCE)
+    for i, (x, y) in enumerate([(9, 1), (9, 2), (9, 3)]):
+        d.set(x, y, 5 - i, M("spruce_stairs[facing=north,half=bottom]"))
+        d.clear(9, 4, 3, 9, 4, 4)
+    d.set(3, 5, 6, M("lectern[facing=south]")); d.set(7, 5, 6, M("lectern[facing=south]"))
+    d.set(5, 5, 7, M("chest[facing=north]"))
+    d.fill(0, 9, 0, 10, 9, 8, SPRUCE)
+    d.gable_roof(0, 10, 0, 8, 9, M("dark_oak_stairs"), DARK, ends=SPRUCE)
+    d.set(5, 8, 4, HANG); d.set(5, 3, 2, HANG)
+    return d
+
+
+@design
+def water_fort():
+    # The water bandits' lair: a stilted palisade fort out on the water, a watchtower and a hut.
+    d = D(13, 12, 13, yoff=-4)
+    for x in range(0, 13, 4):
+        for z in range(0, 13, 4):
+            d.fill(x, 0, z, x, 3, z, M("spruce_log"))
+    d.fill(0, 3, 0, 12, 3, 12, SPRUCE)
+    d.clear(0, 4, 0, 12, 7, 12)
+    for y in (4, 5):
+        d.walls(0, y, 0, 12, y, 12, M("spruce_fence") if y == 5 else M("stripped_spruce_log"))
+    d.set(6, 4, 0, AIR); d.set(6, 5, 0, AIR)
+    for x, z in [(0, 0), (12, 0), (0, 12), (12, 12)]:
+        d.fill(x, 4, z, x, 6, z, M("spruce_log")); d.set(x, 7, z, M("campfire[lit=true,facing=north]"))
+    d.clear(7, 4, 7, 11, 7, 11)
+    for y in range(4, 7): d.walls(7, y, 7, 11, y, 11, M("dark_oak_planks"))
+    d.door(9, 4, 7, "dark_oak")
+    d.fill(7, 7, 7, 11, 7, 11, M("dark_oak_slab[type=bottom]"))
+    d.set(10, 4, 10, M("chest[facing=north]"))
+    d.set(8, 4, 10, M("barrel[facing=up]"))
+    # Watchtower
+    d.fill(1, 4, 9, 3, 9, 11, M("spruce_planks"))
+    d.clear(2, 4, 10, 2, 9, 10)
+    for y in range(4, 10): d.set(2, y, 10, ladder("south") if False else M("ladder[facing=north]"))
+    d.clear(1, 10, 9, 3, 11, 11)
+    d.walls(1, 10, 9, 3, 10, 11, M("spruce_fence"))
+    d.set(2, 11, 10, M("red_wool"))
+    for z in (1, 2, 3):
+        d.set(5, 3, z, SPRUCE)
+    d.set(4, 4, 3, M("hay_block")); d.set(3, 4, 3, M("barrel[facing=up]"))
+    return d
+
+
+# ---------------------------------------------------------------- the ships, drawn in blocks (assets/realmlord/ships)
+
+SHIPS_OUT = os.path.join(os.path.dirname(__file__), "..", "src", "main", "resources", "assets", "realmlord", "ships")
+
+
+def hull(d, length, beam, deck_y, wood, keel=M("dark_oak_planks"), bow_taper=4, stern_taper=2):
+    """A junk's hull, bow at z = 0: full sections amidships, narrowing to the bow and stern."""
+    w = d.w
+    cx = (w - 1) / 2
+    for z in range(length):
+        if z < bow_taper: half = max(0.5, (beam / 2) * (z + 1) / (bow_taper + 1))
+        elif z > length - 1 - stern_taper: half = max(1.0, (beam / 2) * 0.8)
+        else: half = beam / 2
+        for x in range(w):
+            if abs(x - cx) > half: continue
+            for y in range(0, deck_y + 1):
+                inner = abs(x - cx) <= half - 1 and y >= 1
+                rise = (bow_taper - z) // 2 if z < bow_taper else 0
+                if y == 0 and abs(x - cx) > half - 1: continue
+                d.set(x, y + rise, z, keel if y == 0 else wood if not inner or y == deck_y else wood)
+    return cx
+
+
+def save_ship(d, name):
+    os.makedirs(SHIPS_OUT, exist_ok=True)
+    palette = [AIR]
+    idx = {AIR: 0}
+    cells = []
+    for y in range(d.h):
+        for z in range(d.d):
+            for x in range(d.w):
+                s = d.c.get((x, y, z))
+                if s is None: cells.append(-1); continue
+                if s not in idx:
+                    idx[s] = len(palette); palette.append(s)
+                cells.append(idx[s])
+    with open(os.path.join(SHIPS_OUT, name + ".json"), "w") as f:
+        json.dump({"size": [d.w, d.h, d.d], "yOff": 0, "palette": palette, "cells": cells}, f, separators=(",", ":"))
+    return sum(1 for v in cells if v > 0)
+
+
+def ship_merchant():
+    d = D(7, 13, 17)
+    cx = hull(d, 17, 6, 3, M("spruce_planks"))
+    c = int(cx)
+    # The stern castle, a mast amidships with a battened junk sail, and cargo on deck.
+    d.fill(1, 4, 13, 5, 5, 16, M("spruce_planks"))
+    d.fill(1, 6, 13, 5, 6, 16, M("spruce_slab[type=bottom]"))
+    d.set(3, 5, 13, M("glass_pane"))
+    for y in range(4, 13): d.set(c, y, 7, M("stripped_spruce_log"))
+    for y in range(6, 12):
+        for z in range(4, 11):
+            d.set(c, y, z, M("brown_wool") if y % 2 else M("white_wool"))
+    d.set(1, 4, 4, M("barrel[facing=up]")); d.set(5, 4, 4, M("barrel[facing=up]")); d.set(5, 4, 10, M("chest[facing=north]"))
+    d.set(c, 4, 0, M("spruce_fence")); d.set(c, 5, 0, M("lantern[hanging=false]"))
+    return d
+
+
+def ship_mengchong():
+    d = D(7, 8, 19)
+    cx = hull(d, 19, 6, 3, M("acacia_planks"), bow_taper=3)
+    c = int(cx)
+    # Covered in rawhide from bow to stern, with oar ports and arrow slits; an iron ram at the bow.
+    for z in range(3, 18):
+        for x in range(1, 6):
+            d.set(x, 4, z, M("brown_terracotta"))
+            d.set(x, 5, z, M("brown_terracotta") if x in (1, 5) else M("brown_terracotta"))
+        d.set(0, 3, z, M("acacia_planks")); d.set(6, 3, z, M("acacia_planks"))
+        if z % 3 == 0:
+            d.set(0, 3, z, M("dark_oak_fence")); d.set(6, 3, z, M("dark_oak_fence"))
+            d.set(1, 5, z, M("black_terracotta")); d.set(5, 5, z, M("black_terracotta"))
+    d.fill(2, 6, 6, 4, 6, 14, M("brown_terracotta"))
+    d.set(c, 1, 0, M("iron_block")); d.set(c, 2, 0, M("iron_block"))
+    d.set(c, 7, 10, M("red_wool"))
+    return d
+
+
+def ship_turreted():
+    d = D(11, 20, 27)
+    cx = hull(d, 27, 10, 4, M("dark_oak_planks"), bow_taper=5, stern_taper=3)
+    c = int(cx)
+    # Three storeys of tower with red railings and tiled eaves: the floating fortress.
+    for i, (x0, x1, z0, z1) in enumerate([(1, 9, 6, 22), (2, 8, 8, 20), (3, 7, 10, 18)]):
+        y0 = 5 + i * 4
+        for y in range(y0, y0 + 3):
+            for x in range(x0, x1 + 1):
+                for z in range(z0, z1 + 1):
+                    edge = x in (x0, x1) or z in (z0, z1)
+                    if edge: d.set(x, y, z, M("red_terracotta") if (x + z) % 3 else M("dark_oak_planks"))
+        for x in range(x0 - 1, x1 + 2):
+            d.set(x, y0 + 3, z0 - 1, M("deepslate_tile_slab[type=bottom]")); d.set(x, y0 + 3, z1 + 1, M("deepslate_tile_slab[type=bottom]"))
+        for z in range(z0 - 1, z1 + 2):
+            d.set(x0 - 1, y0 + 3, z, M("deepslate_tile_slab[type=bottom]")); d.set(x1 + 1, y0 + 3, z, M("deepslate_tile_slab[type=bottom]"))
+        d.fill(x0, y0 + 3, z0, x1, y0 + 3, z1, M("dark_oak_planks"))
+        for x in range(x0, x1 + 1, 2):
+            d.set(x, y0 + 1, z0, M("black_terracotta"))
+    d.fill(4, 17, 12, 6, 17, 16, M("deepslate_tiles"))
+    d.set(c, 18, 14, M("red_wool")); d.set(c, 19, 14, M("red_wool"))
+    # Fore and main masts with red sails; six clapper poles over the sides.
+    for (z, top) in [(3, 15), (24, 13)]:
+        for y in range(5, top): d.set(c, y, z, M("stripped_dark_oak_log"))
+        for y in range(top - 6, top - 1):
+            for dz in range(-2, 3): d.set(c, y, z + dz, M("red_wool"))
+    for z in (8, 14, 20):
+        for x in (0, 10):
+            d.set(x, 6, z, M("dark_oak_fence")); d.set(x, 7, z, M("dark_oak_fence"))
+            d.set(x, 8, z, M("cobblestone"))
+    for z in range(5, 23, 2):
+        d.set(0, 5, z, M("red_terracotta")); d.set(10, 5, z, M("red_terracotta"))
+    return d
+
+
+SHIP_MODELS = {"merchant_ship": ship_merchant, "mengchong_warship": ship_mengchong, "turreted_ship": ship_turreted}
+
+
 def main():
+    for name, fn in SHIP_MODELS.items():
+        print(f"ship {name}: {save_ship(fn(), name)} voxels")
     total = 0
     for name, fn in DESIGNS.items():
         n = fn().save(name)

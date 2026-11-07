@@ -180,6 +180,23 @@ public final class Views {
         return false;
     }
 
+    /** A line on what a building is doing beyond its mode: a caravan on the road, a ship on the slipway. */
+    public static Component status(Territory t, Building b) {
+        if (b.type == BuildingType.CHAMBER_OF_COMMERCE) {
+            CompoundTag c = Trade.caravanOf(t, b.id);
+            if (c != null) return Component.translatable("realmlord.trade.status.away",
+                    com.realmlord.worldgen.ChinaMap.CAPITALS[Math.max(0, Math.min(8, c.getInt("to")))], Coins.format(c.getLong("value")), c.getLong("back"));
+            int to = Trade.destination(b);
+            return Component.translatable(Trade.bySea(t, to) ? "realmlord.trade.status.next_sea" : "realmlord.trade.status.next", Trade.days(t, to),
+                    Math.round(Trade.risk(t, to) * 100), String.format("%.1f", Trade.markup(t, to)));
+        }
+        Workshops.Mode m = Workshops.mode(b);
+        if (m != null && m.makesItems() && m.out() < 1) {
+            return Component.translatable("realmlord.workshop.progress", Math.round(Math.min(1, b.modeCarry) * 100));
+        }
+        return null;
+    }
+
     public static CompoundTag resident(ServerPlayer p, Territory t, Resident r) {
         CompoundTag v = new CompoundTag();
         v.putInt("territory", t.id);
@@ -193,6 +210,11 @@ public final class Views {
         // Duties: the militia, the offices, following the Lord.
         v.putInt("militiaCap", Village.militiaCap(t));
         v.putInt("militiaCount", Village.militiaCount(t));
+        v.putInt("navyCap", Navy.cap(t));
+        v.putInt("navyCount", Navy.count(t));
+        com.realmlord.martial.ArtData.Art art = FigureArts.signature(r);
+        if (art != null) v.putString("figureArt", art.key());
+        v.putBoolean("canTeach", FigureArts.canTeach(r));
         v.putBoolean("wounded", r.woundedUntil > GaiaCalendar.today(p.server));
         int companions = 0;
         for (Resident o : t.residents) if (o.follows) companions++;
@@ -314,6 +336,8 @@ public final class Views {
         }
         v.put("modes", modes);
         v.putInt("mode", b.mode);
+        Component status = status(t, b);
+        if (status != null) v.putString("status", Component.Serializer.toJson(status));
         int places = Workshops.places(b.type);
         v.putInt("places", places);
         if (places > 0) {

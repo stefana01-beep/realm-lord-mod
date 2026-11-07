@@ -172,6 +172,19 @@ public final class BuildingDesigns {
         if (b.type.style == BuildingType.Style.CLEARING) return new ArrayList<>();
         Canvas c = new Canvas(b);
         int w = c.w, d = c.d;
+        if (b.type.style == BuildingType.Style.DESIGN) {
+            // A drawn design: a ready-made one for its kind, or a commissioned plan.
+            com.realmlord.build.Design dz = Commissions.designOf(level, b);
+            if (dz == null) return new ArrayList<>();
+            for (int y = 0; y < dz.h; y++)
+                for (int z = 0; z < dz.d; z++)
+                    for (int x = 0; x < dz.w; x++) {
+                        int v = dz.at(x, y, z);
+                        if (v < 0) continue;
+                        c.set(x, y + dz.yOff, z, v == 0 ? AIR : dz.palette[v]);
+                    }
+            return c.build();
+        }
         switch (b.type.style) {
             case HALL -> {
                 hall(c, w, d, 4, true);

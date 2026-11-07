@@ -91,12 +91,15 @@ public final class Residents {
                 Building b = siteOf(t, r);
                 if (b != null) return b.footprint() ? b.center() : t.center;
             }
-            case LOGGING, QUARRYING, FARMING, MINING -> {
+            case LOGGING, QUARRYING, FARMING, MINING, SALT_MAKING, COPPER_MINING, COAL_MINING -> {
                 Building f = field(t, r);
                 if (f != null) return f.center();
             }
             case ADMINISTRATION -> {
                 return manorSpot(t, r);
+            }
+            case FISHING -> {
+                for (Building b : t.buildings) if (b.complete && b.type == BuildingType.DOCK) return b.center();
             }
             default -> { }
         }

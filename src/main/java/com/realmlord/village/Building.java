@@ -68,6 +68,10 @@ public class Building {
     }
     /** A workshop's choice of what to make (see Workshops.modes). */
     public int mode;
+    /** Part-made items carried over to the next day (a warship takes days). */
+    public double modeCarry;
+    /** A commissioned building: its plan ("builtin:<id>" or "drawn:<uuid>") and its name. */
+    public String designRef = "", label = "";
 
     /** True if the site works a rectangle of ground: a building, or a clearing. */
     public boolean footprint() {
@@ -159,6 +163,11 @@ public class Building {
         if (clearCols != null) t.putIntArray("clearCols", clearCols);
         if (fenceStyle > 0) t.putInt("fenceStyle", fenceStyle);
         if (mode > 0) t.putInt("mode", mode);
+        if (modeCarry > 0) t.putDouble("modeCarry", modeCarry);
+        if (!designRef.isEmpty()) {
+            t.putString("designRef", designRef);
+            t.putString("label", label);
+        }
         if (pathCols != null) {
             t.putIntArray("pathPts", pathPoints);
             t.putIntArray("pathCols", pathCols);
@@ -213,6 +222,9 @@ public class Building {
         b.clearCols = t.contains("clearCols") ? t.getIntArray("clearCols") : null;
         b.fenceStyle = t.getInt("fenceStyle");
         b.mode = t.getInt("mode");
+        b.modeCarry = t.getDouble("modeCarry");
+        b.designRef = t.getString("designRef");
+        b.label = t.getString("label");
         if (t.contains("pathCols")) {
             b.pathPoints = t.getIntArray("pathPts");
             b.pathCols = t.getIntArray("pathCols");
