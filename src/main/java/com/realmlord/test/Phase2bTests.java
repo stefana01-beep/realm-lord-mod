@@ -84,7 +84,9 @@ public class Phase2bTests {
         VillageTests.built(t, BuildingType.MILITARY_CAMP);
         int enlisted = 0;
         for (Resident r : t.residents) if (r.office < 0 && !r.militia && Village.enlist(t, r, true) == null) enlisted++;
-        helper.assertTrue(enlisted == 10 && Village.militiaCount(t) == Village.BASE_MILITIA + 10, "a camp should hold ten more militia, enlisted " + enlisted);
+        int generals = 5 * com.realmlord.village.FigureArts.count(t, "general");
+        helper.assertTrue(enlisted == 10 + generals && Village.militiaCount(t) == Village.BASE_MILITIA + 10 + generals,
+                "a camp should hold ten more militia (and five for each summoned general), enlisted " + enlisted);
         int force = 0;
         for (Resident r : t.residents) if (r.militia) force += r.force;
         // Hunters bring meat and hides.
