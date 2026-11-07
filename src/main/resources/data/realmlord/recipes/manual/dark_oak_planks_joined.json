@@ -1,0 +1,20 @@
+{
+  "type": "realmlord:manual",
+  "manual": "lu_ban_joinery",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "tag": "minecraft:dark_oak_logs"
+      },
+      {
+        "tag": "minecraft:dark_oak_logs"
+      }
+    ],
+    "result": {
+      "item": "minecraft:dark_oak_planks",
+      "count": 12
+    }
+  }
+}

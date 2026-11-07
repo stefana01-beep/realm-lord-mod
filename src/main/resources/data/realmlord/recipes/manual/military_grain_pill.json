@@ -1,0 +1,32 @@
+{
+  "type": "realmlord:manual",
+  "manual": "military_grain_pill",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "tag": "realmlord:cooked_meats"
+      },
+      {
+        "item": "realmlord:salt"
+      },
+      {
+        "item": "realmlord:medicinal_herbs"
+      }
+    ],
+    "result": {
+      "item": "realmlord:military_grain_pill",
+      "count": 4
+    }
+  }
+}

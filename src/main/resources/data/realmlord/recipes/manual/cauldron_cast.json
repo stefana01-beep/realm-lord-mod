@@ -1,0 +1,29 @@
+{
+  "type": "realmlord:manual",
+  "manual": "ironware_casting",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:iron_ingot"
+      },
+      {
+        "item": "minecraft:iron_ingot"
+      },
+      {
+        "item": "minecraft:iron_ingot"
+      },
+      {
+        "item": "minecraft:iron_ingot"
+      },
+      {
+        "item": "minecraft:coal"
+      }
+    ],
+    "result": {
+      "item": "minecraft:cauldron",
+      "count": 1
+    }
+  }
+}

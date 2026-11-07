@@ -1,0 +1,26 @@
+{
+  "type": "realmlord:manual",
+  "manual": "immortal_brew",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "realmlord:maotai"
+      },
+      {
+        "item": "realmlord:dukang_wine"
+      },
+      {
+        "item": "minecraft:glistering_melon_slice"
+      },
+      {
+        "item": "minecraft:gold_ingot"
+      }
+    ],
+    "result": {
+      "item": "realmlord:immortal_wine",
+      "count": 1
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "type": "realmlord:manual",
+  "manual": "pine_tar",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "tag": "minecraft:spruce_logs"
+      },
+      {
+        "tag": "minecraft:spruce_logs"
+      },
+      {
+        "item": "minecraft:coal"
+      }
+    ],
+    "result": {
+      "item": "realmlord:pine_tar",
+      "count": 4
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "type": "realmlord:manual",
+  "manual": "rope_and_anchor",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:dried_kelp"
+      },
+      {
+        "item": "minecraft:dried_kelp"
+      },
+      {
+        "item": "minecraft:dried_kelp"
+      }
+    ],
+    "result": {
+      "item": "minecraft:string",
+      "count": 2
+    }
+  }
+}

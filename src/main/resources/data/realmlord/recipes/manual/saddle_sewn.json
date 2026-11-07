@@ -1,0 +1,28 @@
+{
+  "type": "realmlord:manual",
+  "manual": "tack_and_felting",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "LLL",
+      "LSL",
+      " N "
+    ],
+    "key": {
+      "L": {
+        "item": "minecraft:leather"
+      },
+      "S": {
+        "item": "minecraft:string"
+      },
+      "N": {
+        "item": "minecraft:iron_nugget"
+      }
+    },
+    "result": {
+      "item": "minecraft:saddle",
+      "count": 1
+    }
+  }
+}

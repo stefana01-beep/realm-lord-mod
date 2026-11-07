@@ -1,0 +1,23 @@
+{
+  "type": "realmlord:manual",
+  "manual": "medicinal_wine",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "realmlord:three_flower_wine"
+      },
+      {
+        "item": "realmlord:medicinal_herbs"
+      },
+      {
+        "item": "realmlord:medicinal_herbs"
+      }
+    ],
+    "result": {
+      "item": "realmlord:medicinal_wine",
+      "count": 1
+    }
+  }
+}

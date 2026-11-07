@@ -1,0 +1,23 @@
+{
+  "type": "realmlord:manual",
+  "manual": "animal_salve",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "realmlord:medicinal_herbs"
+      },
+      {
+        "item": "realmlord:medicinal_herbs"
+      },
+      {
+        "item": "minecraft:honeycomb"
+      }
+    ],
+    "result": {
+      "item": "realmlord:animal_salve",
+      "count": 2
+    }
+  }
+}

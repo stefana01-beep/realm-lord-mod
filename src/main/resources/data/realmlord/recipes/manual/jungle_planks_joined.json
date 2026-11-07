@@ -1,0 +1,20 @@
+{
+  "type": "realmlord:manual",
+  "manual": "lu_ban_joinery",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "tag": "minecraft:jungle_logs"
+      },
+      {
+        "tag": "minecraft:jungle_logs"
+      }
+    ],
+    "result": {
+      "item": "minecraft:jungle_planks",
+      "count": 12
+    }
+  }
+}

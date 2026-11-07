@@ -205,6 +205,11 @@ def blueprint(w, max_grade):
     return item("realmlord:blueprint", w, functions=[{"function": "realmlord:blueprint", "max_grade": max_grade}])
 
 
+def manual(kind, w, max_grade):
+    """A technical manual (max: trade rank 0-3) or a martial arts secret manual (max: grade 0 Bronze .. 7 Saint)."""
+    return item(f"realmlord:{kind}_manual", w, functions=[{"function": "realmlord:manual", "kind": kind, "max": max_grade}])
+
+
 def table(*pools):
     return {"type": "minecraft:chest", "pools": [{"rolls": {"type": "minecraft:uniform", "min": lo, "max": hi}, "entries": entries} for lo, hi, entries in pools]}
 
@@ -218,7 +223,8 @@ LOOT = {
         (3, 5, [item("realmlord:copper_coin", 20, 10, 40), item("realmlord:silver_coin", 10, 1, 5), item("minecraft:iron_ingot", 8, 1, 4),
                 item("minecraft:gold_nugget", 8, 2, 8), item("minecraft:wheat", 8, 4, 12), item("realmlord:medicinal_herbs", 8, 1, 4),
                 item("realmlord:three_flower_wine", 5, 1, 2), item("realmlord:salt", 6, 2, 6), item("minecraft:candle", 4, 1, 3)]),
-        (1, 2, [blueprint(4, 1), graded("minecraft:iron_sword", 2), graded("minecraft:iron_helmet", 2), {"type": "minecraft:empty", "weight": 3}]),
+        (1, 2, [blueprint(4, 1), graded("minecraft:iron_sword", 2), graded("minecraft:iron_helmet", 2), {"type": "minecraft:empty", "weight": 3},
+                manual("tech", 2, 0), manual("secret", 2, 1)]),
     ),
     "watchtower_supplies": table(
         (3, 6, [item("minecraft:arrow", 12, 6, 16), item("minecraft:bread", 10, 2, 6), item("minecraft:oak_log", 8, 4, 12),
@@ -227,20 +233,21 @@ LOOT = {
     "watchtower": table(
         (2, 4, [item("realmlord:silver_coin", 12, 2, 8), item("minecraft:iron_ingot", 10, 2, 6), item("realmlord:fire_oil", 6, 1, 3),
                 item("minecraft:spyglass", 2), item("minecraft:arrow", 8, 8, 24)]),
-        (1, 2, [graded(w, 3) for w in WEAPONS] + [graded(a, 2) for a in ARMOUR] + [blueprint(4, 2)]),
+        (1, 2, [graded(w, 3) for w in WEAPONS] + [graded(a, 2) for a in ARMOUR] + [blueprint(4, 2), manual("tech", 3, 1), manual("secret", 3, 2)]),
     ),
     "ancient_tomb": table(
         (4, 7, [item("realmlord:silver_coin", 16, 4, 12), item("realmlord:gold_coin", 4, 1, 2), item("minecraft:gold_ingot", 10, 2, 6),
                 item("minecraft:emerald", 6, 1, 4), item("realmlord:fine_silk", 4, 1, 2), item("realmlord:linen", 8, 1, 3),
                 item("minecraft:jade_placeholder", 0)]),
         (2, 3, [graded(w, 3) for w in WEAPONS + ["minecraft:diamond_sword"]] + [graded(a, 2) for a in ARMOUR + ["minecraft:diamond_chestplate"]]
-         + [blueprint(5, 3)]),
+         + [blueprint(5, 3), manual("tech", 4, 2), manual("secret", 4, 4)]),
     ),
     "tomb_treasure": table(
         (1, 1, [item("realmlord:gold_coin", 1, 3, 8)]),
         (2, 3, [graded("minecraft:diamond_sword", 2, "gold"), graded("minecraft:iron_chestplate", 3, "silver"), graded("minecraft:iron_sword", 3, "silver"),
                 blueprint(6, 3), item("realmlord:summoning_token", 2, functions=[{"function": "realmlord:summoning", "rank": 0}]),
-                item("minecraft:enchanted_golden_apple", 1)]),
+                item("minecraft:enchanted_golden_apple", 1), manual("secret", 3, 6), manual("tech", 2, 3)]),
+        (0, 1, [manual("secret", 1, 7), {"type": "minecraft:empty", "weight": 30}]),
     ),
 }
 # (no placeholder items in real tables)

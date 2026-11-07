@@ -1,0 +1,26 @@
+{
+  "type": "realmlord:manual",
+  "manual": "boat_joinery",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:spruce_planks"
+      },
+      {
+        "item": "minecraft:spruce_planks"
+      },
+      {
+        "item": "minecraft:spruce_planks"
+      },
+      {
+        "item": "realmlord:pine_tar"
+      }
+    ],
+    "result": {
+      "item": "minecraft:spruce_boat",
+      "count": 1
+    }
+  }
+}

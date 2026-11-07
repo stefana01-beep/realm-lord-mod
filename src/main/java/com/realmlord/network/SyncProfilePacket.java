@@ -93,6 +93,25 @@ public class SyncProfilePacket {
         }
         data.writeVarInt(td.villagesFounded());
         data.writeBoolean(td.goldTokenClaimed());
+        // Manuals known and martial arts.
+        net.minecraft.nbt.CompoundTag known = new net.minecraft.nbt.CompoundTag();
+        known.putString("techs", String.join(",", p.techs()));
+        net.minecraft.nbt.CompoundTag arts = new net.minecraft.nbt.CompoundTag();
+        for (var e : p.arts().entrySet()) {
+            var art = com.realmlord.martial.Arts.byId(e.getKey());
+            if (art == null) continue;
+            net.minecraft.nbt.CompoundTag a = new net.minecraft.nbt.CompoundTag();
+            a.putInt("lv", e.getValue()[0]);
+            a.putInt("p", e.getValue()[1]);
+            a.putInt("need", com.realmlord.martial.Arts.need(art, e.getValue()[0]));
+            arts.put(e.getKey(), a);
+        }
+        known.put("arts", arts);
+        int[] bonus = new int[8];
+        for (var i : com.realmlord.profile.Innate.values()) bonus[i.ordinal()] = p.artInnate(i);
+        for (var st : com.realmlord.profile.Stat.values()) bonus[4 + st.ordinal()] = p.artStat(st);
+        known.putIntArray("bonus", bonus);
+        data.writeNbt(known);
     }
 
     public SyncProfilePacket(FriendlyByteBuf buf) {
@@ -178,6 +197,13 @@ public class SyncProfilePacket {
         }
         ClientProfileData.villagesFounded = b.readVarInt();
         ClientProfileData.goldClaimed = b.readBoolean();
+        net.minecraft.nbt.CompoundTag known = b.readNbt();
+        if (known != null) {
+            com.realmlord.work.TechManuals.CLIENT_KNOWN.clear();
+            for (String id : known.getString("techs").split(",")) if (!id.isBlank()) com.realmlord.work.TechManuals.CLIENT_KNOWN.add(id);
+            ClientProfileData.arts = known.getCompound("arts");
+            ClientProfileData.artBonus = known.getIntArray("bonus");
+        }
         ClientProfileData.synced = true;
     }
 }

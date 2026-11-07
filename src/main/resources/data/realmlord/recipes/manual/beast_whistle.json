@@ -1,0 +1,23 @@
+{
+  "type": "realmlord:manual",
+  "manual": "beast_whistle",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "realmlord:boar_tusk"
+      },
+      {
+        "item": "minecraft:gold_nugget"
+      },
+      {
+        "item": "minecraft:string"
+      }
+    ],
+    "result": {
+      "item": "realmlord:beast_whistle",
+      "count": 1
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "type": "realmlord:manual",
+  "manual": "great_wall",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "CCC",
+      "CBC",
+      "CCC"
+    ],
+    "key": {
+      "C": {
+        "item": "minecraft:cobbled_deepslate"
+      },
+      "B": {
+        "item": "minecraft:clay_ball"
+      }
+    },
+    "result": {
+      "item": "minecraft:deepslate_bricks",
+      "count": 8
+    }
+  }
+}

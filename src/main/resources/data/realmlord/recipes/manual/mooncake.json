@@ -1,0 +1,29 @@
+{
+  "type": "realmlord:manual",
+  "manual": "mooncakes",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "item": "minecraft:sugar"
+      },
+      {
+        "item": "minecraft:egg"
+      },
+      {
+        "item": "minecraft:pumpkin_seeds"
+      }
+    ],
+    "result": {
+      "item": "realmlord:mooncake",
+      "count": 4
+    }
+  }
+}

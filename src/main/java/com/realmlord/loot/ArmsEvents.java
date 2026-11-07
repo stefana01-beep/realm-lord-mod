@@ -35,6 +35,9 @@ public final class ArmsEvents {
                 drop(event, m, Gear.make(ModArms.BANDIT_SABRE.get(), chief && r.nextFloat() < 0.3F ? TokenGrade.BLACK_IRON : TokenGrade.BRONZE, r));
             // Bandits carry what they plundered: a chief now and then a forging manual, any of them rations.
             if (chief && r.nextFloat() < 0.25F) drop(event, m, Manuals.random(r));
+            // Bandits carry blueprints and manuals, as in the novel: technical manuals and secret manuals.
+            if (chief && r.nextFloat() < 0.25F) drop(event, m, com.realmlord.work.TechManuals.random(r, 1));
+            if (r.nextFloat() < (chief ? 0.2F : 0.03F)) drop(event, m, com.realmlord.martial.Arts.random(r, chief ? com.realmlord.martial.ArtGrade.SILVER : com.realmlord.martial.ArtGrade.BLACK_IRON));
             if (r.nextFloat() < 0.15F) drop(event, m, new ItemStack(ModArms.MILITARY_RATIONS.get(), 1 + r.nextInt(2)));
             return;
         }
@@ -42,6 +45,8 @@ public final class ArmsEvents {
         // Sinew from the hunting beasts; a beast core from a king, and rarely from an old, strong beast.
         if (r.nextFloat() < (king ? 1.0F : 0.35F)) drop(event, m, new ItemStack(ModArms.BEAST_SINEW.get(), king ? 4 : 1 + r.nextInt(2)));
         if (king || MobLevels.level(m) >= 10 && r.nextFloat() < 0.04F) drop(event, m, new ItemStack(ModArms.BEAST_CORE.get()));
+        // A king now and then guards a secret manual from the ruins of its den.
+        if (king && r.nextFloat() < 0.12F) drop(event, m, com.realmlord.martial.Arts.random(r, com.realmlord.martial.ArtGrade.KING));
     }
 
     private static void drop(LivingDropsEvent event, Mob m, ItemStack stack) {
@@ -58,9 +63,18 @@ public final class ArmsEvents {
         TokenGrade grade = ModArms.craftedGrade(out.getItem());
         if (grade == null) return;
         boolean core = false;
+        int steel = 0;
         var grid = event.getInventory();
-        for (int i = 0; i < grid.getContainerSize(); i++) if (grid.getItem(i).is(ModArms.BEAST_CORE.get())) core = true;
-        if (core) grade = TokenGrade.GOLD;
+        for (int i = 0; i < grid.getContainerSize(); i++) {
+            if (grid.getItem(i).is(ModArms.BEAST_CORE.get())) core = true;
+            if (grid.getItem(i).is(ModArms.REFINED_STEEL.get())) steel++;
+        }
+        // A beast core forged in, or a blade folded again with three bars of steel (the Hundred-Refined manual), makes it Gold.
+        boolean reforged = false;
+        for (int i = 0; i < grid.getContainerSize(); i++) if (grid.getItem(i).is(out.getItem())) reforged = true;
+        if (core || reforged && steel >= 3) grade = TokenGrade.GOLD;
+        else if (grade != TokenGrade.GOLD && com.realmlord.work.TradeArts.gradeBump(event.getEntity(), out.getItem()))
+            grade = TokenGrade.values()[grade.ordinal() + 1];
         ItemStack graded = Gear.make(out.getItem(), grade, event.getEntity().getRandom());
         out.setTag(graded.getTag());
     }

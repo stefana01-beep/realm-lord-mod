@@ -1,0 +1,26 @@
+{
+  "type": "realmlord:manual",
+  "manual": "peiyuan_pill",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "realmlord:healing_pill"
+      },
+      {
+        "item": "realmlord:healing_pill"
+      },
+      {
+        "item": "realmlord:bear_paw"
+      },
+      {
+        "item": "minecraft:gold_ingot"
+      }
+    ],
+    "result": {
+      "item": "realmlord:peiyuan_pill",
+      "count": 2
+    }
+  }
+}

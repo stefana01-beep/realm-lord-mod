@@ -1,0 +1,28 @@
+{
+  "type": "realmlord:manual",
+  "manual": "dragon_robe",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "S S",
+      "RGR",
+      "SRS"
+    ],
+    "key": {
+      "S": {
+        "item": "realmlord:fine_silk"
+      },
+      "R": {
+        "item": "realmlord:rainbow_silk"
+      },
+      "G": {
+        "item": "minecraft:gold_ingot"
+      }
+    },
+    "result": {
+      "item": "realmlord:dragon_robe",
+      "count": 1
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "type": "realmlord:manual",
+  "manual": "tea_brewing",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:glass_bottle"
+      },
+      {
+        "item": "realmlord:tea_leaves"
+      },
+      {
+        "item": "realmlord:tea_leaves"
+      }
+    ],
+    "result": {
+      "item": "realmlord:green_tea",
+      "count": 1
+    }
+  }
+}

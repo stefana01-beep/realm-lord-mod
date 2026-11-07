@@ -1,0 +1,32 @@
+{
+  "type": "realmlord:manual",
+  "manual": "glazed_tiles",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:terracotta"
+      },
+      {
+        "item": "minecraft:terracotta"
+      },
+      {
+        "item": "minecraft:terracotta"
+      },
+      {
+        "item": "minecraft:terracotta"
+      },
+      {
+        "item": "minecraft:yellow_dye"
+      },
+      {
+        "item": "minecraft:bone_meal"
+      }
+    ],
+    "result": {
+      "item": "minecraft:yellow_glazed_terracotta",
+      "count": 4
+    }
+  }
+}

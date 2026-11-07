@@ -188,6 +188,30 @@
     {
      "type": "minecraft:empty",
      "weight": 3
+    },
+    {
+     "type": "minecraft:item",
+     "name": "realmlord:tech_manual",
+     "weight": 2,
+     "functions": [
+      {
+       "function": "realmlord:manual",
+       "kind": "tech",
+       "max": 0
+      }
+     ]
+    },
+    {
+     "type": "minecraft:item",
+     "name": "realmlord:secret_manual",
+     "weight": 2,
+     "functions": [
+      {
+       "function": "realmlord:manual",
+       "kind": "secret",
+       "max": 1
+      }
+     ]
     }
    ]
   }

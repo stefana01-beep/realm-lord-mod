@@ -1,0 +1,26 @@
+{
+  "type": "realmlord:manual",
+  "manual": "boat_joinery",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:mangrove_planks"
+      },
+      {
+        "item": "minecraft:mangrove_planks"
+      },
+      {
+        "item": "minecraft:mangrove_planks"
+      },
+      {
+        "item": "realmlord:pine_tar"
+      }
+    ],
+    "result": {
+      "item": "minecraft:mangrove_boat",
+      "count": 1
+    }
+  }
+}

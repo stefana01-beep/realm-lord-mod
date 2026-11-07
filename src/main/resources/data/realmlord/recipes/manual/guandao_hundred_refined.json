@@ -1,0 +1,29 @@
+{
+  "type": "realmlord:manual",
+  "manual": "hundred_refined",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "realmlord:guandao"
+      },
+      {
+        "item": "realmlord:refined_steel"
+      },
+      {
+        "item": "realmlord:refined_steel"
+      },
+      {
+        "item": "realmlord:refined_steel"
+      },
+      {
+        "item": "minecraft:gold_ingot"
+      }
+    ],
+    "result": {
+      "item": "realmlord:guandao",
+      "count": 1
+    }
+  }
+}

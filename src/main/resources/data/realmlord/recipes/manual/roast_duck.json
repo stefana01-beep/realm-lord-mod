@@ -1,0 +1,26 @@
+{
+  "type": "realmlord:manual",
+  "manual": "roast_duck",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:cooked_chicken"
+      },
+      {
+        "item": "minecraft:honey_bottle"
+      },
+      {
+        "item": "realmlord:soy_sauce"
+      },
+      {
+        "item": "minecraft:wheat"
+      }
+    ],
+    "result": {
+      "item": "realmlord:roast_duck",
+      "count": 1
+    }
+  }
+}

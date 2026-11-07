@@ -1,0 +1,29 @@
+{
+  "type": "realmlord:manual",
+  "manual": "south_pointing_chariot",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:compass"
+      },
+      {
+        "item": "minecraft:gold_ingot"
+      },
+      {
+        "tag": "minecraft:planks"
+      },
+      {
+        "tag": "minecraft:planks"
+      },
+      {
+        "item": "minecraft:redstone"
+      }
+    ],
+    "result": {
+      "item": "realmlord:south_pointing_chariot",
+      "count": 1
+    }
+  }
+}

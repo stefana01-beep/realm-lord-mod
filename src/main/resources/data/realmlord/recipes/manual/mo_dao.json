@@ -1,0 +1,25 @@
+{
+  "type": "realmlord:manual",
+  "manual": "tang_sword_forging",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "  R",
+      " RR",
+      "S  "
+    ],
+    "key": {
+      "R": {
+        "item": "realmlord:refined_steel"
+      },
+      "S": {
+        "item": "minecraft:stick"
+      }
+    },
+    "result": {
+      "item": "realmlord:mo_dao",
+      "count": 1
+    }
+  }
+}

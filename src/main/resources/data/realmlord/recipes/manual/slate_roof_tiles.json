@@ -1,0 +1,29 @@
+{
+  "type": "realmlord:manual",
+  "manual": "glazed_tiles",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:cobbled_deepslate"
+      },
+      {
+        "item": "minecraft:cobbled_deepslate"
+      },
+      {
+        "item": "minecraft:cobbled_deepslate"
+      },
+      {
+        "item": "minecraft:cobbled_deepslate"
+      },
+      {
+        "item": "minecraft:clay_ball"
+      }
+    ],
+    "result": {
+      "item": "minecraft:deepslate_tiles",
+      "count": 4
+    }
+  }
+}

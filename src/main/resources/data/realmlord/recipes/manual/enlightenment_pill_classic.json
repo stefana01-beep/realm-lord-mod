@@ -1,0 +1,32 @@
+{
+  "type": "realmlord:manual",
+  "manual": "bianque_classic",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "realmlord:three_flower_wine"
+      },
+      {
+        "item": "realmlord:three_flower_wine"
+      },
+      {
+        "item": "realmlord:healing_pill"
+      },
+      {
+        "item": "realmlord:healing_pill"
+      },
+      {
+        "item": "minecraft:gold_ingot"
+      },
+      {
+        "item": "realmlord:medicinal_herbs"
+      }
+    ],
+    "result": {
+      "item": "realmlord:enlightenment_pill",
+      "count": 1
+    }
+  }
+}

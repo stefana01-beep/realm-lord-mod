@@ -1,0 +1,35 @@
+{
+  "type": "realmlord:manual",
+  "manual": "maotai",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:glass_bottle"
+      },
+      {
+        "item": "minecraft:glass_bottle"
+      },
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "item": "minecraft:beetroot"
+      },
+      {
+        "item": "minecraft:sugar"
+      },
+      {
+        "item": "realmlord:medicinal_herbs"
+      }
+    ],
+    "result": {
+      "item": "realmlord:maotai",
+      "count": 2
+    }
+  }
+}

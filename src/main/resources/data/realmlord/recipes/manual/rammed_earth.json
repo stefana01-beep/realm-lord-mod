@@ -1,0 +1,26 @@
+{
+  "type": "realmlord:manual",
+  "manual": "rammed_earth",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:dirt"
+      },
+      {
+        "item": "minecraft:dirt"
+      },
+      {
+        "item": "minecraft:gravel"
+      },
+      {
+        "item": "minecraft:clay_ball"
+      }
+    ],
+    "result": {
+      "item": "minecraft:packed_mud",
+      "count": 4
+    }
+  }
+}

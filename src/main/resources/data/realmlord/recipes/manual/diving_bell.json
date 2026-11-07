@@ -1,0 +1,25 @@
+{
+  "type": "realmlord:manual",
+  "manual": "ming_shipbuilding",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "III",
+      "G G",
+      "GGG"
+    ],
+    "key": {
+      "I": {
+        "item": "minecraft:iron_ingot"
+      },
+      "G": {
+        "item": "minecraft:glass"
+      }
+    },
+    "result": {
+      "item": "realmlord:diving_bell",
+      "count": 1
+    }
+  }
+}

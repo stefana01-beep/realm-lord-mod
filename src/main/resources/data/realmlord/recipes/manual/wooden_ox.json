@@ -1,0 +1,35 @@
+{
+  "type": "realmlord:manual",
+  "manual": "wooden_ox",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:chest"
+      },
+      {
+        "tag": "minecraft:logs"
+      },
+      {
+        "tag": "minecraft:logs"
+      },
+      {
+        "tag": "minecraft:logs"
+      },
+      {
+        "tag": "minecraft:logs"
+      },
+      {
+        "item": "minecraft:redstone"
+      },
+      {
+        "item": "minecraft:lead"
+      }
+    ],
+    "result": {
+      "item": "realmlord:wooden_ox",
+      "count": 1
+    }
+  }
+}

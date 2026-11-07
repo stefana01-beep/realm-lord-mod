@@ -1,0 +1,25 @@
+{
+  "type": "realmlord:manual",
+  "manual": "horse_barding",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "I I",
+      "ILI",
+      "I I"
+    ],
+    "key": {
+      "I": {
+        "item": "minecraft:gold_ingot"
+      },
+      "L": {
+        "item": "minecraft:leather"
+      }
+    },
+    "result": {
+      "item": "minecraft:golden_horse_armor",
+      "count": 1
+    }
+  }
+}

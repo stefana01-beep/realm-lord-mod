@@ -1,0 +1,26 @@
+{
+  "type": "realmlord:manual",
+  "manual": "dumplings",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "item": "minecraft:porkchop"
+      },
+      {
+        "item": "minecraft:carrot"
+      }
+    ],
+    "result": {
+      "item": "realmlord:dumplings",
+      "count": 4
+    }
+  }
+}

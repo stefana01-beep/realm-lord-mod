@@ -1,0 +1,23 @@
+{
+  "type": "realmlord:manual",
+  "manual": "tack_and_felting",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:paper"
+      },
+      {
+        "item": "minecraft:string"
+      },
+      {
+        "item": "minecraft:iron_nugget"
+      }
+    ],
+    "result": {
+      "item": "minecraft:name_tag",
+      "count": 1
+    }
+  }
+}

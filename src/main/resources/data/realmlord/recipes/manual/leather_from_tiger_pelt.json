@@ -1,0 +1,17 @@
+{
+  "type": "realmlord:manual",
+  "manual": "tanning",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "realmlord:tiger_pelt"
+      }
+    ],
+    "result": {
+      "item": "minecraft:leather",
+      "count": 5
+    }
+  }
+}

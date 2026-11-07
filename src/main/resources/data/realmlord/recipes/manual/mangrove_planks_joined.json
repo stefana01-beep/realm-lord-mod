@@ -1,0 +1,20 @@
+{
+  "type": "realmlord:manual",
+  "manual": "lu_ban_joinery",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "tag": "minecraft:mangrove_logs"
+      },
+      {
+        "tag": "minecraft:mangrove_logs"
+      }
+    ],
+    "result": {
+      "item": "minecraft:mangrove_planks",
+      "count": 12
+    }
+  }
+}

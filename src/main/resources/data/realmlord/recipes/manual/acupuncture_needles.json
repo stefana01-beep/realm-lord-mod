@@ -1,0 +1,29 @@
+{
+  "type": "realmlord:manual",
+  "manual": "acupuncture",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:iron_nugget"
+      },
+      {
+        "item": "minecraft:iron_nugget"
+      },
+      {
+        "item": "minecraft:iron_nugget"
+      },
+      {
+        "item": "minecraft:gold_nugget"
+      },
+      {
+        "item": "realmlord:medicinal_herbs"
+      }
+    ],
+    "result": {
+      "item": "realmlord:acupuncture_needles",
+      "count": 1
+    }
+  }
+}

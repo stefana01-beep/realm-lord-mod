@@ -68,6 +68,27 @@ public final class Market {
             new Ware(() -> com.realmlord.registry.ModArms.MOUNTAIN_GREAVES.get(), 1, 90_000, com.realmlord.territory.TokenGrade.SILVER),
             new Ware(() -> com.realmlord.registry.ModArms.MOUNTAIN_BOOTS.get(), 1, 55_000, com.realmlord.territory.TokenGrade.SILVER));
 
+    /** A manual for sale on the market's Manuals page: the book and its price (copper). */
+    public record Book(java.util.function.Supplier<net.minecraft.world.item.ItemStack> stack, long price) {}
+
+    private static java.util.List<Book> books;
+
+    /**
+     * The Manuals page: every technical manual (Junior 50 silver, Intermediate 3 gold, Advanced
+     * 10 gold, Master 30 gold) and the secret manuals the novel's market sold: Bronze 50 silver,
+     * Black Iron 2 gold, Silver 10 gold, Gold 50 gold. King rank and above are never sold.
+     */
+    public static java.util.List<Book> books() {
+        if (books == null) {
+            java.util.List<Book> out = new java.util.ArrayList<>();
+            for (var a : com.realmlord.martial.ArtData.ALL)
+                if (a.grade().price > 0) out.add(new Book(() -> com.realmlord.martial.Arts.manual(a), a.grade().price));
+            for (var t : com.realmlord.work.TechData.ALL) out.add(new Book(() -> com.realmlord.work.TechManuals.manual(t), t.price()));
+            books = java.util.List.copyOf(out);
+        }
+        return books;
+    }
+
     public static final int FOOD = 0, WOOD = 1, STONE = 2, IRON_ORE = 3;
     public static final String[] IDS = {"food", "wood", "stone", "iron_ore"};
     public static final long[] PRICE = {10, 20, 30, 100};

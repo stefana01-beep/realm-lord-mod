@@ -1,0 +1,32 @@
+{
+  "type": "realmlord:manual",
+  "manual": "manchu_han_feast",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "realmlord:roast_duck"
+      },
+      {
+        "item": "realmlord:braised_bear_paw"
+      },
+      {
+        "item": "realmlord:mooncake"
+      },
+      {
+        "item": "realmlord:dumplings"
+      },
+      {
+        "item": "realmlord:noodle_soup"
+      },
+      {
+        "item": "realmlord:maotai"
+      }
+    ],
+    "result": {
+      "item": "realmlord:imperial_feast",
+      "count": 1
+    }
+  }
+}

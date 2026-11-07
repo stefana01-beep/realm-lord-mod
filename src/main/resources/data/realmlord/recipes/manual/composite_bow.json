@@ -1,0 +1,31 @@
+{
+  "type": "realmlord:manual",
+  "manual": "song_bow_crossbow",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "GBW",
+      "S W",
+      "GBW"
+    ],
+    "key": {
+      "G": {
+        "item": "minecraft:slime_ball"
+      },
+      "B": {
+        "item": "minecraft:birch_planks"
+      },
+      "S": {
+        "item": "minecraft:stick"
+      },
+      "W": {
+        "item": "realmlord:beast_sinew"
+      }
+    },
+    "result": {
+      "item": "realmlord:composite_bow",
+      "count": 1
+    }
+  }
+}

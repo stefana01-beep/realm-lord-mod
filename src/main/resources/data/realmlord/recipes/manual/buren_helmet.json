@@ -1,0 +1,24 @@
+{
+  "type": "realmlord:manual",
+  "manual": "buren_armour",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "PRP",
+      "P P"
+    ],
+    "key": {
+      "P": {
+        "item": "realmlord:lamellar_plates"
+      },
+      "R": {
+        "item": "realmlord:refined_steel"
+      }
+    },
+    "result": {
+      "item": "realmlord:buren_helmet",
+      "count": 1
+    }
+  }
+}

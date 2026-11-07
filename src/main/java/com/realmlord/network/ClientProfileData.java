@@ -11,6 +11,10 @@ public final class ClientProfileData {
     private ClientProfileData() {}
 
     public static boolean synced;
+    /** Martial arts: id to {lv, p, need}. */
+    public static net.minecraft.nbt.CompoundTag arts = new net.minecraft.nbt.CompoundTag();
+    /** What the arts add: Body, Comprehension, Luck, Charm, Command, Force, Intelligence, Politics. */
+    public static int[] artBonus = new int[8];
     public static int mode;
     public static int combat = -1;
     public static int work = -1;

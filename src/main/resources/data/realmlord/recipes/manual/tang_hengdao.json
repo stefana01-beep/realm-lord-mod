@@ -1,0 +1,25 @@
+{
+  "type": "realmlord:manual",
+  "manual": "tang_sword_forging",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "  R",
+      " R ",
+      "L  "
+    ],
+    "key": {
+      "R": {
+        "item": "realmlord:refined_steel"
+      },
+      "L": {
+        "item": "minecraft:leather"
+      }
+    },
+    "result": {
+      "item": "realmlord:tang_hengdao",
+      "count": 1
+    }
+  }
+}

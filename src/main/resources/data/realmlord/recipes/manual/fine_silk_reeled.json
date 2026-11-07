@@ -1,0 +1,26 @@
+{
+  "type": "realmlord:manual",
+  "manual": "silk_reeling",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "realmlord:silk_cocoon"
+      },
+      {
+        "item": "realmlord:silk_cocoon"
+      },
+      {
+        "item": "realmlord:silk_cocoon"
+      },
+      {
+        "item": "realmlord:silk_cocoon"
+      }
+    ],
+    "result": {
+      "item": "realmlord:fine_silk",
+      "count": 1
+    }
+  }
+}

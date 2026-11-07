@@ -1550,6 +1550,24 @@ public final class Village {
         if (s.is(com.realmlord.registry.ModArms.MILITARY_RATIONS.get())) return 50;
         com.realmlord.loot.Manuals.Plan plan = com.realmlord.loot.Manuals.planOf(s);
         if (plan != null) return plan.price() / 2;
+        var tech = com.realmlord.work.TechManuals.of(s);
+        if (tech != null) return tech.price() / 2;
+        var art = com.realmlord.martial.Arts.of(s);
+        if (art != null) return art.grade().price > 0 ? art.grade().price / 2 : switch (art.grade()) {
+            case KING -> 1_500_000;
+            case EMPEROR -> 5_000_000;
+            case GOD -> 20_000_000;
+            default -> 50_000_000;
+        };
+        if (s.is(com.realmlord.registry.ModCrafts.PORCELAIN_VASE.get())) return 2_500;
+        if (s.is(com.realmlord.registry.ModCrafts.RAINBOW_SILK.get())) return 8_000;
+        if (s.is(com.realmlord.registry.ModCrafts.JADE_PENDANT.get())) return 6_000;
+        if (s.is(com.realmlord.registry.ModCrafts.SUBSTITUTE_DOLL.get())) return 100_000;
+        if (s.is(com.realmlord.registry.ModCrafts.PEIYUAN_PILL.get()) || s.is(com.realmlord.registry.ModCrafts.RHINO_HORN_PILL.get())) return 3_000;
+        if (s.is(com.realmlord.registry.ModCrafts.MILITARY_GRAIN_PILL.get())) return 100;
+        if (s.is(com.realmlord.registry.ModCrafts.MAOTAI.get()) || s.is(com.realmlord.registry.ModCrafts.DUKANG_WINE.get())) return 600;
+        if (s.is(com.realmlord.registry.ModCrafts.IMMORTAL_WINE.get())) return 5_000;
+        if (s.is(com.realmlord.registry.ModCrafts.IMPERIAL_FEAST.get())) return 10_000;
         String building = com.realmlord.loot.Blueprints.buildingOf(s);
         if (building != null && !building.isEmpty()) {
             BuildingType bt = BuildingType.byId(building);
@@ -1565,6 +1583,16 @@ public final class Village {
         if (!Coins.payWithTreasury(p, w.price())) return false;
         net.minecraft.world.item.ItemStack st = w.stack(p.getRandom());
         com.realmlord.item.ResourcesBagItem.give(p, st, st.getCount());
+        return true;
+    }
+
+    /** Buys a manual from the market's Manuals page. */
+    public static boolean buyBook(ServerPlayer p, int index) {
+        var books = Market.books();
+        if (index < 0 || index >= books.size()) return false;
+        Market.Book b = books.get(index);
+        if (!Coins.payWithTreasury(p, b.price())) return false;
+        com.realmlord.item.ResourcesBagItem.give(p, b.stack().get(), 1);
         return true;
     }
 

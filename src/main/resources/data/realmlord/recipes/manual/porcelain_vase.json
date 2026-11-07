@@ -1,0 +1,32 @@
+{
+  "type": "realmlord:manual",
+  "manual": "porcelain",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:clay_ball"
+      },
+      {
+        "item": "minecraft:clay_ball"
+      },
+      {
+        "item": "minecraft:clay_ball"
+      },
+      {
+        "item": "minecraft:clay_ball"
+      },
+      {
+        "item": "minecraft:bone_meal"
+      },
+      {
+        "item": "minecraft:blue_dye"
+      }
+    ],
+    "result": {
+      "item": "realmlord:porcelain_vase",
+      "count": 2
+    }
+  }
+}

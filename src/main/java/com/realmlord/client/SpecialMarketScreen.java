@@ -22,16 +22,19 @@ import java.util.List;
  */
 public class SpecialMarketScreen extends Screen {
     private static final int W = 330, H = 232, ROWS = 9;
-    private boolean buying;
+    /** 0 the Armoury, 1 Manuals, 2 sell from the pack. */
+    private int page;
     private int scroll;
     /** Pictures of the wares at their grades (what is sold is made fresh, with its own bonuses). */
     private final List<ItemStack> shown = new ArrayList<>();
+    private final List<ItemStack> books = new ArrayList<>();
 
     public SpecialMarketScreen(boolean buying) {
         super(Component.translatable("realmlord.market.special.title"));
-        this.buying = buying;
+        this.page = buying ? 0 : 2;
         RandomSource r = RandomSource.create(7);
         for (Market.Ware w : Market.WARES) shown.add(w.stack(r));
+        for (Market.Book b : Market.books()) books.add(b.stack().get());
     }
 
     private int left() {
@@ -61,25 +64,24 @@ public class SpecialMarketScreen extends Screen {
         if (Ui.fit(this, W, H)) return;
         clearWidgets();
         int x = left(), y = top();
-        Button buy = Button.builder(Component.translatable("realmlord.market.special.buy_tab"), b -> {
-            buying = true;
-            scroll = 0;
-            init();
-        }).bounds(x + 10, y + 22, 100, 16).build();
-        buy.active = !buying;
-        addRenderableWidget(buy);
-        Button sell = Button.builder(Component.translatable("realmlord.market.special.sell_tab"), b -> {
-            buying = false;
-            scroll = 0;
-            init();
-        }).bounds(x + 114, y + 22, 100, 16).build();
-        sell.active = buying;
-        addRenderableWidget(sell);
-        if (buying) {
-            scroll = Math.max(0, Math.min(scroll, Market.WARES.size() - ROWS));
-            for (int i = 0; i < ROWS && i + scroll < Market.WARES.size(); i++) {
+        String[] tabs = {"realmlord.market.special.buy_tab", "realmlord.market.special.books_tab", "realmlord.market.special.sell_tab"};
+        for (int t = 0; t < 3; t++) {
+            final int tp = t;
+            Button b = Button.builder(Component.translatable(tabs[t]), btn -> {
+                page = tp;
+                scroll = 0;
+                init();
+            }).bounds(x + 10 + t * 76, y + 22, 72, 16).build();
+            b.active = page != t;
+            addRenderableWidget(b);
+        }
+        if (page == 0 || page == 1) {
+            int n = page == 0 ? Market.WARES.size() : books.size();
+            ManorActionPacket.Action act = page == 0 ? ManorActionPacket.Action.BUY_WARE : ManorActionPacket.Action.BUY_BOOK;
+            scroll = Math.max(0, Math.min(scroll, n - ROWS));
+            for (int i = 0; i < ROWS && i + scroll < n; i++) {
                 int idx = i + scroll;
-                addRenderableWidget(Button.builder(Component.translatable("realmlord.market.buy"), b -> send(ManorActionPacket.Action.BUY_WARE, idx))
+                addRenderableWidget(Button.builder(Component.translatable("realmlord.market.buy"), b -> send(act, idx))
                         .bounds(x + W - 58, y + 46 + i * 18, 48, 16).build());
             }
         } else {
@@ -100,12 +102,12 @@ public class SpecialMarketScreen extends Screen {
 
     @Override
     public void tick() {
-        if (!buying && minecraft != null && minecraft.level != null && minecraft.level.getGameTime() % 10 == 0) init();
+        if (page == 2 && minecraft != null && minecraft.level != null && minecraft.level.getGameTime() % 10 == 0) init();
     }
 
     @Override
     public boolean mouseScrolled(double mx, double my, double delta) {
-        scroll = Math.max(0, scroll - (int) Math.signum(delta));
+        scroll = Math.max(0, scroll - (int) Math.signum(delta) * (page == 1 ? 3 : 1));
         init();
         return true;
     }
@@ -118,9 +120,20 @@ public class SpecialMarketScreen extends Screen {
         Ui.centered(g, font, title, x + W / 2, y + 8, Ui.GOLD);
         long purse = com.realmlord.network.ClientProfileData.purse;
         Component p = Component.translatable("realmlord.manor.purse", Ui.money(purse));
-        g.drawString(font, p, x + W - 12 - font.width(p), y + 26, Ui.MUTED, false);
+        g.drawString(font, p, x + W - 82 - font.width(p), y + H - 20, Ui.MUTED, false);
         ItemStack hovered = ItemStack.EMPTY;
-        if (buying) {
+        if (page == 1) {
+            for (int i = 0; i < ROWS && i + scroll < books.size(); i++) {
+                ItemStack st = books.get(i + scroll);
+                int ry = y + 46 + i * 18;
+                g.renderItem(st, x + 10, ry);
+                g.drawString(font, font.plainSubstrByWidth(st.getHoverName().getString(), 196), x + 30, ry + 4, Ui.INK, false);
+                g.drawString(font, Ui.money(Market.books().get(i + scroll).price()), x + 222, ry + 4, Ui.GOLD, false);
+                if (mx >= x + 10 && mx < x + 220 && my >= ry && my < ry + 16) hovered = st;
+            }
+            g.drawString(font, Component.translatable("realmlord.manor.scroll", scroll + 1, Math.max(1, books.size() - ROWS + 1)), x + 12, y + H - 20, Ui.MUTED, false);
+        }
+        if (page == 0) {
             for (int i = 0; i < ROWS && i + scroll < Market.WARES.size(); i++) {
                 Market.Ware w = Market.WARES.get(i + scroll);
                 ItemStack st = shown.get(i + scroll);
@@ -134,7 +147,7 @@ public class SpecialMarketScreen extends Screen {
                 if (mx >= x + 10 && mx < x + 26 && my >= ry && my < ry + 16) hovered = st;
             }
             if (Market.WARES.size() > ROWS) g.drawString(font, Component.translatable("realmlord.manor.scroll", scroll + 1, Market.WARES.size() - ROWS + 1), x + 12, y + H - 20, Ui.MUTED, false);
-        } else if (minecraft != null && minecraft.player != null) {
+        } else if (page == 2 && minecraft != null && minecraft.player != null) {
             List<Integer> slots = sellable();
             if (slots.isEmpty()) Ui.wrap(g, font, Component.translatable("realmlord.market.special.nothing"), x + 12, y + 50, W - 24, Ui.MUTED);
             var inv = minecraft.player.getInventory();

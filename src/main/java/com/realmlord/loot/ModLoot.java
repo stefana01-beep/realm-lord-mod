@@ -28,6 +28,7 @@ public final class ModLoot {
 
     public static final RegistryObject<LootItemFunctionType> GRADED = FUNCTIONS.register("graded", () -> new LootItemFunctionType(new Graded.Serializer()));
     public static final RegistryObject<LootItemFunctionType> BLUEPRINT = FUNCTIONS.register("blueprint", () -> new LootItemFunctionType(new Blueprint.Serializer()));
+    public static final RegistryObject<LootItemFunctionType> MANUAL = FUNCTIONS.register("manual", () -> new LootItemFunctionType(new Manual.Serializer()));
     public static final RegistryObject<LootItemFunctionType> SUMMONING = FUNCTIONS.register("summoning", () -> new LootItemFunctionType(new Summoning.Serializer()));
 
     /** Grade weights for "random": Bronze 50, Black Iron 30, Silver 15, Gold 5. */
@@ -98,6 +99,43 @@ public final class ModLoot {
             @Override
             public Blueprint deserialize(JsonObject json, JsonDeserializationContext ctx, LootItemCondition[] conds) {
                 return new Blueprint(conds, GsonHelper.getAsInt(json, "max_grade", 1));
+            }
+        }
+    }
+
+    /** A technical manual (max: the highest trade rank) or a secret manual (max: the highest grade, 0 Bronze .. 7 Saint). */
+    public static class Manual extends LootItemConditionalFunction {
+        final String kind;
+        final int max;
+
+        Manual(LootItemCondition[] conds, String kind, int max) {
+            super(conds);
+            this.kind = kind;
+            this.max = max;
+        }
+
+        @Override
+        protected ItemStack run(ItemStack stack, LootContext ctx) {
+            if (kind.equals("tech")) return com.realmlord.work.TechManuals.random(ctx.getRandom(), Math.min(3, max));
+            return com.realmlord.martial.Arts.random(ctx.getRandom(), com.realmlord.martial.ArtGrade.values()[Math.max(0, Math.min(7, max))]);
+        }
+
+        @Override
+        public LootItemFunctionType getType() {
+            return MANUAL.get();
+        }
+
+        public static class Serializer extends LootItemConditionalFunction.Serializer<Manual> {
+            @Override
+            public void serialize(JsonObject json, Manual f, JsonSerializationContext ctx) {
+                super.serialize(json, f, ctx);
+                json.addProperty("kind", f.kind);
+                json.addProperty("max", f.max);
+            }
+
+            @Override
+            public Manual deserialize(JsonObject json, JsonDeserializationContext ctx, LootItemCondition[] conds) {
+                return new Manual(conds, GsonHelper.getAsString(json, "kind", "secret"), GsonHelper.getAsInt(json, "max", 0));
             }
         }
     }

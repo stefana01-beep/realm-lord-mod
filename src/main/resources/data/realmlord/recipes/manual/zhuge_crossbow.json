@@ -1,0 +1,32 @@
+{
+  "type": "realmlord:manual",
+  "manual": "song_bow_crossbow",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "BIB",
+      "WRW",
+      " B "
+    ],
+    "key": {
+      "B": {
+        "item": "minecraft:bamboo"
+      },
+      "I": {
+        "item": "minecraft:iron_ingot"
+      },
+      "W": {
+        "item": "realmlord:beast_sinew"
+      },
+      "R": {
+        "item": "minecraft:repeater"
+      }
+    },
+    "result": {
+      "item": "minecraft:crossbow",
+      "count": 1,
+      "nbt": "{Enchantments:[{id:\"minecraft:quick_charge\",lvl:2s},{id:\"minecraft:multishot\",lvl:1s}],display:{Name:'{\"translate\":\"item.realmlord.zhuge_crossbow\",\"italic\":false}'}}"
+    }
+  }
+}

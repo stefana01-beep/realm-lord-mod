@@ -24,6 +24,7 @@ public final class Profiles {
     private static final UUID REACH_ID = UUID.fromString("6f1b6c1e-3a6d-4a8e-9b1e-1f6a2b7d0a03");
     private static final UUID SWIM_ID = UUID.fromString("6f1b6c1e-3a6d-4a8e-9b1e-1f6a2b7d0a04");
     private static final UUID LUCK_ID = UUID.fromString("6f1b6c1e-3a6d-4a8e-9b1e-1f6a2b7d0a05");
+    private static final UUID SPEED_ID = UUID.fromString("6f1b6c1e-3a6d-4a8e-9b1e-1f6a2b7d0a06");
 
     /** Comprehension speeds all learning: +1% per point above 5. */
     public static double comprehensionBonus(Profile prof) {
@@ -116,7 +117,8 @@ public final class Profiles {
         set(p, Attributes.ATTACK_DAMAGE, DAMAGE_ID, "Realm Lord damage", damage, AttributeModifier.Operation.ADDITION);
         set(p, Attributes.LUCK, LUCK_ID, "Realm Lord luck", luck, AttributeModifier.Operation.ADDITION);
         int tier = prof.getWork() == null ? -1 : WorkOccupation.tier(prof.getWorkLevel());
-        double reach = prof.getWork() == WorkOccupation.ARCHITECT ? 0.5 * (tier + 1) : 0.0;
+        double reach = (prof.getWork() == WorkOccupation.ARCHITECT ? 0.5 * (tier + 1) : 0.0) + (prof.knowsTech("kaogong_ji") ? 2.0 : 0.0);
+        set(p, Attributes.MOVEMENT_SPEED, SPEED_ID, "Realm Lord lightness skill", com.realmlord.martial.MartialEvents.speedBonus(prof), AttributeModifier.Operation.MULTIPLY_BASE);
         double swim = prof.getWork() == WorkOccupation.SHIPBUILDER ? 0.1 * (tier + 1) : 0.0;
         set(p, ForgeMod.BLOCK_REACH.get(), REACH_ID, "Realm Lord reach", reach, AttributeModifier.Operation.ADDITION);
         set(p, ForgeMod.SWIM_SPEED.get(), SWIM_ID, "Realm Lord swimming", swim, AttributeModifier.Operation.MULTIPLY_BASE);

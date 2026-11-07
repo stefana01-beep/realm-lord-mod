@@ -1,0 +1,25 @@
+{
+  "type": "realmlord:manual",
+  "manual": "brigandine",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "LNL",
+      "N N",
+      "L L"
+    ],
+    "key": {
+      "L": {
+        "item": "realmlord:linen"
+      },
+      "N": {
+        "item": "minecraft:iron_nugget"
+      }
+    },
+    "result": {
+      "item": "realmlord:brigandine_trousers",
+      "count": 1
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "type": "realmlord:manual",
+  "manual": "luopan",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:compass"
+      },
+      {
+        "item": "minecraft:gold_nugget"
+      },
+      {
+        "tag": "minecraft:planks"
+      }
+    ],
+    "result": {
+      "item": "realmlord:luopan",
+      "count": 1
+    }
+  }
+}

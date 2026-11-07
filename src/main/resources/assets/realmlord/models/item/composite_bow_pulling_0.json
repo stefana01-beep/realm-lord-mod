@@ -1,0 +1,6 @@
+{
+  "parent": "realmlord:item/composite_bow",
+  "textures": {
+    "layer0": "realmlord:item/composite_bow_pulling_0"
+  }
+}

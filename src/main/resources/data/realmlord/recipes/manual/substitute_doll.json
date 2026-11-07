@@ -1,0 +1,26 @@
+{
+  "type": "realmlord:manual",
+  "manual": "substitute_doll",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "tag": "minecraft:logs"
+      },
+      {
+        "item": "minecraft:gold_ingot"
+      },
+      {
+        "item": "realmlord:beast_core"
+      },
+      {
+        "item": "realmlord:linen"
+      }
+    ],
+    "result": {
+      "item": "realmlord:substitute_doll",
+      "count": 1
+    }
+  }
+}

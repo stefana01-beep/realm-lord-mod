@@ -541,6 +541,255 @@ A building's window now lists everything it can do in rows of three. Choices tha
 
 Items a workshop makes are graded by the master as before. A piece that has a grade of its own (lamellar Black Iron, mountain-pattern Silver, tiger Gold) comes out at that grade: a Junior master sometimes falls one short, an Advanced one sometimes rises one above.
 
+### Technical manuals for every trade
+As in the novel, "<Mingguang Armor Manufacturing Technology Manual>: After use, gain knowledge of crafting the mingguang armor." A technical manual teaches you to make things at an ordinary crafting table. Until you have learned it, its recipes do nothing.
+
+- **Who can learn them:** anyone can learn a Junior manual that only teaches recipes (any player can craft with the right knowledge). Every other manual needs its trade at the manual's rank or higher (Intermediate, Advanced, Master).
+- **Techniques:** some manuals teach a technique rather than recipes, and it simply works for you once learned.
+- **Your trade's bonus:** when you make something from a manual of your own trade, you gain work experience, and now and then you make one extra. At Advanced rank and above, your trade's arms and armour sometimes come out a grade higher.
+- **Where to get them:** the market's new **Manuals** page sells every manual (Junior 50 silver, Intermediate 3 gold, Advanced 10 gold, Master 30 gold). Bandit chiefs carry them, and ruins hold them.
+- **Your manuals:** the character panel (J) has a new **Arts & Manuals** tab listing the manuals you know.
+
+There are 82 manuals, five to seven for each trade; ★ marks one taken from the novel.
+
+**Blacksmith**
+
+| Manual | Rank | What it teaches |
+|---|---|---|
+| Ironware Casting Manual | Junior | Casting chain, iron bars and cauldrons with less iron. |
+| Horse Barding Manual | Intermediate | Iron, gold and diamond barding for war horses. |
+| Perfusing Steel Technique ★ | Intermediate | The Northern and Southern dynasties' steelmaking: molten pig iron poured over wrought iron. Refined steel without tiger bone, and black iron straight from raw iron. |
+| Tang Sword Forging Manual ★ | Intermediate | The Tang hengdao, straight and single-edged, and the great mo dao that cut down horse and rider. |
+| Song Dynasty Buren Armor Making Manual ★ | Intermediate | The Song infantry's heavy armour of nearly two thousand scales: hard to knock down. |
+| Mingguang Armor Manufacturing Technology Manual ★ | Advanced | The bright-light armour of the Tang cavalry, two polished mirrors on the breast. |
+| Hundred-Refined Steel Manual | Master | Forge a steel blade again, folding in three more bars of refined steel and gold: it comes out Gold grade without a beast core. |
+
+**Tailor**
+
+| Manual | Rank | What it teaches |
+|---|---|---|
+| Tanning Manual | Junior | Curing pelts into good leather. |
+| Saddlery and Felting Manual | Junior | Saddles and name tags. |
+| Silk Reeling and Dyeing Manual ★ | Intermediate | Reeling silk from cocoons, and dyeing the top-quality rainbow silk cloth. |
+| Cloth-Faced Armour Manual | Intermediate | The Ming brigandine: plates riveted inside a padded linen coat, the brass studs showing. |
+| Night Clothes Pattern | Advanced | The night-walker's black hood and suit. Crouching in the dark, unseen beyond a few paces. |
+| Imperial Embroidery Manual | Master | The yellow dragon robe. Whoever wears it is received like a hero. |
+
+**Physician**
+
+| Manual | Rank | What it teaches |
+|---|---|---|
+| Basic Herbal Formulary | Junior | Gathering herbs from wild flowers, and a detox draught against poison. |
+| Clear Heart Pill Formula | Junior | A pill that clears the head and limbs of every sluggishness. |
+| Yellow Emperor's Acupuncture Canon | Intermediate | Needles that heal another (or yourself) and clear what ails them. |
+| Rhino Horn Poison Curing Pill Formula ★ | Intermediate | Bianque's antidote: cures poison and wither, and wards them off for two minutes. |
+| Peiyuan Pill Formula ★ | Advanced | Solidifies the primordial Qi: effective for the badly injured. |
+| Bianque's Medical Classic | Master | The special pills without a beast core. |
+
+**Architect**
+
+| Manual | Rank | What it teaches |
+|---|---|---|
+| Rammed Earth Manual | Junior | Packed earth walls from dirt, gravel and clay. |
+| Lime Mortar Manual | Junior | Stone bricks laid in lime mortar, no kiln needed. |
+| Glass Making Technical Manual ★ | Intermediate | Glass from sand and coal, and more panes from each pane of glass. |
+| Glazed Tile Manual | Intermediate | Imperial yellow and jade-green glazed tiles, and slate roof tiles. |
+| Luopan Geomancy Manual | Intermediate | The geomancer's compass: reads the land wherever you stand. |
+| Yingzao Fashi | Advanced | The Song court's building standards: one block in five you place is not used up. |
+| Kaogong Ji | Master | The Records of Trades of the Rites of Zhou: two more blocks of reach. |
+
+**Breeder**
+
+| Manual | Rank | What it teaches |
+|---|---|---|
+| Qimin Yaoshu: Fodder | Junior | Fodder that readies any farm animal to breed, or grows a young one. |
+| Sericulture Manual | Junior | Raising silkworms on leaves for their cocoons. |
+| Bole's Classic of Horses | Intermediate | Horse feed: heals, quickens and gentles a horse. |
+| Panda Rearing Technical Manual ★ | Advanced | Bamboo feed that makes pandas breed and cubs grow. |
+| Wild Beast Taming Technique ★ | Advanced | The wild era's taming art: wolves, cats, parrots and horses take to you at the first try. |
+| Iron Armored Beast Domestication Manual ★ | Master | Animals you tame come out tougher: +20 health and +6 armour. |
+
+**Fisherman**
+
+| Manual | Rank | What it teaches |
+|---|---|---|
+| Net Weaving Manual | Junior | A casting net: throw it on water for fish. |
+| Salt from Sea Water ★ | Junior | Boiling sea water down for salt. |
+| Salted Fish Manual | Junior | Salted, dried fish that keeps and fills. |
+| Star Guiding Technique ★ | Intermediate | Zheng He's navigation by the stars: see in the dark on the water, and swim like a dolphin. |
+| Pearl Diving Manual | Intermediate | Hold your breath far longer under water. |
+| Cormorant Fishing Manual | Advanced | Trained cormorants bring in a third more fish. |
+| Mazu's Sea Charts | Master | The sea goddess's favour: one catch in ten brings a treasure up with it. |
+
+**Farmer**
+
+| Manual | Rank | What it teaches |
+|---|---|---|
+| Compost Manual | Junior | Turning scraps and leaves into fertiliser. |
+| Underground Mushroom Growing Technical Manual ★ | Junior | Mushroom beds in the dark. |
+| Tea Cultivation Manual | Intermediate | Plucking and drying tea leaves. |
+| Seed Selection Manual | Intermediate | Crops you harvest replant themselves. |
+| Spring Weathering Talisman ★ | Advanced | A talisman that brings spring to the fields around it at once. |
+| Fan Shengzhi Shu | Master | The Han agricultural classic: crops around you grow faster. |
+
+**Veterinarian**
+
+| Manual | Rank | What it teaches |
+|---|---|---|
+| Animal Salve Formula | Junior | A salve that heals an animal fully. |
+| Yuan Heng's Horse Remedies | Intermediate | A tonic that makes a horse fast and sure-footed for five minutes. |
+| Beast Whistle Manual | Intermediate | A tusk whistle that calls all your animals to you. |
+| Guardian Charm Manual | Advanced | Carried, it saves one of your animals from death once. |
+| Hundred Beasts Classic | Master | Your tamed animals strike a third harder and heal as they fight. |
+
+**Winemaker**
+
+| Manual | Rank | What it teaches |
+|---|---|---|
+| Three Flower Wine Recipe ★ | Junior | Lianzhou's famous Three Flower Wine. |
+| Sauce Brewing Manual | Junior | Soy sauce for the cook. |
+| Medicinal Wine Recipe | Junior | Herbs steeped in wine: heals and steadies. |
+| Tiger Bone Wine Recipe | Intermediate | A tiger bone steeped in wine. |
+| Dukang Wine Recipe ★ | Intermediate | The wine of Du Kang, father of wine. |
+| Maotai Distilling Manual ★ | Advanced | The fiery spirit of Maotai. |
+| Drunken Immortal's Brew | Master | Li Bai's own: luck and strength for ten minutes. |
+
+**Cook**
+
+| Manual | Rank | What it teaches |
+|---|---|---|
+| Dumpling Recipe | Junior | Pork dumplings, four at a time. |
+| Rice Noodle Recipe ★ | Junior | A bowl of beef noodle soup. |
+| Tea Classic ★ | Junior | Lu Yu's art of tea: green tea that sharpens the hands. |
+| Mooncake Recipe | Intermediate | Mooncakes for the mid-autumn moon. |
+| Military Grain Pill Recipe ★ | Intermediate | One small pill sustains a soldier for a day. |
+| Roast Duck Recipe | Advanced | Lacquered, glazed and roasted. |
+| Manchu Han Imperial Feast | Master | The imperial banquet: one dish of it fills you and lends every strength. |
+
+**Carpenter**
+
+| Manual | Rank | What it teaches |
+|---|---|---|
+| Lu Ban's Joinery | Junior | Two logs make twelve planks. |
+| Movable Type Printing | Junior | Bi Sheng's press: paper and books in quantity. |
+| Song Dynasty Bow and Crossbow Making Manual ★ | Intermediate | The composite bow of birch, sinew and fish glue, and Zhuge Liang's repeating crossbow. |
+| South-Pointing Chariot Technical Manual ★ | Advanced | The geared carriage whose figure always points south, and here also home. |
+| Wooden Ox and Flowing Horse | Master | Zhuge Liang's pack carrier: a saddled, laden mule that follows you. |
+| Substitute Doll Carving ★ | Master | A wooden doll that dies in your place, once. |
+
+**Mason**
+
+| Manual | Rank | What it teaches |
+|---|---|---|
+| Stone Dressing Manual | Junior | Cobblestone dressed into bricks; cracked and carved bricks. |
+| Coal Mining Technical Manual ★ | Junior | Coal, iron, copper and gold ore you mine now and then yield more. |
+| Gunpowder Making Technical Manual ★ | Intermediate | Charcoal, saltpetre (bone meal) and flint. |
+| Jingdezhen Porcelain Manual | Intermediate | Blue-and-white porcelain vases: the market pays well. |
+| Jade Carving Manual | Advanced | A jade pendant: held in the off hand, it brings luck and health. |
+| Great Wall Masonry | Master | Deepslate bricks by the eight, and stone breaks half again as fast in your hands. |
+
+**Shipbuilder**
+
+| Manual | Rank | What it teaches |
+|---|---|---|
+| Pine Tar Caulking Manual | Junior | Pine tar for hulls, and tar torches. |
+| Boat Joinery Manual | Junior | Tarred boats from three planks. |
+| Rope and Rigging Manual | Junior | Rope from kelp, and leads. |
+| Lifebuoy Manual | Intermediate | Held in the off hand in water: breathe and swim fast. |
+| Ming Dynasty Shipbuilding Technical Manual ★ | Advanced | Harbour lights and the diving bell for hull work. |
+| Meng Chong Warship Manufacturing Manual ★ | Master | Master of naval war: in water you have Conduit Power. |
+
+**New things to make:**
+- **Armour:**
+  - **Mingguang** (Gold): polished steel with two mirrors on the breast, a red plume.
+  - **Song Buren** (Silver): dense dark scales, very hard to knock back.
+  - **Brigandine** (Black Iron): red linen with brass studs.
+  - **Night Clothes:** crouching in the dark, monsters lose sight of you beyond four blocks.
+  - **Dragon Robe** (Gold): you are received as a Hero of the Village.
+- **Weapons:**
+  - **Tang Hengdao** (Silver).
+  - **Mo Dao** (Silver).
+  - **Composite Bow** (Black Iron, harder arrows).
+  - **Zhuge Repeating Crossbow:** Quick Charge II and Multishot.
+- **Medicine:**
+  - **Detox Draught**, **Clear Heart Pill** and **Rhino Horn Poison Curing Pill** (two minutes of immunity to poison).
+  - **Peiyuan Pill:** full heal.
+  - **Acupuncture Needles:** heal someone else or, crouching, yourself.
+- **Animal care:**
+  - **Fodder** and **Bamboo Feed:** ready to breed, or the young grow.
+  - **Horse Feed** and **Horse Tonic.**
+  - **Animal Salve.**
+  - **Beast Whistle:** calls your animals to you.
+  - **Guardian Charm:** saves an animal once.
+- **Tools and charms:**
+  - **Luopan:** reads the land.
+  - **South-Pointing Chariot:** points home.
+  - **Fishing Net.**
+  - **Spring Weathering Talisman:** the crops around grow at once.
+  - **Wooden Ox:** a saddled pack mule.
+  - **Substitute Doll:** dies in your place once.
+  - **Lifebuoy.**
+  - **Diving Bell.**
+  - **Jade Pendant:** +2 Luck and +2 health in the off hand.
+- **Food and wine:**
+  - Dumplings, beef noodle soup, green tea, mooncakes and roast duck.
+  - **Military Grain Pill:** a day's food in one pill.
+  - **Manchu Han Imperial Feast:** fills you and gives every strength.
+  - Three Flower Wine, Dukang, Maotai, medicinal wine, tiger bone wine and the Drunken Immortal Brew.
+- **Goods the market buys:** rainbow silk, porcelain vases and jade.
+- **Materials:** silk cocoons, tea leaves, soy sauce and pine tar.
+
+### Martial arts secret manuals
+Secret manuals for players, as in the novel.
+
+**Grades and prices:**
+
+| Grade | How you get it |
+|---|---|
+| Bronze | market, 50 silver |
+| Black Iron | market, 2 gold |
+| Silver | market, 10 gold |
+| Gold | market, 50 gold |
+| King | never sold: bandit chiefs, beast kings, ruins |
+| Emperor | never sold: bandit chiefs, beast kings, ruins |
+| God | never sold: bandit chiefs, beast kings, ruins |
+| Saint | never sold: only in the rarest ruins |
+
+**Learning and training:**
+- **Learning:** right-click a manual to learn it. King rank needs Comprehension 10, Emperor 14, God 18 and Saint 22; the enlightenment pill helps.
+- **Weapon arts:** train by fighting with their weapons.
+- **Cultivation methods:** train by meditating (crouch and keep still), and a little each minute.
+- **Lightness skills:** train by running.
+- **Training speed:** Comprehension sets how fast you learn.
+- **What each level gives:** its attributes (cultivation methods raise innate attributes, as in the novel), and weapon arts add damage with their weapons. The great arts unlock a special move.
+- **Your arts:** the **Arts & Manuals** tab shows your arts, their levels, training progress and what they add.
+
+| Art | Grade | Kind | Levels | Each level | Special move |
+|---|---|---|---|---|---|
+| Basic Breathing Method | Bronze | cultivation | 5 | Body +1 |  |
+| Grass Floating Flight | Bronze | lightness | 4 | +2.0% speed | from level 1: Light Body: falls hurt less. |
+| Basic Fist Technique | Bronze | fist | 5 | +4% damage |  |
+| Basic Sabre Technique | Bronze | sword/sabre | 5 | +4% damage |  |
+| Basic Spear Technique | Bronze | spear | 5 | +4% damage |  |
+| Basic Archery | Bronze | bow | 5 | +4% damage |  |
+| Five Animals Play | Black Iron | cultivation | 6 | Body +1, Force +1 |  |
+| Taoist Daoyin Exercises | Black Iron | cultivation | 6 | Comprehension +1, Intelligence +1 |  |
+| Taizu Long Fist | Black Iron | fist | 7 | Force +1, +5% damage |  |
+| Ladder Cloud Step | Silver | lightness | 6 | +2.5% speed | from level 1: Light Body: falls hurt far less. |
+| Six Harmonies Spear | Silver | spear | 9 | Force +1, +5% damage |  |
+| Yuenu Sword Technique | Silver | sword/sabre | 9 | Force +1, +5% damage | from level 5: Flurry: one cut in seven strikes twice. |
+| Muscle-Tendon Changing Classic | Silver | cultivation | 9 | Body +1, Force +2 |  |
+| Hundred Pace Archery | Gold | bow | 9 | Force +1, +6% damage | from level 5: Hundred Paces: every arrow flies true and strikes as a critical hit. |
+| Bajiquan | King | fist / spear | 9 | Force +2, +6% damage | from level 5: Cling to the Mountain: one blow in seven lands half again as hard and hurls the foe back. |
+| War Soldier Code | King | cultivation | 9 | Body +1, Comprehension +1, Force +2 | from level 9: Fighting Intent: when badly hurt, killing intent rises: Strength II and Resistance for a minute (once every five). |
+| Guicang Sword Technique | Emperor | sword/sabre | 12 | Force +1, Intelligence +1, +6% damage | from level 6: Return to the Hidden: one blow in seven against you is turned aside. |
+| Killing Sword Sword Manual | Emperor | sword/sabre | 7 | Force +3, +10% damage | from level 3: Seven Kills: each kill feeds your strength for ten seconds. |
+| Yang Family Spear Technique | Emperor | spear | 12 | Force +2, +6% damage | from level 6: Throat Killing Spear: one thrust in eight strikes double and leaves the foe weak and slow. |
+| Yellow Emperor Internal Cultivation Technique | Emperor | cultivation | 12 | Body +2, Comprehension +1, Command +1, Force +1, Intelligence +1, Politics +1 | from level 6: Golden Qi Shield: when struck, a shield of Qi absorbs the next blows (every half minute). |
+| Yellow Court Internal Scripture: Qi Cultivation (needs Yellow Emperor Internal Cultivation Technique at 12) | God | cultivation | 9 | Body +4, Comprehension +6, Luck +4, Charm +2 | from level 3: Nourishing Qi: wounds close by themselves. |
+| Son of Heaven Dragon Fist | God | fist | 9 | Command +1, Force +2, +8% damage | from level 5: Dragon Strike: one punch in ten bursts outward, striking every foe around. |
+| Wugou Heart Sutra | Saint | cultivation | 18 | Body +4, Comprehension +2, Luck +2, Charm +2, Command +2, Force +2, Intelligence +2, Politics +2 |  |
+
 ### Beasts' skins
 The beasts are repainted pixel by pixel with fur rather than flat recolours. Each skin is shaded through a palette of shadow, base, highlight and pale belly, with grain, streaks running with the hair, and grizzled guard hairs on boars, wolves and the black bear.
 - **Tigers** have wandering, tapering black stripes instead of even bands.

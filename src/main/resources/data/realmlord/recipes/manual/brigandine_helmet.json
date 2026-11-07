@@ -1,0 +1,27 @@
+{
+  "type": "realmlord:manual",
+  "manual": "brigandine",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "LNL",
+      "E E"
+    ],
+    "key": {
+      "L": {
+        "item": "realmlord:linen"
+      },
+      "N": {
+        "item": "minecraft:iron_nugget"
+      },
+      "E": {
+        "item": "minecraft:leather"
+      }
+    },
+    "result": {
+      "item": "realmlord:brigandine_helmet",
+      "count": 1
+    }
+  }
+}

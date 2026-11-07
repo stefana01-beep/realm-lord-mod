@@ -1,0 +1,23 @@
+{
+  "type": "realmlord:manual",
+  "manual": "mushroom_growing",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:brown_mushroom"
+      },
+      {
+        "item": "minecraft:bone_meal"
+      },
+      {
+        "item": "minecraft:dirt"
+      }
+    ],
+    "result": {
+      "item": "minecraft:brown_mushroom",
+      "count": 4
+    }
+  }
+}

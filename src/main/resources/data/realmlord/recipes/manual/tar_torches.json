@@ -1,0 +1,23 @@
+{
+  "type": "realmlord:manual",
+  "manual": "pine_tar",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "realmlord:pine_tar"
+      },
+      {
+        "item": "minecraft:stick"
+      },
+      {
+        "item": "minecraft:stick"
+      }
+    ],
+    "result": {
+      "item": "minecraft:torch",
+      "count": 8
+    }
+  }
+}

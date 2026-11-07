@@ -1,0 +1,29 @@
+{
+  "type": "realmlord:manual",
+  "manual": "rice_noodles",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:bowl"
+      },
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "item": "minecraft:cooked_beef"
+      },
+      {
+        "item": "realmlord:soy_sauce"
+      }
+    ],
+    "result": {
+      "item": "realmlord:noodle_soup",
+      "count": 1
+    }
+  }
+}

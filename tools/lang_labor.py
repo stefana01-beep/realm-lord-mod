@@ -196,6 +196,8 @@ def add(L):
     L.update(ROUND_TOWN)
     import gen_arms
     L.update(gen_arms.LANG)
+    import gen_crafts
+    L.update(gen_crafts.LANG)
 
 
 ROUND_PATHS = {

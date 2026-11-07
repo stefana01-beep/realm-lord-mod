@@ -1,0 +1,32 @@
+{
+  "type": "realmlord:manual",
+  "manual": "dukang_wine",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:glass_bottle"
+      },
+      {
+        "item": "minecraft:glass_bottle"
+      },
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "item": "minecraft:honey_bottle"
+      }
+    ],
+    "result": {
+      "item": "realmlord:dukang_wine",
+      "count": 2
+    }
+  }
+}

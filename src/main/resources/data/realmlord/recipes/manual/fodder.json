@@ -1,0 +1,26 @@
+{
+  "type": "realmlord:manual",
+  "manual": "qimin_fodder",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "item": "minecraft:carrot"
+      },
+      {
+        "item": "minecraft:wheat_seeds"
+      }
+    ],
+    "result": {
+      "item": "realmlord:fodder",
+      "count": 4
+    }
+  }
+}

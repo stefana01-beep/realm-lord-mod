@@ -1,0 +1,25 @@
+{
+  "type": "realmlord:manual",
+  "manual": "lifebuoy",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      " W ",
+      "WRW",
+      " W "
+    ],
+    "key": {
+      "W": {
+        "item": "minecraft:white_wool"
+      },
+      "R": {
+        "item": "minecraft:red_dye"
+      }
+    },
+    "result": {
+      "item": "realmlord:lifebuoy",
+      "count": 1
+    }
+  }
+}

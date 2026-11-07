@@ -24,13 +24,14 @@ import java.util.List;
 
 /** The character panel (J): Character, Village Creation quest and Territory tabs. */
 public class CharacterScreen extends Screen {
-    public static final int TAB_CHARACTER = 0, TAB_QUEST = 1, TAB_TERRITORY = 2;
+    public static final int TAB_CHARACTER = 0, TAB_QUEST = 1, TAB_TERRITORY = 2, TAB_ARTS = 3;
     private static final int W = 340, H = 254;
 
     private int tab;
     private final List<Button> plus = new ArrayList<>();
     private Button submit, claim, abandon, keepCamp, salvageCamp, travel;
     private boolean confirmAbandon;
+    private int artScroll;
 
     public CharacterScreen(int tab) {
         super(Component.translatable("realmlord.panel.title"));
@@ -51,14 +52,14 @@ public class CharacterScreen extends Screen {
         clearWidgets();
         plus.clear();
         int x = left(), y = top();
-        String[] tabs = {"realmlord.panel.tab.character", "realmlord.panel.tab.quest", "realmlord.panel.tab.territory"};
+        String[] tabs = {"realmlord.panel.tab.character", "realmlord.panel.tab.quest", "realmlord.panel.tab.territory", "realmlord.panel.tab.arts"};
         for (int i = 0; i < tabs.length; i++) {
             final int idx = i;
             Button b = Button.builder(Component.translatable(tabs[i]), btn -> {
                 tab = idx;
                 confirmAbandon = false;
                 init();
-            }).bounds(x + 8 + i * 84, y + 20, 80, 16).build();
+            }).bounds(x + 6 + i * 82, y + 20, 80, 16).build();
             b.active = tab != i;
             addRenderableWidget(b);
         }
@@ -130,6 +131,7 @@ public class CharacterScreen extends Screen {
         switch (tab) {
             case TAB_CHARACTER -> renderCharacter(g, x, y, mx, my);
             case TAB_QUEST -> renderQuest(g, x, y);
+            case TAB_ARTS -> renderArts(g, x, y, mx, my);
             default -> renderTerritory(g, x, y);
         }
         super.render(g, mx, my, pt);
@@ -307,6 +309,73 @@ public class CharacterScreen extends Screen {
     }
 
     // ------------------------------------------------------------------ territory tab
+
+    // ------------------------------------------------------------------ arts and manuals tab
+
+    @Override
+    public boolean mouseScrolled(double mx, double my, double delta) {
+        if (tab == TAB_ARTS) {
+            artScroll = Math.max(0, artScroll - (int) Math.signum(delta));
+            return true;
+        }
+        return super.mouseScrolled(mx, my, delta);
+    }
+
+    private void renderArts(GuiGraphics g, int x, int y, int mx, int my) {
+        g.drawString(font, Component.translatable("realmlord.panel.arts.title"), x + 12, y + 42, Ui.GOLD, false);
+        var arts = ClientProfileData.arts;
+        List<String> ids = new ArrayList<>(arts.getAllKeys());
+        int rows = 6;
+        artScroll = Math.max(0, Math.min(artScroll, Math.max(0, ids.size() - rows)));
+        if (ids.isEmpty()) Ui.wrap(g, font, Component.translatable("realmlord.panel.arts.none"), x + 12, y + 56, W - 24, Ui.MUTED);
+        Component hover = null;
+        for (int i = 0; i < rows && i + artScroll < ids.size(); i++) {
+            String id = ids.get(i + artScroll);
+            var a = com.realmlord.martial.Arts.byId(id);
+            if (a == null) continue;
+            var c = arts.getCompound(id);
+            int ry = y + 56 + i * 16;
+            int lv = c.getInt("lv");
+            g.drawString(font, font.plainSubstrByWidth(Component.translatable(a.key()).getString(), 170), x + 12, ry, a.grade().color | 0xFF000000, false);
+            String lvl = Component.translatable("realmlord.panel.arts.line", lv, a.maxLevel()).getString();
+            g.drawString(font, lvl, x + 190, ry, Ui.INK, false);
+            // Practice toward the next level.
+            int bx = x + 240, bw = 86;
+            g.fill(bx, ry + 2, bx + bw, ry + 7, 0xFF5A4A36);
+            if (lv >= a.maxLevel()) g.fill(bx, ry + 2, bx + bw, ry + 7, 0xFFC8A24A);
+            else if (c.getInt("need") > 0) g.fill(bx, ry + 2, bx + Math.min(bw, bw * c.getInt("p") / c.getInt("need")), ry + 7, 0xFF4AA07A);
+            if (mx >= x + 12 && mx < x + W - 12 && my >= ry - 2 && my < ry + 12)
+                hover = Component.translatable("realmlord.art.tooltip.per_level", com.realmlord.item.SecretManualItem.perLevel(a));
+        }
+        int[] b = ClientProfileData.artBonus;
+        if (b.length == 8 && !ids.isEmpty()) {
+            String[] names = {"body", "comprehension", "luck", "charm", "command", "force", "intelligence", "politics"};
+            net.minecraft.network.chat.MutableComponent sum = Component.empty();
+            boolean any = false;
+            for (int i = 0; i < 8; i++) {
+                if (b[i] <= 0) continue;
+                if (any) sum.append(", ");
+                sum.append(Component.translatable("realmlord.art.stat." + names[i], b[i]));
+                any = true;
+            }
+            if (any) Ui.wrap(g, font, Component.translatable("realmlord.panel.arts.bonus", sum), x + 12, y + 156, W - 24, Ui.JADE);
+        }
+        // Technical manuals known, by trade.
+        var known = com.realmlord.work.TechManuals.CLIENT_KNOWN;
+        g.drawString(font, Component.translatable("realmlord.panel.techs.title", known.size()), x + 12, y + 180, Ui.GOLD, false);
+        if (known.isEmpty()) Ui.wrap(g, font, Component.translatable("realmlord.panel.techs.none"), x + 12, y + 194, W - 24, Ui.MUTED);
+        else {
+            net.minecraft.network.chat.MutableComponent line = Component.empty();
+            int n = 0;
+            for (var t : com.realmlord.work.TechData.ALL) {
+                if (!known.contains(t.id())) continue;
+                if (n++ > 0) line.append(" · ");
+                line.append(Component.translatable(t.key()));
+            }
+            Ui.wrap(g, font, line, x + 12, y + 194, W - 24, Ui.INK);
+        }
+        if (hover != null) g.renderTooltip(font, hover, mx, my);
+    }
 
     private void renderTerritory(GuiGraphics g, int x, int y) {
         int lx = x + 12, ly = y + 44, w = W - 24;

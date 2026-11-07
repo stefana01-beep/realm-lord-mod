@@ -1,0 +1,32 @@
+{
+  "type": "realmlord:manual",
+  "manual": "panda_rearing",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:bamboo"
+      },
+      {
+        "item": "minecraft:bamboo"
+      },
+      {
+        "item": "minecraft:bamboo"
+      },
+      {
+        "item": "minecraft:bamboo"
+      },
+      {
+        "item": "minecraft:sugar_cane"
+      },
+      {
+        "item": "minecraft:apple"
+      }
+    ],
+    "result": {
+      "item": "realmlord:bamboo_feed",
+      "count": 2
+    }
+  }
+}

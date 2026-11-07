@@ -1,0 +1,20 @@
+{
+  "type": "realmlord:manual",
+  "manual": "lu_ban_joinery",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "tag": "minecraft:birch_logs"
+      },
+      {
+        "tag": "minecraft:birch_logs"
+      }
+    ],
+    "result": {
+      "item": "minecraft:birch_planks",
+      "count": 12
+    }
+  }
+}

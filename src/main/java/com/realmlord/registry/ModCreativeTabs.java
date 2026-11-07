@@ -56,6 +56,7 @@ public class ModCreativeTabs {
                         ModItems.TIGER_BONE, ModItems.LEOPARD_PELT, ModItems.WHITE_TIGER_PELT, ModItems.WOLF_KING_FANG, ModItems.OX_HORN,
                         ModItems.BEAR_PAW, ModItems.BRAISED_BEAR_PAW, ModItems.TIGER_BONE_WINE)) out.accept(it.get());
                 for (RegistryObject<Item> it : ModArms.materials()) out.accept(it.get());
+                for (RegistryObject<Item> it : ModCrafts.all()) out.accept(it.get());
             })
             .build());
 
@@ -75,9 +76,19 @@ public class ModCreativeTabs {
             })
             .build());
 
+    public static final RegistryObject<CreativeModeTab> MANUALS = TABS.register("manuals", () -> CreativeModeTab.builder()
+            .title(Component.translatable("itemGroup.realmlord.manuals"))
+            .withTabsBefore(ARMS.getKey())
+            .icon(() -> com.realmlord.martial.Arts.manual(com.realmlord.martial.ArtData.ALL.get(0)))
+            .displayItems((params, out) -> {
+                for (var a : com.realmlord.martial.ArtData.ALL) out.accept(com.realmlord.martial.Arts.manual(a));
+                for (var t : com.realmlord.work.TechData.ALL) out.accept(com.realmlord.work.TechManuals.manual(t));
+            })
+            .build());
+
     public static final RegistryObject<CreativeModeTab> CREATURES = TABS.register("creatures", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.realmlord.creatures"))
-            .withTabsBefore(ARMS.getKey())
+            .withTabsBefore(MANUALS.getKey())
             .icon(() -> new ItemStack(ModItems.WOLF_KING_SPAWN_EGG.get()))
             .displayItems((params, out) -> {
                 for (RegistryObject<Item> it : List.of(ModItems.WILD_BOAR_SPAWN_EGG, ModItems.BOAR_KING_SPAWN_EGG, ModItems.GREY_WOLF_SPAWN_EGG,

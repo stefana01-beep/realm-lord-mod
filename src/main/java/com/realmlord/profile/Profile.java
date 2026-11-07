@@ -41,6 +41,10 @@ public class Profile {
     private final long[] cooldowns = new long[Skill.values().length];
     private int territoryId = -1;
     private final VillageQuest quest = new VillageQuest();
+    /** Technical manuals learned: what this player knows how to make (and techniques that work for them). */
+    private final java.util.Set<String> techs = new java.util.LinkedHashSet<>();
+    /** Martial arts learned: id to {level, practice toward the next level}. */
+    private final java.util.Map<String, int[]> arts = new java.util.LinkedHashMap<>();
     private boolean dirty = true;
 
     // ------------------------------------------------------------------ role
@@ -82,6 +86,8 @@ public class Profile {
         java.util.Arrays.fill(base, 0);
         java.util.Arrays.fill(added, 0);
         java.util.Arrays.fill(innate, 0);
+        techs.clear();
+        arts.clear();
         merit = 0;
         reputation = 0;
         workLevel = 1;
@@ -139,11 +145,96 @@ public class Profile {
     // ------------------------------------------------------------------ attributes
 
     public int stat(Stat s) {
-        return Math.min(MAX_STAT, base[s.ordinal()] + added[s.ordinal()]);
+        return Math.min(MAX_STAT, base[s.ordinal()] + added[s.ordinal()] + artStat(s));
     }
 
+    /** An innate attribute, with what the martial arts add. */
     public int innate(Innate i) {
+        return Math.min(100, innate[i.ordinal()] + artInnate(i));
+    }
+
+    /** An innate attribute as rolled (and raised by pills), without the arts. */
+    public int innateBase(Innate i) {
         return innate[i.ordinal()];
+    }
+
+    // ------------------------------------------------------------------ manuals and martial arts
+
+    public boolean knowsTech(String id) {
+        return techs.contains(id);
+    }
+
+    public boolean learnTech(String id) {
+        boolean added = techs.add(id);
+        if (added) markDirty();
+        return added;
+    }
+
+    public java.util.Set<String> techs() {
+        return java.util.Collections.unmodifiableSet(techs);
+    }
+
+    public boolean knowsArt(String id) {
+        return arts.containsKey(id);
+    }
+
+    public boolean learnArt(String id) {
+        if (arts.containsKey(id)) return false;
+        arts.put(id, new int[]{1, 0});
+        markDirty();
+        return true;
+    }
+
+    /** The level of a martial art, or 0 if not learned. */
+    public int artLevel(String id) {
+        int[] a = arts.get(id);
+        return a == null ? 0 : a[0];
+    }
+
+    public int artPractice(String id) {
+        int[] a = arts.get(id);
+        return a == null ? 0 : a[1];
+    }
+
+    public java.util.Map<String, int[]> arts() {
+        return java.util.Collections.unmodifiableMap(arts);
+    }
+
+    /** Adds practice to an art; returns the levels gained. */
+    public int practise(String id, int amount) {
+        int[] a = arts.get(id);
+        com.realmlord.martial.ArtData.Art art = com.realmlord.martial.Arts.byId(id);
+        if (a == null || art == null || amount <= 0 || a[0] >= art.maxLevel()) return 0;
+        a[1] += amount;
+        int up = 0;
+        while (a[0] < art.maxLevel() && a[1] >= com.realmlord.martial.Arts.need(art, a[0])) {
+            a[1] -= com.realmlord.martial.Arts.need(art, a[0]);
+            a[0]++;
+            up++;
+        }
+        if (a[0] >= art.maxLevel()) a[1] = 0;
+        markDirty();
+        return up;
+    }
+
+    /** What the learned arts add to an acquired attribute. */
+    public int artStat(Stat s) {
+        int sum = 0;
+        for (var e : arts.entrySet()) {
+            com.realmlord.martial.ArtData.Art a = com.realmlord.martial.Arts.byId(e.getKey());
+            if (a != null && s.ordinal() < a.stats().length) sum += a.stats()[s.ordinal()] * e.getValue()[0];
+        }
+        return sum;
+    }
+
+    /** What the learned arts add to an innate attribute. */
+    public int artInnate(Innate i) {
+        int sum = 0;
+        for (var e : arts.entrySet()) {
+            com.realmlord.martial.ArtData.Art a = com.realmlord.martial.Arts.byId(e.getKey());
+            if (a != null && i.ordinal() < a.innate().length) sum += a.innate()[i.ordinal()] * e.getValue()[0];
+        }
+        return sum;
     }
 
     public void setInnate(Innate i, int v) {
@@ -388,6 +479,10 @@ public class Profile {
         t.putInt("territory", territoryId);
         t.put("quest", quest.save());
         t.putBoolean("placed", placed);
+        t.putString("techs", String.join(",", techs));
+        CompoundTag at = new CompoundTag();
+        for (var e : arts.entrySet()) at.putIntArray(e.getKey(), e.getValue());
+        t.put("arts", at);
         return t;
     }
 
@@ -416,6 +511,14 @@ public class Profile {
         quest.load(t.getCompound("quest"));
         // Players from before the starting-place choice are already where they want to be.
         placed = t.contains("placed") ? t.getBoolean("placed") : mode != PlayMode.NONE;
+        techs.clear();
+        for (String id : t.getString("techs").split(",")) if (!id.isBlank()) techs.add(id);
+        arts.clear();
+        CompoundTag at = t.getCompound("arts");
+        for (String k : at.getAllKeys()) {
+            int[] v = at.getIntArray(k);
+            if (v.length >= 2) arts.put(k, new int[]{Math.max(1, v[0]), v[1]});
+        }
         if (t.getInt("ver") < DATA_VERSION && mode != PlayMode.NONE) migrate();
         markDirty();
     }

@@ -1,0 +1,26 @@
+{
+  "type": "realmlord:manual",
+  "manual": "sericulture",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "tag": "minecraft:leaves"
+      },
+      {
+        "tag": "minecraft:leaves"
+      },
+      {
+        "tag": "minecraft:leaves"
+      },
+      {
+        "item": "minecraft:string"
+      }
+    ],
+    "result": {
+      "item": "realmlord:silk_cocoon",
+      "count": 2
+    }
+  }
+}

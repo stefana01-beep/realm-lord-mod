@@ -1,0 +1,29 @@
+{
+  "type": "realmlord:manual",
+  "manual": "glass_making",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:sand"
+      },
+      {
+        "item": "minecraft:sand"
+      },
+      {
+        "item": "minecraft:sand"
+      },
+      {
+        "item": "minecraft:sand"
+      },
+      {
+        "item": "minecraft:coal"
+      }
+    ],
+    "result": {
+      "item": "minecraft:glass",
+      "count": 4
+    }
+  }
+}

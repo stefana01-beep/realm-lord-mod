@@ -1,0 +1,26 @@
+{
+  "type": "realmlord:manual",
+  "manual": "perfusing_steel",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:raw_iron"
+      },
+      {
+        "item": "minecraft:raw_iron"
+      },
+      {
+        "item": "minecraft:raw_iron"
+      },
+      {
+        "item": "minecraft:charcoal"
+      }
+    ],
+    "result": {
+      "item": "realmlord:black_iron_ingot",
+      "count": 2
+    }
+  }
+}

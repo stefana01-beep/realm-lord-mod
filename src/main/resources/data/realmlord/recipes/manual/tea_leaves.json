@@ -1,0 +1,26 @@
+{
+  "type": "realmlord:manual",
+  "manual": "tea_cultivation",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "tag": "minecraft:leaves"
+      },
+      {
+        "tag": "minecraft:leaves"
+      },
+      {
+        "tag": "minecraft:leaves"
+      },
+      {
+        "item": "minecraft:bone_meal"
+      }
+    ],
+    "result": {
+      "item": "realmlord:tea_leaves",
+      "count": 2
+    }
+  }
+}

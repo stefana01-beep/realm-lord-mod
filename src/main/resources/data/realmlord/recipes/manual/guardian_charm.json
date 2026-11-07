@@ -1,0 +1,26 @@
+{
+  "type": "realmlord:manual",
+  "manual": "guardian_charm",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "realmlord:beast_sinew"
+      },
+      {
+        "item": "minecraft:gold_ingot"
+      },
+      {
+        "item": "realmlord:medicinal_herbs"
+      },
+      {
+        "item": "minecraft:red_dye"
+      }
+    ],
+    "result": {
+      "item": "realmlord:guardian_charm",
+      "count": 1
+    }
+  }
+}

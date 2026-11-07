@@ -1,0 +1,26 @@
+{
+  "type": "realmlord:manual",
+  "manual": "silk_reeling",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "realmlord:fine_silk"
+      },
+      {
+        "item": "minecraft:red_dye"
+      },
+      {
+        "item": "minecraft:yellow_dye"
+      },
+      {
+        "item": "minecraft:blue_dye"
+      }
+    ],
+    "result": {
+      "item": "realmlord:rainbow_silk",
+      "count": 1
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "type": "realmlord:manual",
+  "manual": "horse_barding",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "I I",
+      "ILI",
+      "I I"
+    ],
+    "key": {
+      "I": {
+        "item": "minecraft:diamond"
+      },
+      "L": {
+        "item": "minecraft:leather"
+      }
+    },
+    "result": {
+      "item": "minecraft:diamond_horse_armor",
+      "count": 1
+    }
+  }
+}

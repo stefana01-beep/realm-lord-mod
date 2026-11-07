@@ -1,0 +1,23 @@
+{
+  "type": "realmlord:manual",
+  "manual": "herbal_formulary",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "tag": "minecraft:small_flowers"
+      },
+      {
+        "tag": "minecraft:small_flowers"
+      },
+      {
+        "item": "minecraft:wheat_seeds"
+      }
+    ],
+    "result": {
+      "item": "realmlord:medicinal_herbs",
+      "count": 2
+    }
+  }
+}

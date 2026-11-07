@@ -1,0 +1,25 @@
+{
+  "type": "realmlord:manual",
+  "manual": "lime_mortar",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "CCC",
+      "CBC",
+      "CCC"
+    ],
+    "key": {
+      "C": {
+        "item": "minecraft:cobblestone"
+      },
+      "B": {
+        "item": "minecraft:bone_meal"
+      }
+    },
+    "result": {
+      "item": "minecraft:stone_bricks",
+      "count": 8
+    }
+  }
+}

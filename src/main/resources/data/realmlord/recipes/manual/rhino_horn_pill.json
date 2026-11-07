@@ -1,0 +1,26 @@
+{
+  "type": "realmlord:manual",
+  "manual": "rhino_horn_pill",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "realmlord:ox_horn"
+      },
+      {
+        "item": "realmlord:medicinal_herbs"
+      },
+      {
+        "item": "realmlord:medicinal_herbs"
+      },
+      {
+        "item": "minecraft:gold_nugget"
+      }
+    ],
+    "result": {
+      "item": "realmlord:rhino_horn_pill",
+      "count": 2
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "type": "realmlord:manual",
+  "manual": "jade_carving",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:emerald"
+      },
+      {
+        "item": "minecraft:gold_nugget"
+      },
+      {
+        "item": "minecraft:string"
+      }
+    ],
+    "result": {
+      "item": "realmlord:jade_pendant",
+      "count": 1
+    }
+  }
+}

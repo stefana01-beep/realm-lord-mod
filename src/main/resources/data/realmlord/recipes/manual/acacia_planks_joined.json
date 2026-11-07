@@ -1,0 +1,20 @@
+{
+  "type": "realmlord:manual",
+  "manual": "lu_ban_joinery",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "tag": "minecraft:acacia_logs"
+      },
+      {
+        "tag": "minecraft:acacia_logs"
+      }
+    ],
+    "result": {
+      "item": "minecraft:acacia_planks",
+      "count": 12
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "type": "realmlord:manual",
+  "manual": "brigandine",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "L L",
+      "E E"
+    ],
+    "key": {
+      "L": {
+        "item": "realmlord:linen"
+      },
+      "E": {
+        "item": "minecraft:leather"
+      }
+    },
+    "result": {
+      "item": "realmlord:brigandine_boots",
+      "count": 1
+    }
+  }
+}

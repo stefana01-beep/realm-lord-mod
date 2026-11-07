@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 
 /** Client to server: buttons on the Manor screen. */
 public class ManorActionPacket {
-    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT, DEMOLISH, CREW, BUY_GOOD, SELL_GOOD, SELL_SPECIAL, HAND_IN, SELL_STORAGE, OPEN_STORAGE, TAKE_GOOD, GROUNDS, DEPOSIT, SPEED, BUY_WARE }
+    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT, DEMOLISH, CREW, BUY_GOOD, SELL_GOOD, SELL_SPECIAL, HAND_IN, SELL_STORAGE, OPEN_STORAGE, TAKE_GOOD, GROUNDS, DEPOSIT, SPEED, BUY_WARE, BUY_BOOK }
 
     private final Action action;
     private final int a;
@@ -103,6 +103,9 @@ public class ManorActionPacket {
             }
             case BUY_WARE -> {
                 if (!Village.buyWare(p, a)) Notify.player(p, "realmlord.market.cannot_afford");
+            }
+            case BUY_BOOK -> {
+                if (!Village.buyBook(p, a)) Notify.player(p, "realmlord.market.cannot_afford");
             }
             case SELL_SPECIAL -> {
                 // a: one inventory slot, or -1 for everything the market buys.

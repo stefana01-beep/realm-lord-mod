@@ -1,0 +1,26 @@
+{
+  "type": "realmlord:manual",
+  "manual": "movable_type",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:sugar_cane"
+      },
+      {
+        "item": "minecraft:sugar_cane"
+      },
+      {
+        "item": "minecraft:sugar_cane"
+      },
+      {
+        "item": "minecraft:water_bucket"
+      }
+    ],
+    "result": {
+      "item": "minecraft:paper",
+      "count": 6
+    }
+  }
+}

@@ -64,7 +64,7 @@ public class PillItem extends Item {
     /** Raises one innate attribute by a point; false (and the pill kept) if it can rise no further. */
     public static boolean raise(ServerPlayer sp, Innate which) {
         Profile prof = Profiles.get(sp);
-        int now = prof.innate(which);
+        int now = prof.innateBase(which);
         if (now >= INNATE_CAP) {
             com.realmlord.Notify.player(sp, Component.translatable("realmlord.pill.capped", Component.translatable(which.key()), INNATE_CAP));
             return false;

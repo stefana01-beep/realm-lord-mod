@@ -1,0 +1,29 @@
+{
+  "type": "realmlord:manual",
+  "manual": "movable_type",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:paper"
+      },
+      {
+        "item": "minecraft:paper"
+      },
+      {
+        "item": "minecraft:paper"
+      },
+      {
+        "item": "minecraft:leather"
+      },
+      {
+        "item": "minecraft:ink_sac"
+      }
+    ],
+    "result": {
+      "item": "minecraft:book",
+      "count": 2
+    }
+  }
+}

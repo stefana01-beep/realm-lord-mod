@@ -23,6 +23,7 @@ public class RealmLord {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         ModBlocks.BLOCKS.register(bus);
         com.realmlord.registry.ModArms.init();
+        com.realmlord.registry.ModCrafts.init();
         ModItems.ITEMS.register(bus);
         ModEntities.ENTITIES.register(bus);
         com.realmlord.registry.ModWorldgen.DENSITY_FUNCTIONS.register(bus);
@@ -30,6 +31,7 @@ public class RealmLord {
         ModCreativeTabs.TABS.register(bus);
         com.realmlord.registry.ModMenus.MENUS.register(bus);
         com.realmlord.loot.ModLoot.FUNCTIONS.register(bus);
+        com.realmlord.registry.ModRecipes.SERIALIZERS.register(bus);
         ModNetwork.register();
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, RealmConfig.SPEC);
         LOGGER.info("Realm Lord loaded. The world awaits its lords.");

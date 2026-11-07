@@ -123,6 +123,32 @@ public final class ModArms {
         }
     }
 
+    /** The Tang single-edged straight sword. */
+    public static final RegistryObject<Item> TANG_HENGDAO = ModItems.ITEMS.register("tang_hengdao",
+            () -> new SwordItem(STEEL, 4, -2.3F, new Item.Properties().rarity(Rarity.UNCOMMON)));
+    /** The mo dao: a long two-handed blade that cut down horse and rider. */
+    public static final RegistryObject<Item> MO_DAO = ModItems.ITEMS.register("mo_dao",
+            () -> new SwordItem(STEEL, 6, -3.1F, new Item.Properties().rarity(Rarity.UNCOMMON)));
+    /** The Song composite bow of birch, larch, sinew and fish glue. */
+    public static final RegistryObject<Item> COMPOSITE_BOW = ModItems.ITEMS.register("composite_bow",
+            () -> new StrongBow(new Item.Properties().durability(500), 1.0));
+
+    /** A bow whose arrows strike harder than a plain bow's. */
+    public static class StrongBow extends BowItem {
+        private final double bonus;
+
+        public StrongBow(Properties p, double bonus) {
+            super(p);
+            this.bonus = bonus;
+        }
+
+        @Override
+        public AbstractArrow customArrow(AbstractArrow arrow) {
+            arrow.setBaseDamage(arrow.getBaseDamage() + bonus);
+            return arrow;
+        }
+    }
+
     /** A bow of tiger bone and sinew: its arrows strike harder than a plain bow's. */
     public static class TigerBoneBow extends BowItem {
         public TigerBoneBow(Properties p) {
@@ -151,6 +177,22 @@ public final class ModArms {
     /** A tiger-hide war coat over steel, with a tiger-head hood: a champion's armour. */
     public static final ArmorMaterial TIGER_WAR = new Material("tiger_war", 30, new int[]{3, 6, 8, 3}, 15, SoundEvents.ARMOR_EQUIP_LEATHER, 2.5F, 0.1F,
             () -> Ingredient.of(ModItems.TIGER_PELT.get()));
+
+    /** Mingguang: the Tang cavalry's bright-light armour of polished steel, two mirrors on the breast. */
+    public static final ArmorMaterial MINGGUANG = new Material("mingguang", 35, new int[]{3, 6, 8, 3}, 15, SoundEvents.ARMOR_EQUIP_GOLD, 2.5F, 0.1F,
+            () -> Ingredient.of(REFINED_STEEL.get()));
+    /** Buren: the Song heavy infantry's armour of nearly two thousand scales; hard to knock down. */
+    public static final ArmorMaterial BUREN = new Material("buren", 30, new int[]{3, 7, 8, 3}, 9, SoundEvents.ARMOR_EQUIP_IRON, 3.0F, 0.25F,
+            () -> Ingredient.of(LAMELLAR_PLATES.get()));
+    /** Brigandine: plates riveted inside a padded linen coat. */
+    public static final ArmorMaterial BRIGANDINE = new Material("brigandine", 20, new int[]{2, 5, 6, 2}, 12, SoundEvents.ARMOR_EQUIP_LEATHER, 0.5F, 0.0F,
+            () -> Ingredient.of(ModItems.LINEN.get()));
+    /** The night-walker's black clothes. */
+    public static final ArmorMaterial NIGHT_CLOTHES = new Material("night_clothes", 10, new int[]{1, 2, 3, 1}, 15, SoundEvents.ARMOR_EQUIP_LEATHER, 0.0F, 0.0F,
+            () -> Ingredient.of(ModItems.LINEN.get()));
+    /** The yellow dragon robe. */
+    public static final ArmorMaterial DRAGON_ROBE = new Material("dragon_robe", 30, new int[]{2, 5, 7, 2}, 25, SoundEvents.ARMOR_EQUIP_LEATHER, 2.0F, 0.0F,
+            () -> Ingredient.of(ModItems.FINE_SILK.get()));
 
     /** defence: boots, leggings, chestplate, helmet. */
     private record Material(String id, int durability, int[] defence, int enchant, SoundEvent sound, float toughness, float knockback,
@@ -202,6 +244,22 @@ public final class ModArms {
     public static final RegistryObject<Item> TIGER_HOOD = armour("tiger_hood", TIGER_WAR, ArmorItem.Type.HELMET);
     public static final RegistryObject<Item> TIGER_WAR_COAT = armour("tiger_war_coat", TIGER_WAR, ArmorItem.Type.CHESTPLATE);
 
+    public static final RegistryObject<Item> MINGGUANG_HELMET = armour("mingguang_helmet", MINGGUANG, ArmorItem.Type.HELMET);
+    public static final RegistryObject<Item> MINGGUANG_ARMOUR = armour("mingguang_armour", MINGGUANG, ArmorItem.Type.CHESTPLATE);
+    public static final RegistryObject<Item> MINGGUANG_GREAVES = armour("mingguang_greaves", MINGGUANG, ArmorItem.Type.LEGGINGS);
+    public static final RegistryObject<Item> MINGGUANG_BOOTS = armour("mingguang_boots", MINGGUANG, ArmorItem.Type.BOOTS);
+    public static final RegistryObject<Item> BUREN_HELMET = armour("buren_helmet", BUREN, ArmorItem.Type.HELMET);
+    public static final RegistryObject<Item> BUREN_ARMOUR = armour("buren_armour", BUREN, ArmorItem.Type.CHESTPLATE);
+    public static final RegistryObject<Item> BUREN_GREAVES = armour("buren_greaves", BUREN, ArmorItem.Type.LEGGINGS);
+    public static final RegistryObject<Item> BUREN_BOOTS = armour("buren_boots", BUREN, ArmorItem.Type.BOOTS);
+    public static final RegistryObject<Item> BRIGANDINE_HELMET = armour("brigandine_helmet", BRIGANDINE, ArmorItem.Type.HELMET);
+    public static final RegistryObject<Item> BRIGANDINE_COAT = armour("brigandine_coat", BRIGANDINE, ArmorItem.Type.CHESTPLATE);
+    public static final RegistryObject<Item> BRIGANDINE_TROUSERS = armour("brigandine_trousers", BRIGANDINE, ArmorItem.Type.LEGGINGS);
+    public static final RegistryObject<Item> BRIGANDINE_BOOTS = armour("brigandine_boots", BRIGANDINE, ArmorItem.Type.BOOTS);
+    public static final RegistryObject<Item> NIGHT_HOOD = armour("night_hood", NIGHT_CLOTHES, ArmorItem.Type.HELMET);
+    public static final RegistryObject<Item> NIGHT_SUIT = armour("night_suit", NIGHT_CLOTHES, ArmorItem.Type.CHESTPLATE);
+    public static final RegistryObject<Item> DRAGON_ROBE_ITEM = armour("dragon_robe", DRAGON_ROBE, ArmorItem.Type.CHESTPLATE);
+
     private static RegistryObject<Item> armour(String id, ArmorMaterial m, ArmorItem.Type t) {
         return ModItems.ITEMS.register(id, () -> new ArmorItem(m, t, new Item.Properties()));
     }
@@ -217,11 +275,21 @@ public final class ModArms {
         return List.of(BANDIT_SABRE, BLACK_IRON_SABRE, RING_DAO, BLACK_IRON_SPEAR, STEEL_JIAN, GUANDAO, JI, TIGER_SOUL_SABRE, TIGER_BONE_BOW,
                 HIDE_HELMET, HIDE_JERKIN, HIDE_LEGGINGS, HIDE_BOOTS, BLACK_IRON_HELMET, BLACK_IRON_CUIRASS, BLACK_IRON_GREAVES, BLACK_IRON_BOOTS,
                 LAMELLAR_HELMET, LAMELLAR_COAT, LAMELLAR_TASSETS, LAMELLAR_BOOTS, MOUNTAIN_HELM, MOUNTAIN_ARMOUR, MOUNTAIN_GREAVES, MOUNTAIN_BOOTS,
-                TIGER_HOOD, TIGER_WAR_COAT);
+                TIGER_HOOD, TIGER_WAR_COAT, TANG_HENGDAO, MO_DAO, COMPOSITE_BOW, MINGGUANG_HELMET, MINGGUANG_ARMOUR, MINGGUANG_GREAVES, MINGGUANG_BOOTS,
+                BUREN_HELMET, BUREN_ARMOUR, BUREN_GREAVES, BUREN_BOOTS, BRIGANDINE_HELMET, BRIGANDINE_COAT, BRIGANDINE_TROUSERS, BRIGANDINE_BOOTS,
+                NIGHT_HOOD, NIGHT_SUIT, DRAGON_ROBE_ITEM);
     }
 
     /** The grade a crafted piece comes out at. */
     public static com.realmlord.territory.TokenGrade craftedGrade(Item item) {
+        if (item instanceof ArmorItem a) {
+            if (a.getMaterial() == MINGGUANG || a.getMaterial() == DRAGON_ROBE) return com.realmlord.territory.TokenGrade.GOLD;
+            if (a.getMaterial() == BUREN) return com.realmlord.territory.TokenGrade.SILVER;
+            if (a.getMaterial() == BRIGANDINE) return com.realmlord.territory.TokenGrade.BLACK_IRON;
+            if (a.getMaterial() == NIGHT_CLOTHES) return com.realmlord.territory.TokenGrade.BRONZE;
+        }
+        if (item == TANG_HENGDAO.get() || item == MO_DAO.get()) return com.realmlord.territory.TokenGrade.SILVER;
+        if (item == COMPOSITE_BOW.get()) return com.realmlord.territory.TokenGrade.BLACK_IRON;
         if (item == HIDE_HELMET.get() || item == HIDE_JERKIN.get() || item == HIDE_LEGGINGS.get() || item == HIDE_BOOTS.get()) return com.realmlord.territory.TokenGrade.BRONZE;
         if (item == TIGER_SOUL_SABRE.get() || item == TIGER_HOOD.get() || item == TIGER_WAR_COAT.get()) return com.realmlord.territory.TokenGrade.GOLD;
         if (item == STEEL_JIAN.get() || item == GUANDAO.get() || item == JI.get() || item == MOUNTAIN_HELM.get() || item == MOUNTAIN_ARMOUR.get()

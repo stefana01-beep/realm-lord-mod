@@ -1,0 +1,35 @@
+{
+  "type": "realmlord:manual",
+  "manual": "spring_weathering",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:paper"
+      },
+      {
+        "item": "minecraft:bone_meal"
+      },
+      {
+        "item": "minecraft:bone_meal"
+      },
+      {
+        "item": "minecraft:bone_meal"
+      },
+      {
+        "item": "minecraft:bone_meal"
+      },
+      {
+        "item": "realmlord:medicinal_herbs"
+      },
+      {
+        "item": "minecraft:gold_nugget"
+      }
+    ],
+    "result": {
+      "item": "realmlord:spring_talisman",
+      "count": 1
+    }
+  }
+}

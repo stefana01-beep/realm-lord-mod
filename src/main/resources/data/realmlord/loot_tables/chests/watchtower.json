@@ -191,6 +191,30 @@
        "max_grade": 2
       }
      ]
+    },
+    {
+     "type": "minecraft:item",
+     "name": "realmlord:tech_manual",
+     "weight": 3,
+     "functions": [
+      {
+       "function": "realmlord:manual",
+       "kind": "tech",
+       "max": 1
+      }
+     ]
+    },
+    {
+     "type": "minecraft:item",
+     "name": "realmlord:secret_manual",
+     "weight": 3,
+     "functions": [
+      {
+       "function": "realmlord:manual",
+       "kind": "secret",
+       "max": 2
+      }
+     ]
     }
    ]
   }

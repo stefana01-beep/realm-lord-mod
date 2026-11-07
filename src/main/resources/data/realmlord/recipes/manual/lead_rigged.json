@@ -1,0 +1,23 @@
+{
+  "type": "realmlord:manual",
+  "manual": "rope_and_anchor",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:string"
+      },
+      {
+        "item": "minecraft:string"
+      },
+      {
+        "item": "minecraft:string"
+      }
+    ],
+    "result": {
+      "item": "minecraft:lead",
+      "count": 2
+    }
+  }
+}

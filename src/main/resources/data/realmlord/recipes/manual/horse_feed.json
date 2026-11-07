@@ -1,0 +1,26 @@
+{
+  "type": "realmlord:manual",
+  "manual": "bole_horse_classic",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:wheat"
+      },
+      {
+        "item": "minecraft:apple"
+      },
+      {
+        "item": "minecraft:carrot"
+      },
+      {
+        "item": "minecraft:sugar"
+      }
+    ],
+    "result": {
+      "item": "realmlord:horse_feed",
+      "count": 4
+    }
+  }
+}

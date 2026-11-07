@@ -1,0 +1,26 @@
+{
+  "type": "realmlord:manual",
+  "manual": "ming_shipbuilding",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:glass"
+      },
+      {
+        "item": "minecraft:glowstone_dust"
+      },
+      {
+        "item": "minecraft:glowstone_dust"
+      },
+      {
+        "item": "minecraft:dried_kelp"
+      }
+    ],
+    "result": {
+      "item": "minecraft:sea_lantern",
+      "count": 2
+    }
+  }
+}

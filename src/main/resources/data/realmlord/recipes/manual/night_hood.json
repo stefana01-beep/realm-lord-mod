@@ -1,0 +1,24 @@
+{
+  "type": "realmlord:manual",
+  "manual": "night_clothes",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "BLB",
+      "L L"
+    ],
+    "key": {
+      "B": {
+        "item": "minecraft:black_dye"
+      },
+      "L": {
+        "item": "realmlord:linen"
+      }
+    },
+    "result": {
+      "item": "realmlord:night_hood",
+      "count": 1
+    }
+  }
+}
