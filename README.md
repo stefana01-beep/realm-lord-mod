@@ -1129,7 +1129,7 @@ Officials don't just raise a number: they run their part of the territory and br
 | Treasurer | selling surplus goods when the treasury runs dry |
 | Military | enlisting militia when the beastwave or the raiders are coming; barracks |
 | Security | paid patrols when Security falls |
-| Rites | a feast when spirits are low; a temple |
+| Rites | a feast when spirits are low (its cheer lasts a week); a temple |
 | Commerce | the best route for the next caravan; a Chamber of Commerce |
 | Internal Affairs | housing for waiting refugees |
 | Armory, Transport | the Arsenal's and the shipyard's work |
@@ -1233,7 +1233,7 @@ In the novel, Shanhai Town applied to become a county and the system answered: *
 3. **Hold:** if the manor holds for the twelve hours, or every raider is dead, the town has passed. The Lord gains 1,000 merit, and the town becomes a Grade 1 County.
 4. **Fall:** if five raiders reach the manor at once, they break in and plunder a third of the treasury, food and goods. The town may apply again after seven days.
 
-A trial nobody is near is fought unseen: the city wall, towers, soldiers, sailors and militia against the raiders' numbers. The Realm tab shows the trial's progress.
+A trial nobody is near is fought unseen: the city wall, towers, soldiers, sailors and militia against the raiders' numbers. That holds even once the attack has begun: if everyone leaves the town, the rest of it is fought unseen at once, so walking away is no way to make the raiders give up. The Realm tab shows the trial's progress.
 
 ### Departments and the cabinet
 The Government Office opens eight new departments, the novel's divisions, held from a resident's card like the village offices:
