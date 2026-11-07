@@ -117,7 +117,7 @@ TEXT = {
     # Manor screen
     "realmlord.manor.title": "Lord's Manor",
     "realmlord.manor.tab.overview": "Overview",
-    "realmlord.manor.tab.build": "Construction",
+    "realmlord.manor.tab.build": "Build",
     "realmlord.manor.tab.people": "People",
     "realmlord.manor.tab.market": "Market",
     "realmlord.manor.lord": "Lord: %s (%s)",

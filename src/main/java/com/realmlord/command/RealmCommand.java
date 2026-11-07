@@ -35,6 +35,22 @@ import java.util.Locale;
 public final class RealmCommand {
     private RealmCommand() {}
 
+    /** Approves or dismisses an official's proposal (the links in their chat message). */
+    private static int council(CommandContext<CommandSourceStack> c, boolean approve) throws CommandSyntaxException {
+        net.minecraft.server.level.ServerPlayer p = c.getSource().getPlayerOrException();
+        int tid = Profiles.get(p).getTerritoryId();
+        Territory t = tid >= 0 ? TerritoryData.get(p.server).byId(tid) : null;
+        if (t == null) {
+            c.getSource().sendFailure(Component.translatable("realmlord.council.err.no_territory"));
+            return 0;
+        }
+        int id = IntegerArgumentType.getInteger(c, "id");
+        String err = approve ? com.realmlord.village.Council.approve(p, t, id) : com.realmlord.village.Council.dismiss(p, t, id);
+        if (err != null) c.getSource().sendFailure(Component.translatable(err));
+        else if (!approve) c.getSource().sendSuccess(() -> Component.translatable("realmlord.council.dismissed"), false);
+        return err == null ? 1 : 0;
+    }
+
     public static void register(CommandDispatcher<CommandSourceStack> d) {
         d.register(Commands.literal("realm")
                 .executes(c -> info(c, c.getSource().getPlayerOrException()))
@@ -43,6 +59,11 @@ public final class RealmCommand {
                         .then(Commands.argument("player", EntityArgument.player()).requires(s -> s.hasPermission(2))
                                 .executes(c -> info(c, EntityArgument.getPlayer(c, "player")))))
                 .then(Commands.literal("territories").executes(RealmCommand::territories))
+                .then(Commands.literal("council")
+                        .then(Commands.literal("approve").then(Commands.argument("id", IntegerArgumentType.integer(0))
+                                .executes(c -> council(c, true))))
+                        .then(Commands.literal("dismiss").then(Commands.argument("id", IntegerArgumentType.integer(0))
+                                .executes(c -> council(c, false)))))
                 .then(Commands.literal("capitals").executes(c -> {
                     for (int i = 0; i < com.realmlord.worldgen.ChinaMap.CAPITALS.length; i++) {
                         final int k = i;

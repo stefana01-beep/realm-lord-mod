@@ -247,10 +247,10 @@ Press **M** anywhere to open the world map. Scroll to zoom, drag to move around,
 **Room between buildings.** Buildings keep a lane of three clear blocks between them, room for a path. Towers and outposts need only one.
 
 **Construction.** Starting a building takes its wood and stone from your stores, needs its blueprint to be known to your village, and needs a resident of the right trade where the novel requires one (a blacksmith for the Blacksmith Workshop, an officer for the Military Camp, and so on). Your builders walk to the site and work it by hand in three stages. First they **clear** it, felling trees and breaking whatever stands on the footprint. Everything useful goes **straight into the village's stores**: logs and planks as wood, stone, gravel and cobblestone as stone, iron ore, and sand, clay and earth as goods of their own; saplings go to the storehouse. The earth is used again to fill holes on other sites. Then they **level** it, filling holes and dips beneath it with earth. Then they **build** it block by block, each one in a builder's hands as it goes up, never skipping a block whose ground isn't loaded. Before a building counts as finished, they go over the whole design once more and put right anything missing or knocked out of place. If no builder is nearby (say you are away and your village is still loaded), or they are stuck for 30 seconds, the village carries on without them. Five builders take the novel's listed time (12 hours for a Dining Hall, one real minute per hour by default). There is **no limit on builders**: each one adds work, so ten builders finish twice as fast as five. Carpenters, masons and Master Builders work faster.
-- **Blueprints are learned, not used up:** right-click a blueprint to teach it to your village for good, then build that kind of building as often as you like. A blueprint you carry but haven't learned is learned the first time you build with it. Spare copies can be given away or sold on the Special Items platform. The Construction tab shows **Learned**, and the market marks blueprints you already know.
+- **Blueprints are learned, not used up:** right-click a blueprint to teach it to your village for good, then build that kind of building as often as you like. A blueprint you carry but haven't learned is learned the first time you build with it. Spare copies can be given away or sold on the Special Items platform. The Build tab shows **Learned**, and the market marks blueprints you already know.
 - **Sites under way:** the list under the buildings scrolls with the arrows or the mouse wheel, showing which sites you're looking at (for example "4-6 of 9"). Each site has its own crew controls.
 - **Sharing builders:** builders are shared evenly among all the sites, so several buildings rise at once.
-- **Crews:** in the Construction tab, each site shows its builders with **−** and **+**. Setting a number yourself (shown in gold) gives that site a fixed crew, taking on idle residents if there aren't enough builders. Going below zero returns the site to sharing (grey). When a workshop is finished, a resident of its trade moves in to run it.
+- **Crews:** in the Build tab, each site shows its builders with **−** and **+**. Setting a number yourself (shown in gold) gives that site a fixed crew, taking on idle residents if there aren't enough builders. Going below zero returns the site to sharing (grey). When a workshop is finished, a resident of its trade moves in to run it.
 
 **Safety and protection.**
 - **Safe inside the fence:** once the fence is finished, monsters no longer spawn inside it.
@@ -1103,6 +1103,41 @@ The weapons workshop can make all of them too. The engines themselves need the *
 
 **Siege ladder:** right-click the side of a wall, and a ladder runs up it, as high as sixteen blocks.
 
+## The Lianzhou Basin
+The China world's Lianzhou Basin is drawn as the novel describes it, not as the real coastal plain behind Beihai:
+- **The ring:** mountains close the basin in on every side, about 2,200 blocks across. They are highest in the north-east, where the basin meets Lingnan and the mountain barbarians live.
+- **The way north:** the **Zhennan Pass**, a saddle through the northern ring.
+- **The way to the sea:** **the canyon** in the south, "the only ocean opening into the Lianzhou Basin", running down to Beihai Bay.
+- **The rivers:** the **Friendship River** runs from the **West Lake** in the north-west, and the **Qiushui River** from the **East Lake** in the north-east. Both cross the basin floor and meet at the head of the canyon, then flow through it to the sea.
+- **Shanhai:** the starting place stands where the novel puts the village, on the west side of the canyon's entrance with the Friendship River to its north.
+
+On the world map and the starting-place map, zoom in on the basin to see its rivers, lakes, pass and canyon named.
+
+## The council
+Officials don't just raise a number: they run their part of the territory and bring the Lord their proposals, as Fan Zhongyan and Shi Jun do in the novel. Each day every official looks at their charge and may propose something. The abler they are (by the stat their office uses), the more often they speak up and the bolder their plans.
+
+| Official | Proposes |
+|---|---|
+| Steward | housing when beds run short; putting idle people to the work most needed |
+| Agriculture | more farmers, new farmland or buying grain when the granary runs low; selling it when it overflows |
+| Works | the next building the upgrade needs (when the village can afford it); more loggers or quarrymen; the upgrade itself once every condition is met |
+| Treasurer | selling surplus goods when the treasury runs dry |
+| Military | enlisting militia when the beastwave or the raiders are coming; barracks |
+| Security | paid patrols when Security falls |
+| Rites | a feast when spirits are low; a temple |
+| Commerce | the best route for the next caravan; a Chamber of Commerce |
+| Internal Affairs | housing for waiting refugees |
+| Armory, Transport | the Arsenal's and the shipyard's work |
+| Procuratorate, Auditing | a monthly audit that recovers money for the treasury |
+| Meritorious Service | rewards for disgruntled soldiers |
+
+**Answering a proposal:**
+- Proposals come to you in chat with **[Approve]** and **[Dismiss]**, and wait on the Lord's Manor's new **Council** tab. They lapse after three days.
+- Approved, the official carries it out. For a new building, the builders find open ground facing the manor and lay it out there.
+- Dismissing an official's advice costs them a little loyalty.
+
+**Letting officials decide:** the Council tab's switch lets them handle routine matters on their own: moving workers, buying and selling, militia, patrols, feasts and audits. They report what they did under **Lately**. New buildings and the upgrade always wait for you.
+
 ## Phase 3: the town
 The novel's chapters 50 to 155: Shanhai Village becomes Shanhai Town, grows through three grades, builds a city wall, an army and a government, and wins its county upgrade against a raider attack.
 
@@ -1154,7 +1189,7 @@ Upgrade from the Lord's Manor when every condition is met, as the system announc
 | Town 3 | Large Brewery ★ | winemaker | wine by the vat |
 | Town 3 | Auction House | merchant | opens the Auction |
 
-Build the City Wall from the Construction tab. It rings the town ten blocks outside the palisade (or at the town's own ring), through the same gates.
+Build the City Wall from the Build tab. It rings the town ten blocks outside the palisade (or at the town's own ring), through the same gates.
 
 ### The county trial
 In the novel, Shanhai Town applied to become a county and the system answered: *"3 days later there will be a large scale raider attack on Shanhai Town. Please get ready."*

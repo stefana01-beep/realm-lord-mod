@@ -157,8 +157,62 @@
   {
    "name": "Lianzhou Basin",
    "x": -5836,
-   "z": 26984,
+   "z": 26717,
    "kind": "place"
+  },
+  {
+   "name": "Friendship River",
+   "x": -6237,
+   "z": 27875,
+   "kind": "local_water"
+  },
+  {
+   "name": "Qiushui River",
+   "x": -5435,
+   "z": 27919,
+   "kind": "local_water"
+  },
+  {
+   "name": "West Lake",
+   "x": -6474,
+   "z": 27296,
+   "kind": "local_water"
+  },
+  {
+   "name": "East Lake",
+   "x": -5161,
+   "z": 27273,
+   "kind": "local_water"
+  },
+  {
+   "name": "Beihai Bay",
+   "x": -6018,
+   "z": 29433,
+   "kind": "local_water"
+  },
+  {
+   "name": "Zhennan Pass",
+   "x": -5708,
+   "z": 26917,
+   "kind": "local_land"
+  },
+  {
+   "name": "The Canyon",
+   "x": -5763,
+   "z": 28810,
+   "kind": "local_land"
+  },
+  {
+   "name": "Shanhai",
+   "x": -6000,
+   "z": 28498,
+   "kind": "local_land"
+  },
+  {
+   "name": "Hundred-thousand Mountains",
+   "x": -4924,
+   "z": 26873,
+   "kind": "local_land"
   },
   {
    "name": "Korea",

@@ -43,7 +43,13 @@ LABEL_AT = {
     "West Turk": (85.5, 41.8), "Tibet": (88.0, 31.8), "Heidong": (96.5, 35.6), "Donghai": (119.6, 33.0),
 }
 EXTRA = [  # (name, lon, lat, kind)
-    ("Lianzhou Basin", 109.25, 22.5, "place"),
+    ("Lianzhou Basin", 109.25, 22.62, "place"),
+    # The basin's own features, shown close up.
+    ("Friendship River", 109.03, 22.1, "local_water"), ("Qiushui River", 109.47, 22.08, "local_water"),
+    ("West Lake", 108.9, 22.36, "local_water"), ("East Lake", 109.62, 22.37, "local_water"),
+    ("Beihai Bay", 109.15, 21.4, "local_water"), ("Zhennan Pass", 109.32, 22.53, "local_land"),
+    ("The Canyon", 109.29, 21.68, "local_land"), ("Shanhai", 109.16, 21.82, "local_land"),
+    ("Hundred-thousand Mountains", 109.75, 22.55, "local_land"),
     ("Korea", 127.3, 37.4, "foreign"), ("Vietnam", 105.6, 20.6, "foreign"), ("India", 79.5, 24.5, "foreign"),
     ("Outer Mongolia", 103.0, 47.0, "foreign"), ("Japan", 136.0, 36.0, "foreign"),
     ("Yellow Sea", 123.5, 35.5, "sea"), ("East Sea", 124.5, 29.5, "sea"), ("South Sea", 114.5, 18.5, "sea"),

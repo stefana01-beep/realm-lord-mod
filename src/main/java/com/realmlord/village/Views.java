@@ -53,6 +53,20 @@ public final class Views {
         v.putLongArray("storeGoods", Goods.held(t.storage));
         v.putLong("treasury", t.treasury);
         v.put("realm", realm(p, t));
+        CompoundTag council = new CompoundTag();
+        ListTag props = new ListTag();
+        for (CompoundTag s : Council.pending(t)) {
+            CompoundTag o = new CompoundTag();
+            o.putInt("id", s.getInt("id"));
+            o.putString("who", Component.Serializer.toJson(Council.who(s)));
+            o.putString("text", Component.Serializer.toJson(Council.text(s)));
+            props.add(o);
+        }
+        council.put("proposals", props);
+        council.put("log", Council.log(t).copy());
+        council.putBoolean("auto", Council.auto(t));
+        council.putInt("officials", Office.held(t));
+        v.put("council", council);
         v.putInt("navy", Navy.count(t));
         v.putInt("navyCap", Navy.cap(t));
         int ships = 0;

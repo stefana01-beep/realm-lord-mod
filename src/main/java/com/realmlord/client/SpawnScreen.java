@@ -317,10 +317,12 @@ public class SpawnScreen extends Screen {
         for (Label l : labels) {
             boolean small = !l.kind().equals("province");
             if (small && zoom < 1.6 && !l.kind().equals("sea")) continue;
+            if (l.kind().startsWith("local") && zoom < 6) continue;
             int color = switch (l.kind()) {
                 case "province" -> 0xFF4A2C12;
                 case "place" -> 0xFF9A1E1E;
-                case "sea" -> 0xFF2D5A86;
+                case "sea", "local_water" -> 0xFF2D5A86;
+                case "local_land" -> 0xFF5A3A1A;
                 default -> 0xFF6E6A62;
             };
             label(g, l.name(), screenX(l.x()), screenY(l.z()), small ? scale * 0.85F : scale, color);

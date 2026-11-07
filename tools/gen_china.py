@@ -239,8 +239,8 @@ REGIONS = {  # name: (polygon, {channel: target}, blur)
                        {"cont": 0.15, "ero": 0.05}, 1.5),
     "southeast_hills": ([(108, 30), (113, 29), (117, 29.4), (121, 30.4), (121, 28), (119.5, 25.5), (116.5, 23), (112, 22),
                          (109, 21.8), (106.5, 23), (108, 26.5)], {"ero": 0.0, "veg": 0.55}, 3.0),
-    "lianzhou_basin": ([(108.6, 21.75), (108.9, 22.25), (109.4, 22.35), (109.8, 22.2), (109.6, 21.65), (109.0, 21.6)],
-                       {"cont": 0.04, "ero": 0.8, "veg": 0.45}, 1.0),
+    "lianzhou_basin": ([(108.78, 22.0), (108.92, 22.35), (109.25, 22.45), (109.6, 22.38), (109.72, 22.12), (109.55, 21.85), (109.25, 21.8),
+                        (108.95, 21.85)], {"cont": 0.1, "ero": 0.75, "veg": 0.5}, 1.0),
     "pearl_delta": ([(112.6, 22.4), (113.2, 23.4), (114.1, 23.2), (114, 22.4)], {"cont": 0.02, "ero": 0.85}, 1.0),
     "indo_gangetic": ([(72, 30), (78, 29.5), (84, 27.3), (89, 26.2), (90, 23), (84, 23), (77, 25), (71, 27)],
                       {"cont": 0.15, "ero": 0.8, "veg": 0.4, "temp": 0.8}, 3.0),
@@ -350,6 +350,87 @@ def in_area(lon, lat):
     return LON0 - 1 <= lon <= LON1 + 1 and LAT0 - 1 <= lat <= LAT1 + 1
 
 
+# ------------------------------------------------------------------ the Lianzhou Basin, as the novel has it
+#
+# The real land behind Beihai is an open coastal plain; the novel's Lianzhou Basin is "locked off
+# from the outside world, with only two canyon passages": a ring of mountains (highest in the
+# north-east, where the basin meets Lingnan and the mountain barbarians live), the Zhennan Pass in
+# the north, and in the south the canyon, "the only ocean opening into the Lianzhou Basin", down to
+# Beihai Bay. Two rivers cross it: the Friendship River from the West Lake in the north-west and the
+# Qiushui River from the East Lake in the north-east, meeting at the head of the canyon. Shanhai
+# Village stands on the west side of the canyon's entrance with the Friendship River to its north.
+
+LZ_CENTRE = (109.25, 22.12)
+LZ_AXES = (0.56, 0.38)                          # degrees of longitude, latitude
+LZ_CANYON = [(109.25, 21.84), (109.24, 21.72), (109.22, 21.6), (109.2, 21.46)]
+LZ_PASS = (109.32, 22.5)                       # the Zhennan Pass
+LZ_LAKES = [("West Lake", 108.9, 22.32, 6.5), ("East Lake", 109.62, 22.32, 7.5)]   # lon, lat, radius km
+LZ_RIVERS = [
+    ("Friendship River", [(108.93, 22.27), (109.0, 22.15), (109.08, 22.02), (109.17, 21.9), (109.25, 21.84)], 0.38),
+    ("Qiushui River", [(109.58, 22.27), (109.5, 22.12), (109.4, 21.98), (109.31, 21.88), (109.25, 21.84)], 0.34),
+    ("Canyon River", LZ_CANYON, 0.42),
+]
+SHANHAI = (109.2, 21.845)
+
+
+def lz_radius():
+    """Each pixel's distance from the basin's centre, in units of the basin's half-axes."""
+    return np.hypot((LON - LZ_CENTRE[0]) / LZ_AXES[0], (LAT - LZ_CENTRE[1]) / LZ_AXES[1])
+
+
+def lianzhou(elev):
+    r = lz_radius()
+    ang = np.arctan2(LAT - LZ_CENTRE[1], LON - LZ_CENTRE[0])
+    rng = np.random.default_rng(7)
+    rough = ndimage.gaussian_filter(rng.standard_normal(elev.shape), 1.2)
+    rough = rough / (np.abs(rough).max() + 1e-9)
+    # The ring: highest in the north-east (towards Lingnan), lower to the south-west.
+    ne = np.cos(ang - math.radians(45))
+    peak = 1400 + 450 * ne + 350 * rough
+    ring = peak * np.exp(-((r - 1.0) / 0.16) ** 2)
+    # The floor: a low plain, rising gently to the foot of the ring.
+    floor = 22 + 30 * np.clip(r - 0.55, 0, 1) ** 2 * 4 + 10 * rough
+    inside = np.clip((0.97 - r) / 0.12, 0, 1)
+    out = np.where(r < 1.0, floor * inside + ring * (1 - inside) + ring * inside * 0.0, np.maximum(ring, elev * np.clip((r - 1.0) / 0.3, 0, 1)))
+    out = np.maximum(out, floor * inside)
+    wgt = np.clip((1.35 - r) / 0.25, 0, 1)
+    elev = elev * (1 - wgt) + out * wgt
+    # The Zhennan Pass: a saddle through the northern ring.
+    pr = np.hypot((LON - LZ_PASS[0]) / 0.06, (LAT - LZ_PASS[1]) / 0.09)
+    elev = np.where(pr < 1.6, np.minimum(elev, 260 + 140 * np.clip(pr - 0.4, 0, 1.2)), elev)
+    # The canyon: a narrow gorge through the southern ring, its floor at the river's level.
+    cy = line_field(LZ_CANYON, 2.2)
+    elev = np.where(cy > 0.3, np.minimum(elev, 4 + 40 * (1 - cy)), elev)
+    # The lakes and the rivers' valleys.
+    for name, lo, la, rad in LZ_LAKES:
+        d = np.hypot((LON - lo) * KM_LON, (LAT - la) * KM_LAT)
+        elev = np.where(d < rad * 1.6, np.minimum(elev, 3 + 20 * np.clip(d / rad - 1, 0, 1)), elev)
+    for name, pts, s_ in LZ_RIVERS:
+        v = line_field(pts, 3.0)
+        elev = np.where(v > 0.2, np.minimum(elev, elev * (1 - v) + 6 * v), elev)
+    return elev
+
+
+def lianzhou_water():
+    """River and lake points for the basin, as (px, py, strength)."""
+    out = []
+    for name, pts, s_ in LZ_RIVERS:
+        line = [to_px(lo, la) for lo, la in pts]
+        for (ax, ay), (bx, by) in zip(line, line[1:]):
+            n = max(1, int(math.hypot(bx - ax, by - ay) / 0.3))
+            for t in np.arange(n) / n:
+                out.append((ax + (bx - ax) * t, ay + (by - ay) * t, s_))
+        out.append((line[-1][0], line[-1][1], s_))
+    for name, lo, la, rad in LZ_LAKES:
+        cx, cy = to_px(lo, la)
+        rp = rad / KM_PX
+        for yy in np.arange(-rp, rp + 0.01, 0.25):
+            for xx in np.arange(-rp, rp + 0.01, 0.25):
+                if xx * xx + yy * yy <= rp * rp:
+                    out.append((cx + xx, cy + yy, 1.0))
+    return out
+
+
 def build(land_path, dem_path, ne_dir):
     land = land_mask(land_path)
     is_land = land > 0.5
@@ -357,6 +438,7 @@ def build(land_path, dem_path, ne_dir):
     elev = ndimage.gaussian_filter(elev, 0.5)
     # The coastline follows Natural Earth; land below sea level (Turpan) stays dry land.
     elev = np.where(is_land, np.maximum(elev, 2.0), np.minimum(elev, -3.0))
+    elev = np.where(is_land, np.maximum(lianzhou(elev), 2.0), elev)
     surf = height_y(elev)
 
     dist_sea = ndimage.distance_transform_edt(is_land) * KM_PX       # km inland
@@ -391,8 +473,21 @@ def build(land_path, dem_path, ne_dir):
 
     # Rivers: the real courses (Natural Earth), cut into the heights so that water traced
     # across the land follows them; each river's size is how much land drains into it.
+    lzr = lambda lo, la: math.hypot((lo - LZ_CENTRE[0]) / LZ_AXES[0], (la - LZ_CENTRE[1]) / LZ_AXES[1])
     rivers = [(c, p) for t, c, p in ne_features(os.path.join(ne_dir, "ne_10m_rivers_lake_centerlines.geojson"))
               if t == "LineString" and any(in_area(lo, la) for lo, la in c)]
+    # The novel's own rivers stand in for the real ones inside the Lianzhou Basin.
+    cut = []
+    for c, p in rivers:
+        run = []
+        for lo, la in c:
+            if lzr(lo, la) > 1.25:
+                run.append((lo, la))
+            else:
+                if len(run) >= 2: cut.append((run, p))
+                run = []
+        if len(run) >= 2: cut.append((run, p))
+    rivers = cut
     burn = Image.new("L", (W, H), 0)
     db = ImageDraw.Draw(burn)
     for c, p in rivers:
@@ -431,6 +526,9 @@ def build(land_path, dem_path, ne_dir):
         pts.append(((xx + 0.5) / 4, (yy + 0.5) / 4))
         strength.append(1.0)
     print(f"{len(lake_px)} lake samples")
+    for x, y, s_ in lianzhou_water():
+        pts.append((x, y))
+        strength.append(s_)
     tree = cKDTree(np.array(pts))
     gy, gx = np.mgrid[0:hgt, 0:wid]
     centres = np.stack([gx.ravel() + 0.5, gy.ravel() + 0.5], 1)
@@ -493,6 +591,6 @@ if __name__ == "__main__":
     save(ch)
     if len(sys.argv) > 3:
         preview(ch, sys.argv[3])
-    for name, lon, lat in CAPITALS + [("Shanhai", 109.1, 21.85)]:
+    for name, lon, lat in CAPITALS + [("Shanhai", SHANHAI[0], SHANHAI[1])]:
         x, z = to_block(lon, lat)
         print(f"{name}: X {round(x)}, Z {round(z)}")

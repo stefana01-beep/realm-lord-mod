@@ -132,8 +132,9 @@ TEXT = {
 
 CHINA = {
     "shanhai": ("Lianzhou Basin (Shanhai)",
-                "Where Ouyang Shuo founded Shanhai Village in the novel: a warm, fertile basin in the far south, ringed by mountains "
-                "and opening onto the sea. Far from the great powers, with room to grow."),
+                "Where Ouyang Shuo founded Shanhai Village in the novel: a warm, fertile basin ringed by mountains, with only the "
+                "Zhennan Pass to the north and a canyon down to Beihai Bay. The Friendship and Qiushui Rivers run down from the West "
+                "and East Lakes to meet at the canyon's head, where Shanhai stands."),
     "central_plains": ("Central Plains (Luoyang)",
                        "The heart of the land on the Yellow River: wide, flat, fertile farmland that is easy to build on. Open on every side, so easy to reach and hard to defend."),
     "guanzhong": ("Guanzhong (Chang'an)",

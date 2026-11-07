@@ -603,6 +603,7 @@ public final class Village {
         Auction.day(level, day);
         com.realmlord.world.Tribes.day(level, t, day, rnd);
         com.realmlord.world.Lairs.day(level, t, day, rnd);
+        Council.day(level, t, day, rnd);
         com.realmlord.world.WaterForts.day(level, t, day, rnd);
         com.realmlord.world.Raids.day(level, t, day, rnd);
         revealHidden(level, t);

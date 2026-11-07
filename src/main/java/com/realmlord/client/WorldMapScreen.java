@@ -253,11 +253,14 @@ public class WorldMapScreen extends Screen {
         for (Label l : labels) {
             boolean province = l.kind().equals("province");
             if (!province && scale > 200 && !l.kind().equals("sea")) continue;
+            // The Lianzhou Basin's rivers, lakes and passes only show close up.
+            if (l.kind().startsWith("local") && scale > 16) continue;
             if (province && scale < 6) continue;
             int color = switch (l.kind()) {
                 case "province" -> 0xFF4A2C12;
                 case "place" -> 0xFF9A1E1E;
-                case "sea" -> 0xFF2D5A86;
+                case "sea", "local_water" -> 0xFF2D5A86;
+                case "local_land" -> 0xFF5A3A1A;
                 default -> 0xFF6E6A62;
             };
             label(g, l.name(), sx(l.x()), sy(l.z()), province ? s : s * 0.85F, color);

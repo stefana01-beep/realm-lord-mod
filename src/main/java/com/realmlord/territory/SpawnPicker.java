@@ -40,7 +40,7 @@ public final class SpawnPicker {
 
     /** The China world's recommended regions: key, longitude, latitude (a little off each city, on open land). */
     private static final Object[][] CHINA = {
-            {"shanhai", 109.10, 21.85},
+            {"shanhai", 109.20, 21.845},
             {"central_plains", 112.60, 34.70},
             {"guanzhong", 108.80, 34.40},
             {"sichuan", 104.00, 30.80},

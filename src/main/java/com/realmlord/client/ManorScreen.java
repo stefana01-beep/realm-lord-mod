@@ -30,7 +30,7 @@ import java.util.List;
  * talents) and Market (resources and blueprints).
  */
 public class ManorScreen extends Screen {
-    public static final int OVERVIEW = 0, BUILD = 1, PEOPLE = 2, MARKET = 3, RECORDS = 4, REALM = 5;
+    public static final int OVERVIEW = 0, BUILD = 1, PEOPLE = 2, MARKET = 3, RECORDS = 4, REALM = 5, COUNCIL = 6;
     private static final int W = 400, H = 248;
     private static final int ROW = 20;
 
@@ -69,19 +69,19 @@ public class ManorScreen extends Screen {
         if (v == null) return;
         int x = left(), y = top();
         String[] tabs = {"realmlord.manor.tab.overview", "realmlord.manor.tab.build", "realmlord.manor.tab.people", "realmlord.manor.tab.market",
-                "realmlord.manor.tab.records", "realmlord.manor.tab.realm"};
+                "realmlord.manor.tab.records", "realmlord.manor.tab.realm", "realmlord.manor.tab.council"};
         for (int i = 0; i < tabs.length; i++) {
             final int idx = i;
             Button b = Button.builder(Component.translatable(tabs[i]), btn -> {
                 tab = idx;
                 scroll = 0;
                 init();
-            }).bounds(x + 8 + i * 56, y + 20, 54, 16).build();
+            }).bounds(x + 8 + i * 50, y + 20, 48, 16).build();
             b.active = tab != i;
             addRenderableWidget(b);
         }
         addRenderableWidget(Button.builder(Component.translatable("realmlord.manor.tab.map"), btn -> minecraft.setScreen(new TerritoryMapScreen(null)))
-                .bounds(x + 8 + 6 * 56, y + 20, 48, 16).build());
+                .bounds(x + 8 + 7 * 50, y + 20, 34, 16).build());
         switch (tab) {
             case OVERVIEW -> initOverview(v, x, y);
             case BUILD -> initBuild(v, x, y);
@@ -89,6 +89,7 @@ public class ManorScreen extends Screen {
             case RECORDS -> {
             }
             case REALM -> initRealm(v, x, y);
+            case COUNCIL -> initCouncil(v, x, y);
             default -> initMarket(v, x, y);
         }
     }
@@ -637,6 +638,57 @@ public class ManorScreen extends Screen {
         }
     }
 
+    // ------------------------------------------------------------------ council (the officials' proposals)
+
+    private static final int COUNCIL_ROWS = 5, COUNCIL_ROW = 28;
+
+    private void initCouncil(CompoundTag v, int x, int y) {
+        CompoundTag c = v.getCompound("council");
+        boolean auto = c.getBoolean("auto");
+        addRenderableWidget(Button.builder(Component.translatable(auto ? "realmlord.council.auto.on" : "realmlord.council.auto.off"),
+                        b -> send(ManorActionPacket.Action.COUNCIL_AUTO, auto ? 0 : 1, 0)).bounds(x + W - 190, y + 42, 182, 14)
+                .tooltip(Tooltip.create(Component.translatable("realmlord.council.auto.tip"))).build());
+        ListTag props = c.getList("proposals", Tag.TAG_COMPOUND);
+        for (int i = 0; i < Math.min(COUNCIL_ROWS, props.size()); i++) {
+            int id = props.getCompound(i).getInt("id");
+            int ry = y + 62 + i * COUNCIL_ROW;
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.council.approve_button"), b -> send(ManorActionPacket.Action.COUNCIL_APPROVE, id, 0))
+                    .bounds(x + W - 98, ry, 46, 13).build());
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.council.dismiss_button"), b -> send(ManorActionPacket.Action.COUNCIL_DISMISS, id, 0))
+                    .bounds(x + W - 50, ry, 42, 13).build());
+        }
+    }
+
+    private void renderCouncil(GuiGraphics g, CompoundTag v, int x, int y) {
+        CompoundTag c = v.getCompound("council");
+        Ui.inset(g, x + 6, y + 58, W - 12, COUNCIL_ROWS * COUNCIL_ROW + 4);
+        g.drawString(font, Component.translatable("realmlord.council.title", c.getInt("officials")), x + 10, y + 45, Ui.GOLD, false);
+        ListTag props = c.getList("proposals", Tag.TAG_COMPOUND);
+        if (props.isEmpty()) {
+            Ui.wrap(g, font, Component.translatable(c.getInt("officials") == 0 ? "realmlord.council.no_officials" : "realmlord.council.none"),
+                    x + 12, y + 64, W - 30, Ui.MUTED);
+        }
+        for (int i = 0; i < Math.min(COUNCIL_ROWS, props.size()); i++) {
+            CompoundTag p = props.getCompound(i);
+            int ry = y + 62 + i * COUNCIL_ROW;
+            Component who = Component.Serializer.fromJson(p.getString("who"));
+            Component text = Component.Serializer.fromJson(p.getString("text"));
+            if (who != null) g.drawString(font, Ui.fit(font, who, W - 120), x + 12, ry, Ui.GOLD, false);
+            if (text != null) {
+                var lines = font.split(text, W - 120);
+                for (int k = 0; k < Math.min(2, lines.size()); k++) g.drawString(font, lines.get(k), x + 12, ry + 9 + k * 9, Ui.INK, false);
+            }
+        }
+        // What the officials have done lately.
+        ListTag log = c.getList("log", Tag.TAG_STRING);
+        int ly = y + 62 + COUNCIL_ROWS * COUNCIL_ROW + 4;
+        g.drawString(font, Component.translatable("realmlord.council.recent"), x + 10, ly, Ui.GOLD, false);
+        for (int i = 0; i < Math.min(3, log.size()); i++) {
+            Component line = Component.Serializer.fromJson(log.getString(i));
+            if (line != null) g.drawString(font, Ui.fit(font, line, W - 24), x + 12, ly + 10 + i * 9, Ui.MUTED, false);
+        }
+    }
+
     // ------------------------------------------------------------------ realm (the town's affairs)
 
     private void initRealm(CompoundTag v, int x, int y) {
@@ -789,6 +841,7 @@ public class ManorScreen extends Screen {
                 case PEOPLE -> renderPeople(g, v, x, y);
                 case RECORDS -> renderRecords(g, v, x, y);
                 case REALM -> renderRealm(g, v, x, y);
+                case COUNCIL -> renderCouncil(g, v, x, y);
                 default -> renderMarket(g, v, x, y);
             }
         }
