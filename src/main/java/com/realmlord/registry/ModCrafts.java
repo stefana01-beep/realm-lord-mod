@@ -114,11 +114,24 @@ public final class ModCrafts {
     public static final RegistryObject<Item> TURRETED_SHIP = ModItems.ITEMS.register("turreted_ship",
             () -> new com.realmlord.item.ShipItem(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC), com.realmlord.ship.ShipKind.TURRETED_SHIP, ModEntities.TURRETED_SHIP));
 
+    // ------------------------------------------------------------------ siege engines
+
+    public static final RegistryObject<Item> HEAVY_BOLT = ModItems.ITEMS.register("heavy_bolt",
+            () -> new CraftItem(new Item.Properties().stacksTo(16), CraftItem.Kind.PLAIN));
+    public static final RegistryObject<Item> STONE_SHOT = ModItems.ITEMS.register("stone_shot",
+            () -> new CraftItem(new Item.Properties().stacksTo(16), CraftItem.Kind.PLAIN));
+    public static final RegistryObject<Item> SIEGE_LADDER = ModItems.ITEMS.register("siege_ladder",
+            () -> new com.realmlord.item.SiegeLadderItem(new Item.Properties().stacksTo(16)));
+    public static final RegistryObject<Item> BED_CROSSBOW = ModItems.ITEMS.register("bed_crossbow",
+            () -> new net.minecraft.world.item.BlockItem(com.realmlord.registry.ModBlocks.BED_CROSSBOW.get(), new Item.Properties().stacksTo(4).rarity(Rarity.UNCOMMON)));
+    public static final RegistryObject<Item> TREBUCHET = ModItems.ITEMS.register("trebuchet",
+            () -> new net.minecraft.world.item.BlockItem(com.realmlord.registry.ModBlocks.TREBUCHET.get(), new Item.Properties().stacksTo(4).rarity(Rarity.UNCOMMON)));
+
     public static List<RegistryObject<Item>> ships() {
         return List.of(FISHING_BOAT, CIMA_BOAT, MERCHANT_SHIP, MENGCHONG_WARSHIP, TURRETED_SHIP);
     }
 
     public static List<RegistryObject<Item>> all() {
-        return List.of(DRAFTING_SQUARE, FISHING_BOAT, CIMA_BOAT, MERCHANT_SHIP, MENGCHONG_WARSHIP, TURRETED_SHIP, RAINBOW_SILK, SILK_COCOON, PINE_TAR, TEA_LEAVES, SOY_SAUCE, PORCELAIN_VASE, JADE_PENDANT, DETOX_DRAUGHT, CLARITY_PILL, ACUPUNCTURE_NEEDLES, RHINO_HORN_PILL, PEIYUAN_PILL, FODDER, HORSE_FEED, BAMBOO_FEED, ANIMAL_SALVE, HORSE_TONIC, BEAST_WHISTLE, GUARDIAN_CHARM, LUOPAN, FISHING_NET, SPRING_TALISMAN, SOUTH_POINTING_CHARIOT, WOODEN_OX, SUBSTITUTE_DOLL, LIFEBUOY, DIVING_BELL, DRIED_FISH, DUMPLINGS, NOODLE_SOUP, GREEN_TEA, MOONCAKE, MILITARY_GRAIN_PILL, ROAST_DUCK, IMPERIAL_FEAST, DUKANG_WINE, MAOTAI, MEDICINAL_WINE, IMMORTAL_WINE);
+        return List.of(DRAFTING_SQUARE, HEAVY_BOLT, STONE_SHOT, SIEGE_LADDER, BED_CROSSBOW, TREBUCHET, FISHING_BOAT, CIMA_BOAT, MERCHANT_SHIP, MENGCHONG_WARSHIP, TURRETED_SHIP, RAINBOW_SILK, SILK_COCOON, PINE_TAR, TEA_LEAVES, SOY_SAUCE, PORCELAIN_VASE, JADE_PENDANT, DETOX_DRAUGHT, CLARITY_PILL, ACUPUNCTURE_NEEDLES, RHINO_HORN_PILL, PEIYUAN_PILL, FODDER, HORSE_FEED, BAMBOO_FEED, ANIMAL_SALVE, HORSE_TONIC, BEAST_WHISTLE, GUARDIAN_CHARM, LUOPAN, FISHING_NET, SPRING_TALISMAN, SOUTH_POINTING_CHARIOT, WOODEN_OX, SUBSTITUTE_DOLL, LIFEBUOY, DIVING_BELL, DRIED_FISH, DUMPLINGS, NOODLE_SOUP, GREEN_TEA, MOONCAKE, MILITARY_GRAIN_PILL, ROAST_DUCK, IMPERIAL_FEAST, DUKANG_WINE, MAOTAI, MEDICINAL_WINE, IMMORTAL_WINE);
     }
 }

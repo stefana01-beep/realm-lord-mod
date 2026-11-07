@@ -914,6 +914,203 @@ Silver gear found in ruins has a 50% chance of a special effect, and Gold gear a
   - **Stalwart:** resists knockback and adds toughness.
   - **Vigor:** extra health.
 
+## The novel's realm: trade, learning, the navy and the frontier
+Ten things from the novel that turn a village into a realm. Each has its building, its people and its dangers.
+
+### Commissioning buildings from the village
+A building plan can be built by the village's own craftsmen instead of from your pack, as Ouyang Shuo's workers raised his halls.
+1. Stand inside your village and right-click the ground with the plan. Chat lists what the village would need: timber and stone from the stores, and roughly how many hours of work.
+2. Right-click the same spot again to commission it. Crouch instead to build it yourself, as before.
+
+**What the village needs:**
+- You must be its Lord.
+- The village must have a carpenter or a mason.
+- It must have the timber and stone in its stores.
+
+The builders then raise it like any other village building, block by block.
+
+### Salt fields, copper and coal
+| Building | Grade | Work | Yield per worker per day |
+|---|---|---|---|
+| Salt Field ★ | 2 | Salt Making (by the water) | about 15 salt |
+| Copper Mine | 2 | Copper Mining | about 2 copper |
+| Coal Mine | 2 | Coal Mining | about 4 coal |
+
+Fishermen and grocers make better salt makers, and miners better miners. Salt sells at 20 copper a unit, the novel's price.
+
+### Docks, shipyards and the navy
+**The Dock ★** (Grade 2) is a pier out into the water, built from the shore with part of it over water.
+- Fishing boats kept in the storehouse each take two fishermen out. A fisherman brings in about 25 fish a day, more for a skilled one.
+- The dock holds ten sailors.
+
+**The Shipyard ★** (Grade 2) is run by a **shipbuilder**. In its window, choose what it builds:
+
+| Choice | Wood | Also needs | Time |
+|---|---|---|---|
+| Fishing boats | 50 | — | one a day |
+| Cima boats | 80 | — | two days |
+| Merchant ships | 300 | 2 pine tar | four days |
+| Mengchong warships | 400 | 4 pine tar, *Warship Construction* manual | three days |
+| Turreted ships | 1,200 | 10 pine tar, *Warship Construction* manual | ten days |
+
+- A better shipbuilder, or a summoned figure, works faster.
+- The window shows how far along the ship on the slipway is.
+- Finished ships go into the storehouse.
+
+**Sailors and marines:** enlist residents on the Duty tab of their card, for 3,000 copper each.
+- Sailors fight like soldiers and drill at the dock every day.
+- They don't count against the militia.
+- Places: ten for each dock, twenty for each shipyard, and ten more for each summoned admiral (Zheng He).
+- A sailor unit, as in the novel, is one turreted ship, four Mengchong warships, twelve cima boats and forty sailors.
+
+The turreted ship, the Mengchong and the merchant ship are now drawn as real multi-deck ships, block by block: a deckhouse, masts and sails, and the turreted ship's three-storey tower.
+
+### Temples and Taoist priests
+The **Village Temple** (Grade 1) and the great **Temple** are kept by a Taoist priest. A temple with no priest sends for a wandering one, who comes for two gold from the treasury. In the temple's window, choose what the priest does:
+
+| Service | Effect |
+|---|---|
+| Blessings | People's Thoughts +3 (+1 for each rank of the priest) |
+| Warding | Security +4; raiders come 10–20% weaker |
+| Praying for rain | Crops yield 10% more (+3% a rank) |
+| Refining elixirs | Herbs become Clear Heart Pills and Healing Pills |
+| Drawing talismans | Linen becomes Guardian Charms and Spring Weathering Talismans |
+
+The temple also takes three apprentice priests.
+
+### The Academy and the imperial examination
+**The Academy** (Grade 3, needs an Intermediate scholar) is a great school of lecture halls and a library.
+- It takes ten students and teaches what the private school teaches, half again as well.
+- It adds *Examination Prep*, the classics for the examination.
+
+**The imperial examination** is held once a year, in the eighth month, for the village's scholars and civil servants:
+
+| Examination | Degree | Needs | Gain |
+|---|---|---|---|
+| County | Xiucai | a private school or an academy | +2 Intelligence and Politics |
+| Provincial | Juren (from Xiucai) | an academy | +3; rises to Intermediate |
+| Metropolitan and palace | Jinshi (from Juren) | an academy | +5; rises to Advanced |
+| — | Zhuangyuan (the year's best Jinshi, sometimes) | — | Gold talent; the Lord gains 500 merit and a King-rank **Summoning Token** |
+
+- Cleverer candidates pass more often.
+- Studying at the academy helps, *Examination Prep* most of all, and so do summoned scholars.
+- Degree holders raise the village's taxes (Juren +1%, Jinshi +3%, Zhuangyuan +5%, up to +30%).
+- Each Jinshi adds a point of People's Thoughts.
+
+### Chambers of Commerce and caravans
+**The Chamber of Commerce** (Grade 2) is run by a **merchant**. In its window, choose one of the nine capitals to trade with.
+
+**How a caravan works:**
+- It loads up to half of each trade good in the storehouse: silk, linen, wine, tools, pottery, salt, herbs, leather, copper and coal.
+- It goes there and back in days that grow with the distance.
+- It sells for the market price plus a fifth, plus up to 120% more for the distance.
+- A better merchant, or a summoned merchant (Fan Li), sells for more.
+- The proceeds, less the system's 10% tax, go to the treasury.
+
+**By sea:** with a dock and a merchant ship in the storehouse, caravans to Jingdu, Jianye and Quanzhou go by sea. They are 40% faster, carry three times the cargo, and only water bandits rob them. Mengchong warships see the water bandits off.
+
+**The roads are dangerous:**
+- There is a 15% chance that bandits rob a caravan.
+- Every road inn and relay station the village has commissioned lowers it by 3%.
+- So do militia to escort the caravan and strategists to plan the route.
+
+The chamber's window shows where the caravan is, when it returns, and the odds of the next trip.
+
+### The summoned figures' gifts and arts
+A summoned figure with Loyalty 60 or more lends the village the gift of their kind:
+
+| Kind | Gift (each) |
+|---|---|
+| General | +5 militia places |
+| Admiral | +10 sailors; better fishing and sea trade |
+| Strategist | Security +3; raiders 10% weaker; safer caravans |
+| Minister | +5% tax |
+| Scholar | more pass the examination |
+| Engineer, Carpenter | building 15% faster; siege engines hit 15% harder |
+| Doctor | People's Thoughts +2 |
+| Smith, Weaver | workshops make 5% more |
+| Agronomist | crops +10% |
+| Merchant | caravans earn 20% more |
+
+**Their own arts:** at Loyalty 90, a figure will teach you their art once. Press *Teach their art* on their card, and you receive its secret manual.
+
+| Figure | Art |
+|---|---|
+| Sun Wu, Sun Bin, Han Xin, Zhuge Liang, Jiang Ziya, Wu Qi | *Sun Tzu's Art of War* (Emperor): Command, Intelligence and Politics |
+| Xiang Yu, Lu Bu | *Overlord's Halberd* (Emperor): one stroke in six sweeps every foe around |
+| Guan Yu | *Green Dragon Crescent Blade Technique* (Emperor): a cleave that staggers |
+| Bai Qi, Wang Jian, Meng Tian, Zhang Han | the Qin army's *Killing Sword* |
+| Zhao Yun, Ma Chao, Zhang Fei | *Six Harmonies Spear* |
+| Hua Tuo | *Five Animals Play* |
+| Huang Zhong, Taishi Ci | *Hundred Pace Archery* |
+| Lu Ban | *Ladder Cloud Step* |
+| Other generals; other warriors; the learned | *War Soldier Code*; *Bajiquan*; *Daoyin* |
+
+**More Summoning Tokens:**
+- **Titles:** one each at Third Class Viscount and Earl (King), Marquis (Emperor), Duke (Divine) and Son of Heaven (Saint).
+- **Den kings:** a chance from each slain king, best from the White Tiger King.
+- **Chiefs:** a chance from barbarian chieftains and water bandit chiefs.
+- **The examination:** every Zhuangyuan brings one.
+
+### Water bandits
+A village by the water, with a dock or on the coast, may find water bandits building a fort on stilts out on the water a few hundred blocks away. The fort has a palisade, a loot hut and a watchtower.
+
+**While the fort stands:**
+- Fishing brings in 40% less.
+- Security falls by 5.
+- Merchant ships are robbed far more often.
+- Now and then the bandits raid the docks for fish and salt, unless the navy beats them off (ten sailors and a Mengchong warship).
+
+**Breaking the fort:** kill the chief.
+- You gain 120 merit.
+- The chief may carry the *Warship Construction* manual or a Summoning Token.
+- Their chest holds silver, fish, pine tar and sometimes a blueprint.
+
+New bandits may take the water again after a couple of months.
+
+### Barbarian raids
+The barbarians of the northern steppe come south after every beastwave, and again in autumn.
+- **After a beastwave:** every village of the second level or above is raided within the week.
+- **In autumn:** from the second year, a village of forty or more may be raided once, in month 9 or 10.
+
+**The raid:**
+- Scouts give warning, and the manor panel shows that barbarians are coming.
+- The band rides in from the north and marches on the manor. It is larger and tougher for a bigger village and a later year, and weaker if the temple wards the walls or strategists saw it coming.
+- At the next dawn, those still alive ride off with grain.
+- A village nobody is near fights unseen: a wall and enough militia (sailors count half) drive the band off.
+
+**The chieftain:**
+- Slaying him is worth 150 merit.
+- He carries gold, and may carry the **Hell Slaughterer True Manual** (King grade). It gives +3 Force, +1 Body, −1 Charm and −1 Politics a level. Its *Slaughter* makes blows bite deeper into the wounded, and every kill heals you and lends you strength.
+- Now and then he carries a Summoning Token.
+
+### Siege engines
+The Carpenter's Intermediate **Siege Engine Construction Manual** ★ teaches:
+
+| Item | Recipe |
+|---|---|
+| Bed Crossbow | crossbow, bow, sinew, planks and logs |
+| Trebuchet | logs, planks, stone and a lead |
+| 4 Heavy Bolts | iron ingot, stick and feather |
+| 2 Stone Shot | 4 cobblestone |
+| Siege Ladder | sticks and planks |
+
+The weapons workshop can make all of them too. The engines themselves need the *Siege Engines* manual from the market.
+
+**Bed crossbow:** three bows on a heavy frame.
+- Place it facing out over the wall, and right-click with heavy bolts to load it (16).
+- Inside a territory it shoots on its own every three seconds at bandits, raiders and beasts within 40 blocks in front of it.
+- The bolt flies flat and fast and goes through several men.
+
+**Trebuchet:**
+- It holds eight stone shot and lobs one every eight seconds at foes 12 to 64 blocks off.
+- The shot strikes everyone where it lands.
+- Outside any territory it smashes timber, fences and wool, so it can break a water bandits' palisade or a bandit camp.
+
+**Firing by hand:** crouch and right-click either engine to shoot where you look.
+
+**Siege ladder:** right-click the side of a wall, and a ladder runs up it, as high as sixteen blocks.
+
 ## Server settings
 `config/realmlord-common.toml`:
 - `lordRestriction` (default **off**): the novel's rule that Lords cannot leave their territory except for war. Other dimensions are exempt.
@@ -944,8 +1141,8 @@ The order follows the novel: Ouyang Shuo summons his first general, sets up the 
    - More historical generals and ministers, recruited through quests and reputation.
    - Departments growing into a cabinet.
    - Troops beyond the militia.
-   - Ships and docks: fishermen take boats out to fish on their own.
-   - Mountain-barbarian tribes to defeat or take in.
+   - Ships and docks (done): fishermen take boats out, the shipyard builds the fleet, sailors man it.
+   - Barbarian raids and water bandits (done); mountain-barbarian tribes to take in.
    - Deeper lairs and larger ruins to explore.
 4. **County:**
    - The regular army and formations.
@@ -968,7 +1165,7 @@ The order follows the novel: Ouyang Shuo summons his first general, sets up the 
 - **Native tribes:** mountain barbarians and others, as in the novel, to trade with or make war on.
 - **Roads:** built between territories, speeding up travel along them.
 - **Quick travel:** journeys that cost in-game time for the traveller (days on the road, food eaten) without changing the time for anyone else.
-- **Ships and weapons:** more kinds of boats and warships, and the novel's weapons and siege engines.
+- **Ships and weapons:** more kinds of boats and warships (siege engines done).
 
 ## Building from source
 Java 17, then `./gradlew build` (jar in `build/libs`). Textures, models and the language file are generated by `python3 tools/gen_assets.py`. Every build runs in-game tests on a real server: choosing a role, titles, levels and points, every skill, every work rank, the full Village Creation quest, token grading, bandit strength and drops, loot items, founding a village with its settlers, dimension travel and syncing.

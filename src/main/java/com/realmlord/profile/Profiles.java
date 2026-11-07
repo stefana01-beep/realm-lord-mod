@@ -74,6 +74,10 @@ public final class Profiles {
         }
     }
 
+    /** The titles that bring a Summoning Token, and of what rank: King, King, Emperor, Divine, Saint. */
+    public static final Title[] TITLE_TOKENS = {Title.VISCOUNT_3, Title.EARL_3, Title.MARQUIS_3, Title.DUKE, Title.SON_OF_HEAVEN};
+    public static final int[] TITLE_TOKEN_RANKS = {0, 0, 1, 2, 3};
+
     /** Merit raises a Lord's title automatically when the threshold is reached. */
     public static void grantMerit(ServerPlayer p, long amount, Component reason) {
         Profile prof = get(p);
@@ -86,6 +90,15 @@ public final class Profiles {
             p.playNotifySound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 0.7F, 1.0F);
             if (now.atLeast(Title.VISCOUNT_3) && !before.atLeast(now)) {
                 Notify.world(p.server, Component.translatable("realmlord.msg.title_world", p.getDisplayName(), Component.translatable(now.key())));
+            }
+            // A new rank of nobility brings a Summoning Token, as the novel's system rewards a promotion.
+            int rank = -1;
+            for (int i = 0; i < TITLE_TOKENS.length; i++) if (now.atLeast(TITLE_TOKENS[i]) && !before.atLeast(TITLE_TOKENS[i])) rank = TITLE_TOKEN_RANKS[i];
+            if (rank >= 0) {
+                net.minecraft.world.item.ItemStack token = com.realmlord.item.SummoningTokenItem.of(rank);
+                if (!p.getInventory().add(token)) p.drop(token, false);
+                Notify.player(p, Component.translatable("realmlord.summoning.title",
+                        Component.translatable("realmlord.rank." + com.realmlord.item.SummoningTokenItem.RANKS[rank])));
             }
             refreshName(p);
         }

@@ -235,6 +235,12 @@ TECHS = [
         "composite_bow": shaped(["GBW", "S W", "GBW"], {"G": "slime_ball", "B": "birch_planks", "S": "stick", "W": RL("beast_sinew")}, RL("composite_bow")),
         "zhuge_crossbow": shaped(["BIB", "WRW", " B "], {"B": "bamboo", "I": "iron_ingot", "W": RL("beast_sinew"), "R": "repeater"}, "crossbow",
                                  nbt='{Enchantments:[{id:"minecraft:quick_charge",lvl:2s},{id:"minecraft:multishot",lvl:1s}],display:{Name:\'{"translate":"item.realmlord.zhuge_crossbow","italic":false}\'}}')}, novel=True),
+    T("siege_engines", "CARPENTER", I, "Siege Engine Construction Manual", "The bed crossbow that holds a city gate, the trebuchet that breaks one, and the ladders that climb its walls.", {
+        "bed_crossbow": shaped(["SBS", "WCW", "L L"], {"S": RL("beast_sinew"), "B": "bow", "W": "#planks", "C": "crossbow", "L": "#logs"}, RL("bed_crossbow")),
+        "trebuchet": shaped(["  R", "LPL", "LSL"], {"R": "lead", "L": "#logs", "P": "#planks", "S": "stone"}, RL("trebuchet")),
+        "heavy_bolt": shaped(["I", "S", "F"], {"I": "iron_ingot", "S": "stick", "F": "feather"}, RL("heavy_bolt"), 4),
+        "stone_shot": shapeless(["cobblestone", "cobblestone", "cobblestone", "cobblestone"], RL("stone_shot"), 2),
+        "siege_ladder": shaped(["S S", "SPS", "S S"], {"S": "stick", "P": "#planks"}, RL("siege_ladder"))}, novel=True),
     T("south_pointing_chariot", "CARPENTER", A, "South-Pointing Chariot Technical Manual", "The geared carriage whose figure always points south, and here also home.", {
         "south_pointing_chariot": shapeless(["compass", "gold_ingot", "#planks", "#planks", "redstone"], RL("south_pointing_chariot"))}, novel=True),
     T("wooden_ox", "CARPENTER", M, "Wooden Ox and Flowing Horse", "Zhuge Liang's pack carrier: a saddled, laden mule that follows you.", {
@@ -779,8 +785,75 @@ def ship_overlay(kind):
     return img
 
 
+
+def heavy_bolt():
+    img, px = blank()
+    for i in range(2, 14):
+        px[i, 15 - i] = hexc("7a5a34")
+        if i < 13: px[i + 1, 15 - i] = shade(hexc("7a5a34"), 0.75)
+    for (x, y) in [(13, 2), (14, 1), (12, 2), (13, 3), (14, 2)]: px[x, y] = hexc("b8bcc4")
+    px[14, 1] = hexc("e8ecf0")
+    for (x, y) in [(2, 12), (3, 14), (1, 13), (2, 14), (3, 12), (1, 12)]: px[x, y] = hexc("e8dcc0")
+    return img
+
+
+def stone_shot():
+    img, px = blank()
+    for y in range(3, 14):
+        for x in range(3, 14):
+            d = math.hypot(x - 8, y - 8.5)
+            if d < 5.2: px[x, y] = shade(hexc("8a8680"), 1.25 - d / 9 + (0.08 if (x * 7 + y * 3) % 5 == 0 else 0))
+    for (x, y) in [(6, 6), (10, 9), (7, 11)]: px[x, y] = hexc("5a5650")
+    return img
+
+
+def siege_ladder():
+    img, px = blank()
+    for i in range(1, 15):
+        px[3 + i // 4, 15 - i] = hexc("8a6a40")
+        px[9 + i // 4, 15 - i] = hexc("6a4a28")
+    for y in range(2, 15, 3):
+        x0 = 3 + (15 - y) // 4
+        for x in range(x0 + 1, x0 + 6): px[x, y] = hexc("a8885a")
+    for (x, y) in [(6, 1), (12, 1)]: px[x, y] = hexc("8a8c90")
+    return img
+
+
+def bed_crossbow_icon():
+    img, px = blank()
+    for x in range(1, 15):
+        y = 4 + abs(x - 7.5) // 3
+        px[x, int(y)] = hexc("6a4424")
+        px[x, int(y) + 1] = shade(hexc("6a4424"), 0.75)
+    for x in range(2, 14): px[x, 7] = hexc("d8d0b8")
+    for y in range(4, 14): px[7, y] = px[8, y] = hexc("8a6a40")
+    for x in range(4, 12): px[x, 13] = hexc("5a3a20")
+    for (x, y) in [(4, 14), (11, 14), (5, 12), (10, 12)]: px[x, y] = hexc("5a3a20")
+    for y in range(1, 9): px[7, y] = hexc("e8ecf0") if y < 3 else hexc("7a5a34")
+    return img
+
+
+def trebuchet_icon():
+    img, px = blank()
+    for i in range(0, 9):
+        px[4 + i // 2, 14 - i] = hexc("6a4424")
+        px[11 - i // 2, 14 - i] = hexc("6a4424")
+    for x in range(2, 14): px[x, 14] = hexc("5a3a20")
+    for i in range(0, 12):
+        px[2 + i, 10 - int(i * 0.75)] = hexc("8a6a40")
+    for (x, y) in [(1, 10), (2, 11), (1, 11), (2, 12), (1, 12)]: px[x, y] = hexc("7a7680")
+    for y in range(2, 6): px[13, y] = hexc("d8d0b8")
+    px[13, 6] = px[12, 6] = hexc("8a8680")
+    return img
+
+
 ITEMS = {
     # id: (name, description, painter)
+    "heavy_bolt": ("Heavy Bolt", "A bed crossbow's bolt, as long as a spear. Load it into a bed crossbow.", heavy_bolt),
+    "stone_shot": ("Stone Shot", "A dressed stone ball for the trebuchet.", stone_shot),
+    "siege_ladder": ("Siege Ladder", "Use on a wall: a ladder runs up it, as high as sixteen blocks.", siege_ladder),
+    "bed_crossbow": ("Bed Crossbow", "The great crossbow on a frame. Place it facing out from a wall: loaded with heavy bolts it shoots raiders and beasts in front of it, inside your territory. Right-click with bolts to load; crouch and right-click to shoot where you look.", bed_crossbow_icon),
+    "trebuchet": ("Trebuchet", "A counterweight stone-thrower. Loaded with stone shot, it lobs them at raiders and beasts 12 to 64 blocks away, and breaks the walls of bandit forts.", trebuchet_icon),
     "rainbow_silk": ("Rainbow Silk", "Top-quality dyed silk cloth. The market pays well.", silk_bolt),
     "silk_cocoon": ("Silk Cocoon", "Reel four into fine silk.", cocoon),
     "pine_tar": ("Pine Tar", "Caulking for boats; burns in torches.", lambda: jar("1a1410", "6a4424")),

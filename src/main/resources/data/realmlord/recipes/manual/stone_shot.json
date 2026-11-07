@@ -1,0 +1,26 @@
+{
+  "type": "realmlord:manual",
+  "manual": "siege_engines",
+  "recipe": {
+    "type": "minecraft:crafting_shapeless",
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "minecraft:cobblestone"
+      },
+      {
+        "item": "minecraft:cobblestone"
+      },
+      {
+        "item": "minecraft:cobblestone"
+      },
+      {
+        "item": "minecraft:cobblestone"
+      }
+    ],
+    "result": {
+      "item": "realmlord:stone_shot",
+      "count": 2
+    }
+  }
+}

@@ -83,6 +83,7 @@ public final class TechData {
             new Tech("lu_ban_joinery", WorkOccupation.CARPENTER, 0, 5000L, new String[]{"minecraft:oak_planks", "minecraft:spruce_planks", "minecraft:birch_planks", "minecraft:jungle_planks", "minecraft:acacia_planks", "minecraft:dark_oak_planks", "minecraft:mangrove_planks", "minecraft:cherry_planks"}, false, false, new String[]{}),
             new Tech("movable_type", WorkOccupation.CARPENTER, 0, 5000L, new String[]{"minecraft:paper", "minecraft:book"}, false, false, new String[]{}),
             new Tech("song_bow_crossbow", WorkOccupation.CARPENTER, 1, 30000L, new String[]{"realmlord:composite_bow", "minecraft:crossbow"}, false, true, new String[]{}),
+            new Tech("siege_engines", WorkOccupation.CARPENTER, 1, 30000L, new String[]{"realmlord:bed_crossbow", "realmlord:trebuchet", "realmlord:heavy_bolt", "realmlord:stone_shot", "realmlord:siege_ladder"}, false, true, new String[]{}),
             new Tech("south_pointing_chariot", WorkOccupation.CARPENTER, 2, 100000L, new String[]{"realmlord:south_pointing_chariot"}, false, true, new String[]{}),
             new Tech("wooden_ox", WorkOccupation.CARPENTER, 3, 300000L, new String[]{"realmlord:wooden_ox"}, false, false, new String[]{}),
             new Tech("substitute_doll", WorkOccupation.CARPENTER, 3, 300000L, new String[]{"realmlord:substitute_doll"}, false, true, new String[]{}),

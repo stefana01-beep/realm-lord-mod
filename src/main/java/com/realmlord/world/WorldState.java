@@ -33,6 +33,8 @@ public class WorldState extends SavedData {
     public final Map<UUID, Integer> waveKills = new HashMap<>();
     public final Map<UUID, String> waveNames = new HashMap<>();
     public final List<Den> dens = new ArrayList<>();
+    /** Everything else kept world-wide: the water bandits' forts. */
+    public CompoundTag ext = new CompoundTag();
 
     /** A beast den: where it is, whether its king is alive, and when it comes back. */
     public static class Den {
@@ -97,6 +99,7 @@ public class WorldState extends SavedData {
         ListTag d = new ListTag();
         for (Den den : dens) d.add(den.save());
         tag.put("dens", d);
+        tag.put("ext", ext);
         return tag;
     }
 
@@ -112,6 +115,7 @@ public class WorldState extends SavedData {
             w.waveNames.put(c.getUUID("p"), c.getString("name"));
         }
         for (Tag t : tag.getList("dens", Tag.TAG_COMPOUND)) w.dens.add(Den.load((CompoundTag) t));
+        w.ext = tag.getCompound("ext");
         return w;
     }
 }

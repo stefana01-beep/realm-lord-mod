@@ -237,6 +237,26 @@ def bandits():
     return out
 
 
+def raiders():
+    """Water bandits of the rivers and lakes (bare-armed boatmen in blue-grey with head cloths) and
+    the barbarians of the northern steppe (braided hair, fur and leather, heavy beards)."""
+    out = {}
+    for i, (robe, band) in enumerate([("3e4a56", "c8c0a8"), ("2f3d3a", "9c2420")]):
+        out[f"water_bandit_{i}"] = person(500 + i, SKINS[2 + i], BLACK_HAIR, "short", rgb(robe), rgb("6a5a40"), rgb("2e3a44"),
+                                          rgb("8a7450"), inner=rgb("c8c0a8"), band=rgb(band), wrap=rgb("c8c0a8"), cuff=SKINS[2 + i])
+    out["water_bandit_chief"] = person(520, SKINS[3], BLACK_HAIR, "long", rgb("1e2c3a"), rgb("2a6a8a"), rgb("1a2028"), rgb("120f0e"),
+                                       inner=rgb("5a7a8a"), trim=rgb("c9a13e"), band=rgb("2a6a8a"), beard=rgb("1b1512"),
+                                       bracer=rgb("3b2a1e"))
+    for i, (robe, fur) in enumerate([("6a4a2e", "8a7a62"), ("4a3a2a", "5a4a3a"), ("7a5a38", "c0b090")]):
+        out[f"barbarian_{i}"] = person(600 + i, SKINS[(i + 1) % 4], BROWN_HAIR if i == 1 else BLACK_HAIR, "long", rgb(robe), rgb("2a1d16"),
+                                       rgb("3a2a1e"), rgb("2a1d16"), inner=rgb(fur), trim=rgb(fur), beard=rgb("2a1d16"),
+                                       fur=rgb(fur), wrap=rgb("5a4a3a"))
+    out["barbarian_chief"] = person(620, SKINS[3], BLACK_HAIR, "long", rgb("3a1e14"), rgb("c9a13e"), rgb("2a1a12"), rgb("120f0e"),
+                                    inner=rgb("d8d0c0"), trim=rgb("d8d0c0"), band=rgb("c9a13e"), beard=rgb("1b1512"),
+                                    fur=rgb("e8e0d0"), bracer=rgb("c9a13e"), cuff=rgb("c9a13e"))
+    return out
+
+
 def settlers():
     out = {}
     looks = [
@@ -258,5 +278,6 @@ def settlers():
 
 def all_skins():
     d = bandits()
+    d.update(raiders())
     d.update(settlers())
     return d

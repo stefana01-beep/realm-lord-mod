@@ -129,6 +129,11 @@ public final class Workshops {
                         ModArms.MOUNTAIN_GREAVES, ModArms.MOUNTAIN_BOOTS))).plan(com.realmlord.loot.Manuals.MOUNTAIN_PATTERN));
                 out.add(items("tiger_soul", Goods.IRON_ORE, 30, 1, ModArms.TIGER_SOUL_SABRE.get()).need(ModArms.BEAST_CORE, 1)
                         .plan(com.realmlord.loot.Manuals.TIGER_WAR));
+                out.add(items("heavy_bolts", Goods.IRON_ORE, 4, 2, com.realmlord.registry.ModCrafts.HEAVY_BOLT.get()).each(4));
+                out.add(items("stone_shots", Goods.STONE, 4, 2, com.realmlord.registry.ModCrafts.STONE_SHOT.get()).each(2));
+                out.add(items("siege_ladders", Goods.WOOD, 10, 2, com.realmlord.registry.ModCrafts.SIEGE_LADDER.get()));
+                out.add(items("siege_engines", Goods.WOOD, 60, 0.5, com.realmlord.registry.ModCrafts.BED_CROSSBOW.get(),
+                        com.realmlord.registry.ModCrafts.TREBUCHET.get()).plan(com.realmlord.loot.Manuals.SIEGE_ENGINES));
             }
             case TAILOR_WORKSHOP -> {
                 out.add(stock("linen", null, 0, Goods.LINEN, 2));

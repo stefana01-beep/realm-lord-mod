@@ -49,11 +49,20 @@ import net.minecraft.world.level.ServerLevelAccessor;
 public class BanditEntity extends Monster implements RangedAttackMob {
     public enum Role { SWORDSMAN, ARCHER, CHIEF }
 
+    /** Whose men: highwaymen, the water bandits of the rivers, or barbarians off the steppe. */
+    public enum Faction { BANDIT, WATER, BARBARIAN }
+
+    public static final int WATER_SKINS = 2;
+    public static final int BARBARIAN_SKINS = 3;
+    /** Persistent data: where a raiding band is marching. */
+    public static final String RAID_TARGET = "realmlord_raid_target";
+
     public static final int SKINS = 4;
     public static final int ARCHER_SKINS = 2;
 
     private static final EntityDataAccessor<Integer> ROLE = SynchedEntityData.defineId(BanditEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> SKIN = SynchedEntityData.defineId(BanditEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> FACTION = SynchedEntityData.defineId(BanditEntity.class, EntityDataSerializers.INT);
 
     private final RangedBowAttackGoal<BanditEntity> bowGoal = new RangedBowAttackGoal<>(this, 1.0, 30, 15.0F);
     private final MeleeAttackGoal meleeGoal = new MeleeAttackGoal(this, 1.1, false);
@@ -79,11 +88,13 @@ public class BanditEntity extends Monster implements RangedAttackMob {
         super.defineSynchedData();
         entityData.define(ROLE, Role.SWORDSMAN.ordinal());
         entityData.define(SKIN, 0);
+        entityData.define(FACTION, 0);
     }
 
     @Override
     protected void registerGoals() {
         goalSelector.addGoal(1, new FloatGoal(this));
+        goalSelector.addGoal(4, new MarchGoal(this));
         goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 0.8));
         goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 8.0F));
         goalSelector.addGoal(6, new RandomLookAroundGoal(this));
@@ -99,6 +110,24 @@ public class BanditEntity extends Monster implements RangedAttackMob {
     public Role getRole() {
         int r = entityData.get(ROLE);
         return Role.values()[Math.max(0, Math.min(r, Role.values().length - 1))];
+    }
+
+    public Faction getFaction() {
+        int f = entityData.get(FACTION);
+        return Faction.values()[Math.max(0, Math.min(f, Faction.values().length - 1))];
+    }
+
+    public void setFaction(Faction f) {
+        entityData.set(FACTION, f.ordinal());
+        if (getRole() == Role.CHIEF) setCustomName(Component.translatable(chiefKey()));
+    }
+
+    private String chiefKey() {
+        return switch (getFaction()) {
+            case WATER -> "entity.realmlord.water_bandit_chief";
+            case BARBARIAN -> "entity.realmlord.barbarian_chief";
+            default -> "entity.realmlord.bandit_chief";
+        };
     }
 
     public int getSkin() {
@@ -147,7 +176,7 @@ public class BanditEntity extends Monster implements RangedAttackMob {
         setDropChance(EquipmentSlot.MAINHAND, 0.0F);
         setLeftHanded(false);
         if (role == Role.CHIEF) {
-            setCustomName(Component.translatable("entity.realmlord.bandit_chief"));
+            setCustomName(Component.translatable(chiefKey()));
             setCustomNameVisible(true);
         }
         reassessWeaponGoal();
@@ -184,6 +213,9 @@ public class BanditEntity extends Monster implements RangedAttackMob {
 
     @Override
     protected Component getTypeName() {
+        if (getFaction() == Faction.WATER) return Component.translatable(getRole() == Role.CHIEF ? chiefKey() : "entity.realmlord.water_bandit");
+        if (getFaction() == Faction.BARBARIAN) return Component.translatable(getRole() == Role.CHIEF ? chiefKey()
+                : getRole() == Role.ARCHER ? "entity.realmlord.barbarian_archer" : "entity.realmlord.barbarian");
         return switch (getRole()) {
             case ARCHER -> Component.translatable("entity.realmlord.bandit_archer");
             case CHIEF -> Component.translatable("entity.realmlord.bandit_chief");
@@ -214,11 +246,14 @@ public class BanditEntity extends Monster implements RangedAttackMob {
     protected void dropCustomDeathLoot(DamageSource source, int looting, boolean recentlyHit) {
         super.dropCustomDeathLoot(source, looting, recentlyHit);
         RandomSource r = random;
+        if (getFaction() != Faction.BANDIT && getRole() == Role.CHIEF) {
+            com.realmlord.world.Raids.chiefDrops(this, r, looting);
+        }
         switch (getRole()) {
             case CHIEF -> {
                 spawnAtLocation(new ItemStack(ModItems.SILVER_COIN.get(), 10 + r.nextInt(11) + looting * 3));
                 spawnAtLocation(getMainHandItem().copy());
-                spawnAtLocation(new ItemStack(ModItems.BANDIT_LEDGER.get()));
+                if (getFaction() == Faction.BANDIT) spawnAtLocation(new ItemStack(ModItems.BANDIT_LEDGER.get()));
             }
             case ARCHER -> {
                 spawnAtLocation(new ItemStack(ModItems.COPPER_COIN.get(), Math.min(64, 15 + r.nextInt(26) + looting * 5)));
@@ -244,6 +279,7 @@ public class BanditEntity extends Monster implements RangedAttackMob {
         tag.putInt("Role", entityData.get(ROLE));
         tag.putInt("Skin", getSkin());
         tag.putInt("Tier", tier);
+        tag.putInt("Faction", entityData.get(FACTION));
     }
 
     @Override
@@ -252,6 +288,7 @@ public class BanditEntity extends Monster implements RangedAttackMob {
         entityData.set(ROLE, tag.getInt("Role"));
         entityData.set(SKIN, tag.getInt("Skin"));
         tier = Math.max(1, tag.getInt("Tier"));
+        entityData.set(FACTION, tag.getInt("Faction"));
         reassessWeaponGoal();
     }
 
@@ -274,6 +311,46 @@ public class BanditEntity extends Monster implements RangedAttackMob {
     public boolean isCurrentlyGlowing() {
         if (level().isClientSide && net.minecraftforge.fml.loading.FMLEnvironment.dist.isClient() && ClientGlow.glows(getId())) return true;
         return super.isCurrentlyGlowing();
+    }
+
+    /** A raiding band marches on the village's manor until it has someone to fight. */
+    static final class MarchGoal extends net.minecraft.world.entity.ai.goal.Goal {
+        private final BanditEntity mob;
+        private int recalc;
+
+        MarchGoal(BanditEntity mob) {
+            this.mob = mob;
+            setFlags(java.util.EnumSet.of(Flag.MOVE));
+        }
+
+        private net.minecraft.core.BlockPos target() {
+            var d = mob.getPersistentData();
+            return d.contains(RAID_TARGET) ? net.minecraft.core.BlockPos.of(d.getLong(RAID_TARGET)) : null;
+        }
+
+        @Override
+        public boolean canUse() {
+            var t = target();
+            return t != null && mob.getTarget() == null && mob.blockPosition().distSqr(t) > 36;
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            return canUse();
+        }
+
+        @Override
+        public void tick() {
+            if (--recalc > 0) return;
+            recalc = 40;
+            var t = target();
+            if (t == null) return;
+            // Long marches go in stages the pathfinder can manage.
+            double dx = t.getX() - mob.getX(), dz = t.getZ() - mob.getZ();
+            double d = Math.sqrt(dx * dx + dz * dz);
+            double step = Math.min(1.0, 24.0 / Math.max(1, d));
+            mob.getNavigation().moveTo(mob.getX() + dx * step, t.getY(), mob.getZ() + dz * step, 1.0);
+        }
     }
 
     /** Keeps client classes out of the server's way. */

@@ -1,0 +1,28 @@
+{
+  "type": "realmlord:manual",
+  "manual": "siege_engines",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "I",
+      "S",
+      "F"
+    ],
+    "key": {
+      "I": {
+        "item": "minecraft:iron_ingot"
+      },
+      "S": {
+        "item": "minecraft:stick"
+      },
+      "F": {
+        "item": "minecraft:feather"
+      }
+    },
+    "result": {
+      "item": "realmlord:heavy_bolt",
+      "count": 4
+    }
+  }
+}

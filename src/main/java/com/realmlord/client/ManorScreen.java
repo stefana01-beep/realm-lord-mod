@@ -160,7 +160,11 @@ public class ManorScreen extends Screen {
         yy += 4;
         yy = line(g, lx, yy, Component.translatable("realmlord.manor.treasury", Ui.money(v.getLong("treasury"))));
         yy = line(g, lx, yy, Component.translatable("realmlord.manor.tax", Ui.money(v.getLong("tax"))));
-        line(g, lx, yy + 4, Component.translatable("realmlord.manor.purse", Ui.money(com.realmlord.network.ClientProfileData.purse)));
+        yy = line(g, lx, yy + 4, Component.translatable("realmlord.manor.purse", Ui.money(com.realmlord.network.ClientProfileData.purse)));
+        if (v.getInt("navyCap") > 0 || v.getInt("ships") > 0 || v.getInt("caravans") > 0)
+            yy = line(g, lx, yy, Component.translatable("realmlord.manor.navy", v.getInt("navy"), v.getInt("navyCap"), v.getInt("ships"), v.getInt("caravans")));
+        if (v.getBoolean("waterBandits") || v.contains("raidDay"))
+            line(g, lx, yy, Component.translatable(v.contains("raidDay") ? "realmlord.manor.raid_coming" : "realmlord.manor.water_bandits").withStyle(ChatFormatting.RED));
 
         // Stores and indexes
         int rx = x + 202, ry = y + 42;

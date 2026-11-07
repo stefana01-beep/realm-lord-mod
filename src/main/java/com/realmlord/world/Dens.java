@@ -206,6 +206,12 @@ public final class Dens {
                 com.realmlord.profile.Profiles.grantMerit(by, d.kind == TIGER ? 400 : d.kind == WOLF ? 200 : 100,
                         Component.translatable("realmlord.reason.den_king", kingName(d.kind)));
             }
+            // A beast king's lair now and then holds a Summoning Token: the White Tiger King's most often.
+            float chance = d.kind == TIGER ? 0.35F : d.kind == WOLF ? 0.15F : 0.08F;
+            if (level.getRandom().nextFloat() < chance) {
+                king.spawnAtLocation(com.realmlord.item.SummoningTokenItem.of(d.kind == TIGER && level.getRandom().nextInt(4) == 0 ? 1 : 0));
+                if (by != null) Notify.player(by, Component.translatable("realmlord.summoning.found", kingName(d.kind)));
+            }
         }
     }
 }

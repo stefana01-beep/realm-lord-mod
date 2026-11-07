@@ -1,0 +1,25 @@
+{
+  "type": "realmlord:manual",
+  "manual": "siege_engines",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "S S",
+      "SPS",
+      "S S"
+    ],
+    "key": {
+      "S": {
+        "item": "minecraft:stick"
+      },
+      "P": {
+        "tag": "minecraft:planks"
+      }
+    },
+    "result": {
+      "item": "realmlord:siege_ladder",
+      "count": 1
+    }
+  }
+}

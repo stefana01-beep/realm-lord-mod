@@ -56,6 +56,7 @@ public final class WorldEvents {
         if (!(event.getEntity().level() instanceof ServerLevel level)) return;
         var killer = event.getSource().getEntity();
         Beastwave.killed(level.getServer(), event.getEntity(), killer);
+        Raids.killed(level, event.getEntity(), killer);
         if (event.getEntity().getTags().contains(com.realmlord.entity.beast.Beasts.DEN_TAG) && Dens.isKing(event.getEntity()))
             Dens.kingSlain(level, event.getEntity(), killer instanceof ServerPlayer p ? p : null);
     }

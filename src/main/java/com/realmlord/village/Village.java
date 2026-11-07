@@ -565,6 +565,8 @@ public final class Village {
         Temples.day(level, t, day, rnd);
         Exams.day(level, t, day, rnd);
         Trade.day(level, t, day, rnd);
+        com.realmlord.world.WaterForts.day(level, t, day, rnd);
+        com.realmlord.world.Raids.day(level, t, day, rnd);
         revealHidden(level, t);
         farm(t, day);
         updateCrops(level, t, day);

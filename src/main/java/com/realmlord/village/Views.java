@@ -52,6 +52,14 @@ public final class Views {
         v.putInt("stored", stored);
         v.putLongArray("storeGoods", Goods.held(t.storage));
         v.putLong("treasury", t.treasury);
+        v.putInt("navy", Navy.count(t));
+        v.putInt("navyCap", Navy.cap(t));
+        int ships = 0;
+        for (int n : Navy.fleet(t)) ships += n;
+        v.putInt("ships", ships);
+        v.putInt("caravans", Trade.caravans(t).size());
+        v.putBoolean("waterBandits", t.ext.getBoolean("waterBandits"));
+        if (t.ext.getLong("raidDay") > 0) v.putLong("raidDay", t.ext.getLong("raidDay"));
         v.putLong("tax", Village.dailyTax(t));
         v.putLong("foodUse", Village.foodUse(t));
         v.putLongArray("output", Village.dailyOutput(t));

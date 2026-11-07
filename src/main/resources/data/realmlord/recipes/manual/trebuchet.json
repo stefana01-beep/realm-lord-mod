@@ -1,0 +1,31 @@
+{
+  "type": "realmlord:manual",
+  "manual": "siege_engines",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "  R",
+      "LPL",
+      "LSL"
+    ],
+    "key": {
+      "R": {
+        "item": "minecraft:lead"
+      },
+      "L": {
+        "tag": "minecraft:logs"
+      },
+      "P": {
+        "tag": "minecraft:planks"
+      },
+      "S": {
+        "item": "minecraft:stone"
+      }
+    },
+    "result": {
+      "item": "realmlord:trebuchet",
+      "count": 1
+    }
+  }
+}

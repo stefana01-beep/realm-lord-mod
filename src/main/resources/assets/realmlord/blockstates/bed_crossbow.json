@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "realmlord:block/bed_crossbow",
+      "y": 0
+    },
+    "facing=east": {
+      "model": "realmlord:block/bed_crossbow",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "realmlord:block/bed_crossbow",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "realmlord:block/bed_crossbow",
+      "y": 270
+    }
+  }
+}

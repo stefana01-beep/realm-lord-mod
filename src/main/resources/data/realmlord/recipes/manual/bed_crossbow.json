@@ -1,0 +1,34 @@
+{
+  "type": "realmlord:manual",
+  "manual": "siege_engines",
+  "recipe": {
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+      "SBS",
+      "WCW",
+      "L L"
+    ],
+    "key": {
+      "S": {
+        "item": "realmlord:beast_sinew"
+      },
+      "B": {
+        "item": "minecraft:bow"
+      },
+      "W": {
+        "tag": "minecraft:planks"
+      },
+      "C": {
+        "item": "minecraft:crossbow"
+      },
+      "L": {
+        "tag": "minecraft:logs"
+      }
+    },
+    "result": {
+      "item": "realmlord:bed_crossbow",
+      "count": 1
+    }
+  }
+}
