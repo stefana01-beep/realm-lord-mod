@@ -242,6 +242,8 @@ Press **M** anywhere to open the world map. Scroll to zoom, drag to move around,
 
 **Repairs.** Every two minutes or so the village looks its finished buildings and its fence over. One that has lost blocks (to fire, an explosion, a careless player) is marked damaged, and the builders go back and put back what was lost (nothing is charged). Anything you've put inside is left alone. Fields, the quarry and the mine aren't repaired, since they change as they're worked.
 
+**The ground on the map.** The territory map shows the land itself, coloured like a vanilla map and shaded by slope: grass, forest, sand, snow, stone and water, with every building drawn over it. Land that isn't loaded now is shown as it was last seen; the ground around every territory is kept with the world. Land never seen at all is sketched from the world generator (its height, its water and its biome), a little dimmer, so you can choose a site anywhere.
+
 **Placing on the map.** The footprint follows the mouse and is drawn on the exact block grid; zoomed in, you see every block of it, with the block under the mouse marked. The side panel shows the exact corners it will cover. A building can't be put down on a path or paved area already laid; take the path up first.
 
 **Room between buildings.** Buildings keep a lane of three clear blocks between them, room for a path. Towers and outposts need only one.
@@ -275,7 +277,10 @@ Surfaces:
 | Cobblestone | 1 stone |
 | Stone brick | 2 stone |
 
-The cost is paid when you lay it out. Builders lay the path like any other site, keeping the way even: a ditch is bridged with earth and a hump is cut down. Paths go around buildings and the manor and stop short of the fence. Click a path on the map to select it; **Demolish** turns it back to grass. Paths don't speed up walking yet.
+The cost is paid when you lay it out. Builders lay the path like any other site, keeping the way even: a ditch is bridged with earth and a hump is cut down. Paths go around buildings and the manor. They cross a wall only at its gates: the wall's posts, the walkway behind it and a city wall's moat are kept clear everywhere else. This holds both ways:
+- A building can't be put down on a path.
+- A path laid out before a building or a wall went up skips the columns they now stand on, so it never cuts into them.
+- When a path is finished, the village looks every building and wall over at once. Anything an older path scraped away is put right by the builders. Click a path on the map to select it; **Demolish** turns it back to grass. Paths don't speed up walking yet.
 
 **Clearing and levelling ground.** On the territory map, click **Clear & level ground**, then click two opposite corners (up to 48 × 48 blocks; right-click starts again). The level starts at the usual ground height there; **Lower** and **Raise** move it up to 8 blocks either way. **Grade: slope** instead shapes an even ramp from the ground at the first corner to the ground at the second, for a way up onto raised ground. Clearing and grading work beyond your border too (anywhere up to 2,048 blocks from the manor, never in another Lord's land), for ramps up to a road, cuttings through a hill, or level ground for an outpost. Use the map's range button to mark out ground farther away; the ground there must be loaded when you order it. Builders fell the trees, cut away everything above the level and fill dips below it with earth, and everything useful goes to the stores.
 - **No cliffs:** for up to 8 blocks beyond the edges, the ground is cut back and banked up in a slope, one block per block.
@@ -1136,7 +1141,37 @@ Officials don't just raise a number: they run their part of the territory and br
 - Approved, the official carries it out. For a new building, the builders find open ground facing the manor and lay it out there.
 - Dismissing an official's advice costs them a little loyalty.
 
-**Letting officials decide:** the Council tab's switch lets them handle routine matters on their own: moving workers, buying and selling, militia, patrols, feasts and audits. They report what they did under **Lately**. New buildings and the upgrade always wait for you.
+**Letting officials decide:** the Council tab's switch lets them handle routine matters on their own: moving workers, buying and selling, militia, patrols, feasts and audits. They report what they did under **Lately**. New buildings, the town plan and the upgrade always wait for you.
+
+### The town plan
+Like Fan Zhongyan and the Construction Department in the novel, the head of Works plans the town. If there is no head of Works, the Steward does it. Every few days, when the town needs it, the planner brings you a plan of up to six buildings with their roads, in order:
+1. **Main roads** from the manor out through each gate of the wall that no road reaches yet. They are three wide, cobbled if there is stone to spare, otherwise gravel or dirt.
+2. **Buildings**, in this order: the ones the next upgrade still needs; then housing, if beds run short; then farmland, if grain runs low.
+3. **Lanes** from each new building's door to the nearest road or to the manor's yard. Standing buildings that no road reaches get lanes too.
+
+**Carrying out the plan:**
+- Approve the plan and the officials work through it themselves, even while you are away.
+- They raise one building at a time, using the blueprints the town already knows.
+- When wood or stone runs short, the plan waits.
+- Each building's site is chosen with its door facing the manor. Buildings go inside the wall; fields go out beyond it.
+- Lanes are routed around buildings and walls and through the gates, in straight runs.
+
+**The Council tab:**
+- **Town plan** shows every step and its state: waiting (and why), underway, done or skipped.
+- **Draft a plan** asks the planner for a plan now.
+- **Abandon plan** drops it.
+
+### Officials run their workers
+The officials also manage the people under their offices every day. How many people each official moves goes by their ability, and they report what they did under **Lately**:
+
+| Official | Manages |
+|---|---|
+| Works | Keeps enough builders on the building sites: idle people first, then loggers or quarrymen from whichever store is fuller. Sends builders with no site back to the woods or the quarry. Evens out logging and quarrying by what the stores lack. |
+| Agriculture | Sends people to the fields when the granary runs low. When it is dire, also borrows herb growers, loggers and quarrymen. When it overflows, sends farmers back to the woods or the quarry. |
+| Steward | Finds work for the idle. |
+| Transport | Mans the fishing boats. |
+
+The **Workers** switch on the plan page hands this back to you.
 
 ## Phase 3: the town
 The novel's chapters 50 to 155: Shanhai Village becomes Shanhai Town, grows through three grades, builds a city wall, an army and a government, and wins its county upgrade against a raider attack.
@@ -1312,7 +1347,7 @@ The order follows the novel: Ouyang Shuo summons his first general, sets up the 
    - **The village ground:** the grounds levelled to the manor on founding, walls on the ring of any grade, the territory reaching past the wall, unlimited defences on the wall, and a zoomable territory map.
    - **The wilds:** levels on every beast and bandit, graded horses, novel creatures only, three bosses, and ancient shrines, watchtowers and tombs in place of vanilla structures.
    - **Still to come:** special markets (ship blueprints, graded weapons and armour), more hidden buildings, and more figures.
-3. **Town grades 1–3** (done): the council of officials, the novel's Lianzhou Basin, the town's conditions and buildings, the city wall, the county trial, departments and the cabinet, the standing army, the Recruitment Hall, refugees, festivals, visitors, affiliated villages, the Auction, mountain barbarian tribes, bandit fortresses and ancient ruins, ships and the navy, water bandits.
+3. **Town grades 1–3** (done): the council of officials (with the town plan and officials running their workers), the novel's Lianzhou Basin, the town's conditions and buildings, the city wall, the county trial, departments and the cabinet, the standing army, the Recruitment Hall, refugees, festivals, visitors, affiliated villages, the Auction, mountain barbarian tribes, bandit fortresses and ancient ruins, ships and the navy, water bandits.
 4. **County:**
    - The regular army and formations.
    - Raids between lords.
