@@ -93,8 +93,7 @@ public final class Raids {
             b.addTag(TAG);
             if (!tag.equals(TAG)) b.addTag(tag);
             b.setPersistenceRequired();
-            level.addFreshEntity(b);
-            made++;
+            if (level.addFreshEntity(b)) made++;
         }
         return made;
     }
