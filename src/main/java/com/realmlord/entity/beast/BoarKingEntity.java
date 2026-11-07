@@ -37,7 +37,7 @@ public class BoarKingEntity extends WildBoarEntity {
                 .add(Attributes.MOVEMENT_SPEED, 0.3)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 1.0)
                 .add(Attributes.ATTACK_KNOCKBACK, 2.0)
-                .add(Attributes.ATTACK_DAMAGE, 12.0)
+                .add(Attributes.ATTACK_DAMAGE, 9.0)
                 .add(Attributes.ARMOR, 6.0)
                 .add(Attributes.FOLLOW_RANGE, 28.0);
     }

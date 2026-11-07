@@ -331,4 +331,50 @@ public class TownTests {
         helper.assertTrue(got > 0 && t.storage.countItem(Items.WHEAT) == 0 && t.storage.countItem(Items.OAK_LOG) == 10, "selling one good sold the wrong things");
         VillageTests.done(helper, p, t);
     }
+
+    @GameTest(template = "empty", timeoutTicks = 100, batch = "town_arms")
+    public static void armsFromBeastsAndBanditsAndTheArmoury(GameTestHelper helper) {
+        ServerPlayer p = RealmTests.lord(helper, CombatClass.GENERAL);
+        Territory t = VillageTests.village(helper, p, 16800);
+        ServerLevel level = helper.getLevel();
+        var reg = com.realmlord.registry.ModArms.class;
+        // The new arms are graded as they come from the forge.
+        helper.assertTrue(com.realmlord.registry.ModArms.craftedGrade(com.realmlord.registry.ModArms.GUANDAO.get()) == com.realmlord.territory.TokenGrade.SILVER
+                && com.realmlord.registry.ModArms.craftedGrade(com.realmlord.registry.ModArms.HIDE_JERKIN.get()) == com.realmlord.territory.TokenGrade.BRONZE, "wrong crafted grades");
+        // Recipes for them exist.
+        for (String r : new String[]{"black_iron_ingot", "refined_steel", "black_iron_sabre", "guandao", "steel_jian_core", "tiger_bone_bow", "hide_jerkin", "black_iron_cuirass"})
+            helper.assertTrue(level.getRecipeManager().byKey(new net.minecraft.resources.ResourceLocation(RealmLord.MODID, r)).isPresent(), "missing recipe " + r);
+        // A king leaves a beast core and sinew.
+        var king = ModEntities.WOLF_KING.get().create(level);
+        king.moveTo(t.center.getX() + 20.5, t.center.getY() + 2, t.center.getZ() + 0.5);
+        level.addFreshEntity(king);
+        king.hurt(level.damageSources().playerAttack(p), 100_000);
+        helper.runAfterDelay(2, () -> {
+            boolean core = false, sinew = false;
+            for (var e : level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, new net.minecraft.world.phys.AABB(king.blockPosition()).inflate(8, 32, 8))) {
+                if (e.getItem().is(com.realmlord.registry.ModArms.BEAST_CORE.get())) core = true;
+                if (e.getItem().is(com.realmlord.registry.ModArms.BEAST_SINEW.get())) sinew = true;
+                e.discard();
+            }
+            helper.assertTrue(core && sinew, "the Wolf King left no core (" + core + ") or sinew (" + sinew + ")");
+            // The armoury sells graded arms; the market buys them back, one by one.
+            p.getInventory().clearContent();
+            Profiles.get(p).setPurse(0);
+            t.treasury = 0;
+            Coins.give(p, 200_000);
+            int jian = -1;
+            for (int i = 0; i < com.realmlord.village.Market.WARES.size(); i++)
+                if (com.realmlord.village.Market.WARES.get(i).item().get() == com.realmlord.registry.ModArms.STEEL_JIAN.get()) jian = i;
+            helper.assertTrue(com.realmlord.village.Village.buyWare(p, jian), "could not buy from the armoury");
+            int slot = -1;
+            for (int i = 0; i < p.getInventory().getContainerSize(); i++) if (p.getInventory().getItem(i).is(com.realmlord.registry.ModArms.STEEL_JIAN.get())) slot = i;
+            helper.assertTrue(slot >= 0 && Gear.gradeOf(p.getInventory().getItem(slot)) == com.realmlord.territory.TokenGrade.SILVER, "the armoury's jian is not Silver grade");
+            p.getInventory().add(new ItemStack(com.realmlord.registry.ModArms.BANDIT_INSIGNIA.get(), 3));
+            long before = Coins.purse(p);
+            long got = com.realmlord.village.Village.sellSpecial(p, slot);
+            helper.assertTrue(got > 0 && Coins.purse(p) > before && p.getInventory().countItem(com.realmlord.registry.ModArms.BANDIT_INSIGNIA.get()) == 3,
+                    "selling one item sold the rest of the pack too");
+            VillageTests.done(helper, p, t);
+        });
+    }
 }

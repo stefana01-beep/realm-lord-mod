@@ -18,7 +18,7 @@ public class BlackBearEntity extends SnowBearEntity {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 34.0)
                 .add(Attributes.MOVEMENT_SPEED, 0.29)
-                .add(Attributes.ATTACK_DAMAGE, 6.0)
+                .add(Attributes.ATTACK_DAMAGE, 5.0)
                 .add(Attributes.FOLLOW_RANGE, 20.0)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.5);
     }

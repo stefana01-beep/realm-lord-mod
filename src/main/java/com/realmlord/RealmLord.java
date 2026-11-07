@@ -22,6 +22,7 @@ public class RealmLord {
     public RealmLord() {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         ModBlocks.BLOCKS.register(bus);
+        com.realmlord.registry.ModArms.init();
         ModItems.ITEMS.register(bus);
         ModEntities.ENTITIES.register(bus);
         com.realmlord.registry.ModWorldgen.DENSITY_FUNCTIONS.register(bus);

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "RR ",
+    "RS ",
+    "  S"
+  ],
+  "key": {
+    "R": {
+      "item": "realmlord:refined_steel"
+    },
+    "S": {
+      "item": "minecraft:stick"
+    }
+  },
+  "result": {
+    "item": "realmlord:guandao",
+    "count": 1
+  }
+}

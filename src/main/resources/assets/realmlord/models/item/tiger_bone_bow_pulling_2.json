@@ -1,0 +1,6 @@
+{
+  "parent": "realmlord:item/tiger_bone_bow",
+  "textures": {
+    "layer0": "realmlord:item/tiger_bone_bow_pulling_2"
+  }
+}

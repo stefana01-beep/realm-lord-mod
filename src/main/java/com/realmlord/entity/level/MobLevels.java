@@ -87,8 +87,10 @@ public final class MobLevels {
     public static void apply(Mob m, Range r) {
         int lv = level(m);
         boolean full = m.getHealth() >= m.getMaxHealth() - 0.01F;
-        modifier(m.getAttribute(Attributes.MAX_HEALTH), HEALTH, (lv - 1) * 0.06);
-        modifier(m.getAttribute(Attributes.ATTACK_DAMAGE), DAMAGE, (lv - 1) * 0.04);
+        // Higher levels are tougher more than they are deadlier: a high-level beast takes long
+        // to bring down, but its blows stay within what a player of that level can take.
+        modifier(m.getAttribute(Attributes.MAX_HEALTH), HEALTH, (lv - 1) * 0.05);
+        modifier(m.getAttribute(Attributes.ATTACK_DAMAGE), DAMAGE, Math.min(0.6, (lv - 1) * 0.02));
         if (full) m.setHealth(m.getMaxHealth());
         if (m instanceof Sized s) {
             float rel = r.max() == r.min() ? 0.5F : Mth.clamp((lv - r.min()) / (float) (r.max() - r.min()), 0F, 1.3F);

@@ -61,7 +61,7 @@ public class SnowBearEntity extends PolarBear implements Sized {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 44.0)
                 .add(Attributes.MOVEMENT_SPEED, 0.27)
-                .add(Attributes.ATTACK_DAMAGE, 8.0)
+                .add(Attributes.ATTACK_DAMAGE, 6.0)
                 .add(Attributes.FOLLOW_RANGE, 20.0)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.6);
     }

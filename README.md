@@ -451,6 +451,36 @@ The bosses have a health bar. New uses for the drops:
 - **Horn Bow:** two ox horns and string make a bow.
 - **White Tiger Pelt:** a rare treasure that sells as fine silk.
 
+### Arms of beast and bandit
+What beasts and bandits leave now goes into arms and armour of the novel's world.
+- **New drops:**
+  - **Beast Sinew:** from wolves, leopards, tigers and bears (about one in three), and four from a king.
+  - **Beast Core:** always from a king, and rarely (1 in 25) from a beast of level 10 or more.
+  - **Bandit Insignia:** from about a third of bandits, three from a chief.
+  - **Bandit Sabre:** now and then from a bandit, graded Bronze (a chief's sometimes Black Iron).
+- **Materials you make:**
+  - **Black Iron Ingot:** two iron ingots and a coal.
+  - **Refined Steel:** two black iron ingots and a tiger bone.
+- **Weapons:**
+
+  | Weapon | Made from | Grade | Damage |
+  |---|---|---|---|
+  | Black Iron Sabre | black iron | Black Iron | 6.5, quick |
+  | Black Iron Spear | black iron | Black Iron | 7.5, slow |
+  | Refined Steel Jian | refined steel and sinew | Silver | 7.5, quick |
+  | Guandao | refined steel | Silver | 10.5, slow |
+  | Tiger Bone Bow | tiger bones and sinew | Black Iron | arrows strike harder |
+
+  Forge a Jian, Guandao or Black Iron Sabre again with a **Beast Core** and it comes out **Gold** grade.
+- **Armour:**
+  - **Hide** (any pelt and sinew): Bronze grade, between leather and mail.
+  - **Black Iron:** Black Iron grade, between iron and diamond.
+
+  Each piece is graded as it comes from the crafting table, with that grade's bonuses (and, at Silver and Gold, an effect).
+- **The market:** on the Special Items platform, **Armoury...** sells smithing materials and graded arms and armour. **Sell special items...** lists everything in your pack the market buys (graded gear, blueprints, cores, sinew, insignia, black iron, refined steel) with its price, to sell one by one or all at once.
+- **Creative tabs:** the mod's items are split into tabs: Realm Lord (tokens, coins, bags), Blueprints, Materials, Weapons & Armour (each piece also shown at its grade) and Creatures & Blocks.
+- **Damage:** a beast's level adds 5% health but only 2% damage per level (at most +60%), and the kings hit less hard than before (Wolf King 7, Boar King 9, White Tiger King 11), so a high-level beast takes long to bring down without one blow undoing a player of its level.
+
 ### Graded horses
 Every horse has a grade and a breed, shown above its head in the grade's colour, for example **Silver Dawan Horse**. A name you give it with a name tag is kept.
 

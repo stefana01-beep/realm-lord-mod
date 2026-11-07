@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "realmlord:steel_jian"
+    },
+    {
+      "item": "realmlord:beast_core"
+    }
+  ],
+  "result": {
+    "item": "realmlord:steel_jian",
+    "count": 1
+  }
+}

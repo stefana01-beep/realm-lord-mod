@@ -15,6 +15,14 @@ public class ClientModEvents {
     public static void setup(net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent event) {
         event.enqueueWork(() -> net.minecraft.client.gui.screens.MenuScreens.<net.minecraft.world.inventory.ChestMenu, StorehouseScreen>register(
                 com.realmlord.registry.ModMenus.STOREHOUSE.get(), StorehouseScreen::new));
+        // The tiger-bone bow draws like a bow.
+        event.enqueueWork(() -> {
+            net.minecraft.world.item.Item bow = com.realmlord.registry.ModArms.TIGER_BONE_BOW.get();
+            net.minecraft.client.renderer.item.ItemProperties.register(bow, new net.minecraft.resources.ResourceLocation("pull"),
+                    (stack, level, e, seed) -> e == null || e.getUseItem() != stack ? 0.0F : (stack.getUseDuration() - e.getUseItemRemainingTicks()) / 20.0F);
+            net.minecraft.client.renderer.item.ItemProperties.register(bow, new net.minecraft.resources.ResourceLocation("pulling"),
+                    (stack, level, e, seed) -> e != null && e.isUsingItem() && e.getUseItem() == stack ? 1.0F : 0.0F);
+        });
     }
 
     @SubscribeEvent

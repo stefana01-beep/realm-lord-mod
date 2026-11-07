@@ -1488,9 +1488,15 @@ public final class Village {
      * pack, bought by the market (gear by grade, blueprints at half their price). Returns copper.
      */
     public static long sellSpecial(ServerPlayer p) {
+        return sellSpecial(p, -1);
+    }
+
+    /** As above, for one inventory slot only (or every slot, for -1). */
+    public static long sellSpecial(ServerPlayer p, int only) {
         long copper = 0;
         var inv = p.getInventory();
         for (int i = 0; i < inv.getContainerSize(); i++) {
+            if (only >= 0 && i != only) continue;
             net.minecraft.world.item.ItemStack s = inv.getItem(i);
             long each = specialPrice(s);
             if (each <= 0) continue;
@@ -1511,12 +1517,27 @@ public final class Village {
             case SILVER -> 50_000;         // 5 gold
             case GOLD -> 200_000;          // 20 gold
         };
+        if (s.is(com.realmlord.registry.ModArms.BEAST_SINEW.get())) return 150;
+        if (s.is(com.realmlord.registry.ModArms.BANDIT_INSIGNIA.get())) return 300;
+        if (s.is(com.realmlord.registry.ModArms.BLACK_IRON_INGOT.get())) return 1_200;
+        if (s.is(com.realmlord.registry.ModArms.REFINED_STEEL.get())) return 5_000;
+        if (s.is(com.realmlord.registry.ModArms.BEAST_CORE.get())) return 8_000;
         String building = com.realmlord.loot.Blueprints.buildingOf(s);
         if (building != null && !building.isEmpty()) {
             BuildingType bt = BuildingType.byId(building);
             if (bt != null) return bt.blueprintPrice() / 2;
         }
         return 0;
+    }
+
+    /** Buys from the armoury: the ware goes into the Lord's pack. */
+    public static boolean buyWare(ServerPlayer p, int index) {
+        if (index < 0 || index >= Market.WARES.size()) return false;
+        Market.Ware w = Market.WARES.get(index);
+        if (!Coins.payWithTreasury(p, w.price())) return false;
+        net.minecraft.world.item.ItemStack st = w.stack(p.getRandom());
+        com.realmlord.item.ResourcesBagItem.give(p, st, st.getCount());
+        return true;
     }
 
     /** Buys a blueprint: the item, to learn by right-clicking it (or to keep, give or sell). */

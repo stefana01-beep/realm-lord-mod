@@ -194,6 +194,8 @@ def add(L):
     L.update(ROUND_GROUNDS)
     L.update(ROUND_DEFENCE)
     L.update(ROUND_TOWN)
+    import gen_arms
+    L.update(gen_arms.LANG)
 
 
 ROUND_PATHS = {

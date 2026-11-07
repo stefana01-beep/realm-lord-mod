@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "realmlord:black_iron_sabre"
+    },
+    {
+      "item": "realmlord:beast_core"
+    }
+  ],
+  "result": {
+    "item": "realmlord:black_iron_sabre",
+    "count": 1
+  }
+}

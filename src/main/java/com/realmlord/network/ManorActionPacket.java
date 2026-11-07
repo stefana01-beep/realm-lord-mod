@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 
 /** Client to server: buttons on the Manor screen. */
 public class ManorActionPacket {
-    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT, DEMOLISH, CREW, BUY_GOOD, SELL_GOOD, SELL_SPECIAL, HAND_IN, SELL_STORAGE, OPEN_STORAGE, TAKE_GOOD, GROUNDS, DEPOSIT, SPEED }
+    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT, DEMOLISH, CREW, BUY_GOOD, SELL_GOOD, SELL_SPECIAL, HAND_IN, SELL_STORAGE, OPEN_STORAGE, TAKE_GOOD, GROUNDS, DEPOSIT, SPEED, BUY_WARE }
 
     private final Action action;
     private final int a;
@@ -101,8 +101,12 @@ public class ManorActionPacket {
                 if (n <= 0) Notify.player(p, "realmlord.market.not_enough");
                 else p.displayClientMessage(Component.translatable("realmlord.market.taken", n, new net.minecraft.world.item.ItemStack(g.itemOf()).getHoverName()), true);
             }
+            case BUY_WARE -> {
+                if (!Village.buyWare(p, a)) Notify.player(p, "realmlord.market.cannot_afford");
+            }
             case SELL_SPECIAL -> {
-                long got = Village.sellSpecial(p);
+                // a: one inventory slot, or -1 for everything the market buys.
+                long got = Village.sellSpecial(p, a);
                 Notify.player(p, got > 0 ? Component.translatable("realmlord.market.sold_special", com.realmlord.village.Coins.format(got))
                         : Component.translatable("realmlord.market.nothing_special"));
             }

@@ -64,7 +64,7 @@ public class MountainTigerEntity extends Ocelot implements Sized {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 36.0)
                 .add(Attributes.MOVEMENT_SPEED, 0.32)
-                .add(Attributes.ATTACK_DAMAGE, 7.0)
+                .add(Attributes.ATTACK_DAMAGE, 6.0)
                 .add(Attributes.FOLLOW_RANGE, 28.0)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.4);
     }

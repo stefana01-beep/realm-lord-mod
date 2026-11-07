@@ -26,7 +26,7 @@ public class TigerKingEntity extends MountainTigerEntity {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 260.0)
                 .add(Attributes.MOVEMENT_SPEED, 0.33)
-                .add(Attributes.ATTACK_DAMAGE, 16.0)
+                .add(Attributes.ATTACK_DAMAGE, 11.0)
                 .add(Attributes.ARMOR, 8.0)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 1.0)
                 .add(Attributes.FOLLOW_RANGE, 36.0);

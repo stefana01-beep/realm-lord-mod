@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "PPP",
+    "PWP",
+    "P P"
+  ],
+  "key": {
+    "P": {
+      "tag": "realmlord:pelts"
+    },
+    "W": {
+      "item": "realmlord:beast_sinew"
+    }
+  },
+  "result": {
+    "item": "realmlord:hide_leggings",
+    "count": 1
+  }
+}

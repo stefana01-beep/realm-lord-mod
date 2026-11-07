@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "PWP",
+    "PPP",
+    "PPP"
+  ],
+  "key": {
+    "P": {
+      "tag": "realmlord:pelts"
+    },
+    "W": {
+      "item": "realmlord:beast_sinew"
+    }
+  },
+  "result": {
+    "item": "realmlord:hide_jerkin",
+    "count": 1
+  }
+}

@@ -538,8 +538,10 @@ public class ManorScreen extends Screen {
             addRenderableWidget(Button.builder(Component.translatable("realmlord.storage.sell"), b -> minecraft.setScreen(new SellScreen()))
                     .bounds(x + 264, by, 128, 16).tooltip(Tooltip.create(Component.translatable("realmlord.storage.sell.tip"))).build());
         } else {
-            addRenderableWidget(Button.builder(Component.translatable("realmlord.market.sell_special"), b -> send(ManorActionPacket.Action.SELL_SPECIAL, 0, 0))
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.market.sell_special"), b -> minecraft.setScreen(new SpecialMarketScreen(false)))
                     .bounds(x + 8, y + 58, 180, 16).tooltip(Tooltip.create(Component.translatable("realmlord.market.sell_special.tip"))).build());
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.market.armoury"), b -> minecraft.setScreen(new SpecialMarketScreen(true)))
+                    .bounds(x + 194, y + 58, W - 204, 16).tooltip(Tooltip.create(Component.translatable("realmlord.market.armoury.tip"))).build());
             List<BuildingType> bps = blueprintRows(v);
             scroll = Math.max(0, Math.min(scroll, bps.size() - BP_ROWS));
             for (int i = 0; i < BP_ROWS && i + scroll < bps.size(); i++) {

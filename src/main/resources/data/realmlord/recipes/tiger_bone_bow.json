@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " TW",
+    "T W",
+    " TW"
+  ],
+  "key": {
+    "T": {
+      "item": "realmlord:tiger_bone"
+    },
+    "W": {
+      "item": "realmlord:beast_sinew"
+    }
+  },
+  "result": {
+    "item": "realmlord:tiger_bone_bow",
+    "count": 1
+  }
+}
