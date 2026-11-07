@@ -1311,8 +1311,8 @@ The order follows the novel: Ouyang Shuo summons his first general, sets up the 
    - **Running the town:** building windows (what workshops make; schools, the dojo and apprentices), the coin purse and treasury, a ten-page self-sorting storehouse, chest sorting, villagers who shelter and fight back, soldiers' levels, experience from every kill, the gentler wilds and dens of three kings, the Bandit Lands, stepped paths and graded slopes.
    - **The village ground:** the grounds levelled to the manor on founding, walls on the ring of any grade, the territory reaching past the wall, unlimited defences on the wall, and a zoomable territory map.
    - **The wilds:** levels on every beast and bandit, graded horses, novel creatures only, three bosses, and ancient shrines, watchtowers and tombs in place of vanilla structures.
-   - **Still to come:** the Auction House and special markets (ship blueprints, graded weapons and armour), more hidden buildings, and more figures.
-3. **Town grades 1–3** (done): the town's conditions and buildings, the city wall, the county trial, departments and the cabinet, the standing army, the Recruitment Hall, refugees, festivals, visitors, affiliated villages, the Auction, mountain barbarian tribes, bandit fortresses and ancient ruins, ships and the navy, water bandits.
+   - **Still to come:** special markets (ship blueprints, graded weapons and armour), more hidden buildings, and more figures.
+3. **Town grades 1–3** (done): the council of officials, the novel's Lianzhou Basin, the town's conditions and buildings, the city wall, the county trial, departments and the cabinet, the standing army, the Recruitment Hall, refugees, festivals, visitors, affiliated villages, the Auction, mountain barbarian tribes, bandit fortresses and ancient ruins, ships and the navy, water bandits.
 4. **County:**
    - The regular army and formations.
    - Raids between lords.
