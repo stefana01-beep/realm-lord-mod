@@ -23,7 +23,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
 
 /**
  * Water bandits. The novel's rivers and coasts had their pirates and water bandits, who preyed on
@@ -164,18 +163,12 @@ public final class WaterForts {
     }
 
     private static void stock(ServerLevel level, BlockPos chest, RandomSource rnd) {
-        BlockEntity be = level.getBlockEntity(chest);
-        if (!(be instanceof Container c)) {
-            for (BlockPos p : BlockPos.betweenClosed(chest.offset(-2, -1, -2), chest.offset(2, 1, 2))) {
-                if (level.getBlockEntity(p) instanceof Container cc && level.getBlockState(p).is(Blocks.CHEST)) {
-                    c = cc;
-                    fill(c, rnd);
-                    return;
-                }
+        for (BlockPos p : BlockPos.betweenClosed(chest.offset(-2, -1, -2), chest.offset(2, 1, 2))) {
+            if (level.getBlockState(p).is(Blocks.CHEST) && level.getBlockEntity(p) instanceof Container cc) {
+                fill(cc, rnd);
+                return;
             }
-            return;
         }
-        fill(c, rnd);
     }
 
     private static void fill(Container c, RandomSource rnd) {
