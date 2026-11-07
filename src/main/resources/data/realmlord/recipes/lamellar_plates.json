@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "realmlord:black_iron_ingot"
+    },
+    {
+      "item": "realmlord:black_iron_ingot"
+    },
+    {
+      "item": "realmlord:beast_sinew"
+    }
+  ],
+  "result": {
+    "item": "realmlord:lamellar_plates",
+    "count": 4
+  }
+}

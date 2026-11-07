@@ -33,6 +33,9 @@ public final class ArmsEvents {
             if (chief || r.nextFloat() < 0.35F) drop(event, m, new ItemStack(ModArms.BANDIT_INSIGNIA.get(), chief ? 3 : 1));
             if (r.nextFloat() < (chief ? 0.5F : 0.08F))
                 drop(event, m, Gear.make(ModArms.BANDIT_SABRE.get(), chief && r.nextFloat() < 0.3F ? TokenGrade.BLACK_IRON : TokenGrade.BRONZE, r));
+            // Bandits carry what they plundered: a chief now and then a forging manual, any of them rations.
+            if (chief && r.nextFloat() < 0.25F) drop(event, m, Manuals.random(r));
+            if (r.nextFloat() < 0.15F) drop(event, m, new ItemStack(ModArms.MILITARY_RATIONS.get(), 1 + r.nextInt(2)));
             return;
         }
         if (!MobLevels.leveled(m) || m instanceof com.realmlord.entity.beast.WildOxEntity || m instanceof com.realmlord.entity.beast.WildBoarEntity && !king) return;

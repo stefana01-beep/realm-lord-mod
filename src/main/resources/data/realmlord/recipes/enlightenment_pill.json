@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "realmlord:beast_core"
+    },
+    {
+      "item": "realmlord:healing_pill"
+    },
+    {
+      "item": "realmlord:healing_pill"
+    },
+    {
+      "item": "realmlord:three_flower_wine"
+    },
+    {
+      "item": "minecraft:gold_ingot"
+    }
+  ],
+  "result": {
+    "item": "realmlord:enlightenment_pill",
+    "count": 1
+  }
+}

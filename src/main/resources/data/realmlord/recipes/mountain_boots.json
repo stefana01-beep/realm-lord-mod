@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "L L",
+    "R R"
+  ],
+  "key": {
+    "R": {
+      "item": "realmlord:refined_steel"
+    },
+    "L": {
+      "item": "realmlord:lamellar_plates"
+    }
+  },
+  "result": {
+    "item": "realmlord:mountain_boots",
+    "count": 1
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "ELE",
+    "LWL",
+    "L L"
+  ],
+  "key": {
+    "L": {
+      "item": "realmlord:lamellar_plates"
+    },
+    "W": {
+      "item": "realmlord:beast_sinew"
+    },
+    "E": {
+      "item": "minecraft:leather"
+    }
+  },
+  "result": {
+    "item": "realmlord:lamellar_tassets",
+    "count": 1
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "  B",
+    " B ",
+    "N  "
+  ],
+  "key": {
+    "B": {
+      "item": "realmlord:black_iron_ingot"
+    },
+    "N": {
+      "item": "minecraft:gold_nugget"
+    }
+  },
+  "result": {
+    "item": "realmlord:ring_dao",
+    "count": 1
+  }
+}

@@ -37,6 +37,8 @@ public class Territory {
     public static final int STORAGE_PAGES = 10;
     /** Building blueprints the village has learned (building ids): built as often as wanted. */
     public final java.util.Set<String> blueprints = new java.util.LinkedHashSet<>();
+    /** Forging and alchemy manuals the village's masters have learned (plan ids). */
+    public final java.util.Set<String> plans = new java.util.LinkedHashSet<>();
     /** People's Thoughts and Security (the novel's "Law and Order"), 0-100. */
     public int peopleThoughts = 70;
     public int security = 65;
@@ -165,6 +167,7 @@ public class Territory {
         t.put("goods", g);
         t.put("storage", storage.createTag());
         t.putString("blueprints", String.join(",", blueprints));
+        t.putString("plans", String.join(",", plans));
         return t;
     }
 
@@ -194,6 +197,7 @@ public class Territory {
         }
         r.storage.fromTag(t.getList("storage", net.minecraft.nbt.Tag.TAG_COMPOUND));
         for (String s : t.getString("blueprints").split(",")) if (!s.isBlank()) r.blueprints.add(s);
+        for (String s : t.getString("plans").split(",")) if (!s.isBlank()) r.plans.add(s);
         r.peopleThoughts = t.contains("thoughts") ? t.getInt("thoughts") : 70;
         r.security = t.contains("security") ? t.getInt("security") : 65;
         net.minecraft.nbt.ListTag rs = t.getList("residents", net.minecraft.nbt.Tag.TAG_COMPOUND);

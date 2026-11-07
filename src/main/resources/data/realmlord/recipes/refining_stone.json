@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "realmlord:beast_core"
+    },
+    {
+      "item": "realmlord:black_iron_ingot"
+    },
+    {
+      "item": "realmlord:black_iron_ingot"
+    },
+    {
+      "item": "realmlord:beast_sinew"
+    }
+  ],
+  "result": {
+    "item": "realmlord:refining_stone",
+    "count": 1
+  }
+}

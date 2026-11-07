@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "TCT",
+    "T T"
+  ],
+  "key": {
+    "T": {
+      "item": "realmlord:tiger_pelt"
+    },
+    "C": {
+      "item": "realmlord:beast_core"
+    }
+  },
+  "result": {
+    "item": "realmlord:tiger_hood",
+    "count": 1
+  }
+}

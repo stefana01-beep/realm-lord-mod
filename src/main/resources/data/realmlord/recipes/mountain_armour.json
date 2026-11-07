@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "R R",
+    "RLR",
+    "RDR"
+  ],
+  "key": {
+    "R": {
+      "item": "realmlord:refined_steel"
+    },
+    "L": {
+      "item": "realmlord:lamellar_plates"
+    },
+    "D": {
+      "item": "minecraft:red_dye"
+    }
+  },
+  "result": {
+    "item": "realmlord:mountain_armour",
+    "count": 1
+  }
+}

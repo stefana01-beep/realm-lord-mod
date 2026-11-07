@@ -377,4 +377,98 @@ public class TownTests {
             VillageTests.done(helper, p, t);
         });
     }
+
+    private static int modeIndex(BuildingType type, String id) {
+        java.util.List<Workshops.Mode> ms = Workshops.modes(type);
+        for (int i = 0; i < ms.size(); i++) if (ms.get(i).id().equals(id)) return i;
+        return -1;
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 100, batch = "town_manuals")
+    public static void manualsUnlockWorkshopsAndNewGearWorks(GameTestHelper helper) {
+        ServerPlayer p = RealmTests.lord(helper, CombatClass.GENERAL);
+        Territory t = VillageTests.village(helper, p, 17200);
+        ServerLevel level = helper.getLevel();
+        var A = com.realmlord.registry.ModArms.class;
+        // Recipes for the new arms, armour and medicine.
+        for (String r : new String[]{"lamellar_plates", "lamellar_coat", "mountain_armour", "tiger_war_coat", "ring_dao", "ji", "tiger_soul_sabre",
+                "healing_pill", "marrow_cleansing_pill", "military_rations", "refining_stone", "whetstone", "golden_wound_powder"})
+            helper.assertTrue(level.getRecipeManager().byKey(new net.minecraft.resources.ResourceLocation(RealmLord.MODID, r)).isPresent(), "missing recipe " + r);
+        helper.assertTrue(com.realmlord.registry.ModArms.craftedGrade(com.realmlord.registry.ModArms.TIGER_WAR_COAT.get()) == com.realmlord.territory.TokenGrade.GOLD
+                && com.realmlord.registry.ModArms.craftedGrade(com.realmlord.registry.ModArms.LAMELLAR_COAT.get()) == com.realmlord.territory.TokenGrade.BLACK_IRON
+                && com.realmlord.registry.ModArms.craftedGrade(com.realmlord.registry.ModArms.MOUNTAIN_ARMOUR.get()) == com.realmlord.territory.TokenGrade.SILVER, "wrong grades for the new armour");
+
+        // Lamellar armour is locked until the manual is learned.
+        Building smithy = staffed(t, BuildingType.BLACKSMITH_WORKSHOP, Occupation.BLACKSMITH, 1);
+        int lam = modeIndex(BuildingType.BLACKSMITH_WORKSHOP, "lamellar_armour");
+        helper.assertTrue(lam >= 0 && !Workshops.modes(smithy.type).get(lam).known(t), "lamellar armour should need its manual");
+        helper.assertTrue(com.realmlord.village.Village.learnPlan(p, com.realmlord.loot.Manuals.LAMELLAR) == null
+                && Workshops.modes(smithy.type).get(lam).known(t), "the lamellar manual was not learned");
+        helper.assertTrue(com.realmlord.village.Village.learnPlan(p, com.realmlord.loot.Manuals.LAMELLAR) != null, "a manual was learned twice");
+        // Without sinew in the storehouse, nothing is made and no ore is spent.
+        smithy.mode = lam;
+        t.ironOre = 100;
+        Workshops.make(t, level.getRandom());
+        helper.assertTrue(t.ironOre == 100, "lamellar armour was made without sinew");
+        t.storage.addItem(new ItemStack(com.realmlord.registry.ModArms.BEAST_SINEW.get(), 5));
+        Workshops.make(t, level.getRandom());
+        boolean lamellar = false;
+        for (int i = 0; i < t.storage.getContainerSize(); i++) {
+            ItemStack s = t.storage.getItem(i);
+            if (s.getItem() instanceof net.minecraft.world.item.ArmorItem a && a.getMaterial() == com.realmlord.registry.ModArms.LAMELLAR && Gear.gradeOf(s) != null) lamellar = true;
+        }
+        helper.assertTrue(lamellar && t.ironOre == 84 && t.storage.countItem(com.realmlord.registry.ModArms.BEAST_SINEW.get()) == 3,
+                "the smithy did not make graded lamellar from ore and sinew (ore " + t.ironOre + ")");
+
+        // The clinic's wound powder comes in pairs.
+        Building clinic = staffed(t, BuildingType.CLINIC, Occupation.DOCTOR, 0);
+        clinic.mode = modeIndex(BuildingType.CLINIC, "wound_powder");
+        com.realmlord.village.Goods.HERBS.add(t, 30);
+        Workshops.make(t, level.getRandom());
+        helper.assertTrue(t.storage.countItem(com.realmlord.registry.ModArms.GOLDEN_WOUND_POWDER.get()) == 6, "the clinic made "
+                + t.storage.countItem(com.realmlord.registry.ModArms.GOLDEN_WOUND_POWDER.get()) + " wound powder, not 6");
+
+        // A school teaching medicine turns out doctors.
+        Building school = staffed(t, BuildingType.PRIVATE_SCHOOL, Occupation.SCHOLAR, 2);
+        school.mode = modeIndex(BuildingType.PRIVATE_SCHOOL, "medicine");
+        Resident pupil = null;
+        for (Resident r : t.residents) if (Workshops.canLearn(t, r) && r.occupation == Occupation.FARMER) {
+            pupil = r;
+            break;
+        }
+        helper.assertTrue(pupil != null && Workshops.enrol(t, school, pupil) == null, "could not enrol a medical student");
+        for (int d = 0; d < 30 && pupil.trainingAt >= 0; d++) Workshops.teach(t, level.getRandom());
+        helper.assertTrue(pupil.occupation == Occupation.DOCTOR, "a medicine student became " + pupil.occupation);
+        // The camp's orders are what the militia does.
+        Building camp = VillageTests.built(t, BuildingType.MILITARY_CAMP);
+        camp.mode = modeIndex(BuildingType.MILITARY_CAMP, "patrol");
+        helper.assertTrue(Workshops.drillOf(t).equals("patrol"), "the camp's drill was not patrol");
+
+        // A refining stone raises gear a grade; plain gear becomes Bronze.
+        ItemStack sword = new ItemStack(Items.IRON_SWORD);
+        ItemStack bronze = com.realmlord.item.RefiningStoneItem.refine(sword, level.getRandom());
+        helper.assertTrue(bronze != null && Gear.gradeOf(bronze) == com.realmlord.territory.TokenGrade.BRONZE, "plain gear did not become Bronze");
+        ItemStack up = null;
+        for (int i = 0; i < 60 && up == null; i++) up = com.realmlord.item.RefiningStoneItem.refine(bronze, level.getRandom());
+        helper.assertTrue(up != null && Gear.gradeOf(up) == com.realmlord.territory.TokenGrade.BLACK_IRON, "Bronze gear was not refined to Black Iron");
+        // A whetstone mends a quarter of the wear.
+        ItemStack worn = new ItemStack(Items.IRON_SWORD);
+        worn.setDamageValue(200);
+        helper.assertTrue(com.realmlord.item.WhetstoneItem.hone(worn) && worn.getDamageValue() == 200 - worn.getMaxDamage() / 4, "the whetstone did not hone");
+        // A marrow-cleansing pill raises Body Structure.
+        int body = Profiles.get(p).innate(com.realmlord.profile.Innate.BODY);
+        helper.assertTrue(com.realmlord.item.PillItem.raise(p, com.realmlord.profile.Innate.BODY)
+                && Profiles.get(p).innate(com.realmlord.profile.Innate.BODY) == body + 1, "the pill did not raise Body Structure");
+        // Bandit insignia posted at home: reputation and Security.
+        p.teleportTo(level, t.center.getX() + 0.5, t.center.getY() + 1, t.center.getZ() + 0.5, 0, 0);
+        long rep = Profiles.get(p).getReputation();
+        t.security = 50;
+        helper.assertTrue(com.realmlord.village.Village.turnInInsignia(p, 10) == null, "insignia could not be posted at home");
+        helper.assertTrue(Profiles.get(p).getReputation() == rep + 20 && t.security >= 52, "posting insignia gave no reputation or Security");
+        // The armoury sells manuals.
+        boolean manual = false;
+        for (com.realmlord.village.Market.Ware w : com.realmlord.village.Market.WARES) if (w.plan() != null) manual = true;
+        helper.assertTrue(manual, "the armoury sells no manuals");
+        VillageTests.done(helper, p, t);
+    }
 }

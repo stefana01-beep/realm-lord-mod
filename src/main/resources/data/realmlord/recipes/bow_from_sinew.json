@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " TW",
+    "T W",
+    " TW"
+  ],
+  "key": {
+    "T": {
+      "item": "minecraft:stick"
+    },
+    "W": {
+      "item": "realmlord:beast_sinew"
+    }
+  },
+  "result": {
+    "item": "minecraft:bow",
+    "count": 1
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "realmlord:medicinal_herbs"
+    },
+    {
+      "item": "realmlord:medicinal_herbs"
+    },
+    {
+      "item": "minecraft:bone_meal"
+    },
+    {
+      "item": "minecraft:red_mushroom"
+    }
+  ],
+  "result": {
+    "item": "realmlord:golden_wound_powder",
+    "count": 2
+  }
+}

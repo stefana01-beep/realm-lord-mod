@@ -42,6 +42,7 @@ public class ModCreativeTabs {
                 for (String b : com.realmlord.loot.Blueprints.VILLAGE_1) out.accept(com.realmlord.loot.Blueprints.of(b));
                 for (String b : com.realmlord.loot.Blueprints.VILLAGE_2) out.accept(com.realmlord.loot.Blueprints.of(b));
                 for (String b : com.realmlord.loot.Blueprints.VILLAGE_3) out.accept(com.realmlord.loot.Blueprints.of(b));
+                for (com.realmlord.loot.Manuals.Plan p : com.realmlord.loot.Manuals.ALL) out.accept(com.realmlord.loot.Manuals.of(p));
             })
             .build());
 

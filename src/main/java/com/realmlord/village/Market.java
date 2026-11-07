@@ -8,8 +8,19 @@ public final class Market {
     private Market() {}
 
     /** Something the market's armoury sells: so many of an item, at a price (copper), at a grade (or none). */
-    public record Ware(java.util.function.Supplier<net.minecraft.world.item.Item> item, int count, long price, com.realmlord.territory.TokenGrade grade) {
+    public record Ware(java.util.function.Supplier<net.minecraft.world.item.Item> item, int count, long price, com.realmlord.territory.TokenGrade grade,
+                       com.realmlord.loot.Manuals.Plan plan) {
+        public Ware(java.util.function.Supplier<net.minecraft.world.item.Item> item, int count, long price, com.realmlord.territory.TokenGrade grade) {
+            this(item, count, price, grade, null);
+        }
+
+        /** A forging or alchemy manual, at its price. */
+        public static Ware manual(com.realmlord.loot.Manuals.Plan p) {
+            return new Ware(() -> com.realmlord.registry.ModArms.MANUAL.get(), 1, p.price(), null, p);
+        }
+
         public net.minecraft.world.item.ItemStack stack(net.minecraft.util.RandomSource r) {
+            if (plan != null) return com.realmlord.loot.Manuals.of(plan);
             if (grade != null) return com.realmlord.loot.Gear.make(item.get(), grade, r);
             return new net.minecraft.world.item.ItemStack(item.get(), count);
         }
@@ -21,19 +32,41 @@ public final class Market {
             new Ware(() -> com.realmlord.registry.ModArms.BLACK_IRON_INGOT.get(), 2, 3_500, null),
             new Ware(() -> com.realmlord.registry.ModArms.REFINED_STEEL.get(), 1, 7_000, null),
             new Ware(() -> com.realmlord.registry.ModArms.BEAST_CORE.get(), 1, 15_000, null),
+            new Ware(() -> com.realmlord.registry.ModArms.LAMELLAR_PLATES.get(), 8, 4_000, null),
+            new Ware(() -> com.realmlord.registry.ModArms.WHETSTONE.get(), 4, 400, null),
+            new Ware(() -> com.realmlord.registry.ModArms.REFINING_STONE.get(), 1, 25_000, null),
+            new Ware(() -> com.realmlord.registry.ModArms.GOLDEN_WOUND_POWDER.get(), 4, 800, null),
+            new Ware(() -> com.realmlord.registry.ModArms.HEALING_PILL.get(), 2, 3_000, null),
+            new Ware(() -> com.realmlord.registry.ModArms.MILITARY_RATIONS.get(), 8, 600, null),
+            Ware.manual(com.realmlord.loot.Manuals.RATIONS),
+            Ware.manual(com.realmlord.loot.Manuals.LAMELLAR),
+            Ware.manual(com.realmlord.loot.Manuals.POLEARMS),
+            Ware.manual(com.realmlord.loot.Manuals.ALCHEMY),
+            Ware.manual(com.realmlord.loot.Manuals.MOUNTAIN_PATTERN),
+            Ware.manual(com.realmlord.loot.Manuals.TIGER_WAR),
             new Ware(() -> com.realmlord.registry.ModArms.HIDE_HELMET.get(), 1, 3_000, com.realmlord.territory.TokenGrade.BRONZE),
             new Ware(() -> com.realmlord.registry.ModArms.HIDE_JERKIN.get(), 1, 4_000, com.realmlord.territory.TokenGrade.BRONZE),
             new Ware(() -> com.realmlord.registry.ModArms.HIDE_LEGGINGS.get(), 1, 3_500, com.realmlord.territory.TokenGrade.BRONZE),
             new Ware(() -> com.realmlord.registry.ModArms.HIDE_BOOTS.get(), 1, 2_500, com.realmlord.territory.TokenGrade.BRONZE),
             new Ware(() -> com.realmlord.registry.ModArms.BLACK_IRON_SABRE.get(), 1, 18_000, com.realmlord.territory.TokenGrade.BLACK_IRON),
             new Ware(() -> com.realmlord.registry.ModArms.BLACK_IRON_SPEAR.get(), 1, 18_000, com.realmlord.territory.TokenGrade.BLACK_IRON),
+            new Ware(() -> com.realmlord.registry.ModArms.RING_DAO.get(), 1, 16_000, com.realmlord.territory.TokenGrade.BLACK_IRON),
             new Ware(() -> com.realmlord.registry.ModArms.TIGER_BONE_BOW.get(), 1, 22_000, com.realmlord.territory.TokenGrade.BLACK_IRON),
             new Ware(() -> com.realmlord.registry.ModArms.BLACK_IRON_HELMET.get(), 1, 15_000, com.realmlord.territory.TokenGrade.BLACK_IRON),
             new Ware(() -> com.realmlord.registry.ModArms.BLACK_IRON_CUIRASS.get(), 1, 25_000, com.realmlord.territory.TokenGrade.BLACK_IRON),
             new Ware(() -> com.realmlord.registry.ModArms.BLACK_IRON_GREAVES.get(), 1, 20_000, com.realmlord.territory.TokenGrade.BLACK_IRON),
             new Ware(() -> com.realmlord.registry.ModArms.BLACK_IRON_BOOTS.get(), 1, 12_000, com.realmlord.territory.TokenGrade.BLACK_IRON),
+            new Ware(() -> com.realmlord.registry.ModArms.LAMELLAR_HELMET.get(), 1, 14_000, com.realmlord.territory.TokenGrade.BLACK_IRON),
+            new Ware(() -> com.realmlord.registry.ModArms.LAMELLAR_COAT.get(), 1, 24_000, com.realmlord.territory.TokenGrade.BLACK_IRON),
+            new Ware(() -> com.realmlord.registry.ModArms.LAMELLAR_TASSETS.get(), 1, 19_000, com.realmlord.territory.TokenGrade.BLACK_IRON),
+            new Ware(() -> com.realmlord.registry.ModArms.LAMELLAR_BOOTS.get(), 1, 11_000, com.realmlord.territory.TokenGrade.BLACK_IRON),
             new Ware(() -> com.realmlord.registry.ModArms.STEEL_JIAN.get(), 1, 70_000, com.realmlord.territory.TokenGrade.SILVER),
-            new Ware(() -> com.realmlord.registry.ModArms.GUANDAO.get(), 1, 90_000, com.realmlord.territory.TokenGrade.SILVER));
+            new Ware(() -> com.realmlord.registry.ModArms.GUANDAO.get(), 1, 90_000, com.realmlord.territory.TokenGrade.SILVER),
+            new Ware(() -> com.realmlord.registry.ModArms.JI.get(), 1, 85_000, com.realmlord.territory.TokenGrade.SILVER),
+            new Ware(() -> com.realmlord.registry.ModArms.MOUNTAIN_HELM.get(), 1, 60_000, com.realmlord.territory.TokenGrade.SILVER),
+            new Ware(() -> com.realmlord.registry.ModArms.MOUNTAIN_ARMOUR.get(), 1, 110_000, com.realmlord.territory.TokenGrade.SILVER),
+            new Ware(() -> com.realmlord.registry.ModArms.MOUNTAIN_GREAVES.get(), 1, 90_000, com.realmlord.territory.TokenGrade.SILVER),
+            new Ware(() -> com.realmlord.registry.ModArms.MOUNTAIN_BOOTS.get(), 1, 55_000, com.realmlord.territory.TokenGrade.SILVER));
 
     public static final int FOOD = 0, WOOD = 1, STONE = 2, IRON_ORE = 3;
     public static final String[] IDS = {"food", "wood", "stone", "iron_ore"};

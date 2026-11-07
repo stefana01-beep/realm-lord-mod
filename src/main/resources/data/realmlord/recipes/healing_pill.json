@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "realmlord:golden_wound_powder"
+    },
+    {
+      "item": "realmlord:golden_wound_powder"
+    },
+    {
+      "item": "realmlord:beast_sinew"
+    },
+    {
+      "item": "minecraft:glistering_melon_slice"
+    }
+  ],
+  "result": {
+    "item": "realmlord:healing_pill",
+    "count": 2
+  }
+}

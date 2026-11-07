@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " R",
+    "CR",
+    "T "
+  ],
+  "key": {
+    "R": {
+      "item": "realmlord:refined_steel"
+    },
+    "C": {
+      "item": "realmlord:beast_core"
+    },
+    "T": {
+      "item": "realmlord:tiger_bone"
+    }
+  },
+  "result": {
+    "item": "realmlord:tiger_soul_sabre",
+    "count": 1
+  }
+}

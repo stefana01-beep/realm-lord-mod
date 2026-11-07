@@ -15,7 +15,13 @@ DATA = os.path.join(ROOT, "data", "realmlord")
 MATERIALS = ["beast_sinew", "beast_core", "bandit_insignia", "black_iron_ingot", "refined_steel"]
 BLADES = ["bandit_sabre", "black_iron_sabre", "black_iron_spear", "steel_jian", "guandao"]
 ARMOUR = {"hide": ["hide_helmet", "hide_jerkin", "hide_leggings", "hide_boots"],
-          "black_iron": ["black_iron_helmet", "black_iron_cuirass", "black_iron_greaves", "black_iron_boots"]}
+          "black_iron": ["black_iron_helmet", "black_iron_cuirass", "black_iron_greaves", "black_iron_boots"],
+          "lamellar": ["lamellar_helmet", "lamellar_coat", "lamellar_tassets", "lamellar_boots"],
+          "mountain_pattern": ["mountain_helm", "mountain_armour", "mountain_greaves", "mountain_boots"],
+          "tiger_war": ["tiger_hood", "tiger_war_coat", None, None]}
+NEW_MATERIALS = ["lamellar_plates", "whetstone", "refining_stone", "golden_wound_powder", "healing_pill", "marrow_cleansing_pill",
+                 "enlightenment_pill", "military_rations", "manual"]
+NEW_BLADES = ["ring_dao", "ji", "tiger_soul_sabre"]
 
 HIDE = hexc("8a6440")
 BLACK_IRON = hexc("3a3d44")
@@ -116,57 +122,327 @@ def bow_img(pull=0):
     return img
 
 
-def armour_icon(kind, slot, col):
-    img, px = blank()
-    trim = hexc("c8a24a") if kind == "black_iron" else hexc("4a3020")
-    shapes = {
-        "helmet": [(x, y) for y in range(3, 10) for x in range(3, 13) if not (y > 6 and 5 <= x <= 10)],
-        "chest": [(x, y) for y in range(2, 14) for x in range(2, 14) if not (y < 5 and 5 <= x <= 10) and not (y > 6 and (x < 4 or x > 11))],
-        "legs": [(x, y) for y in range(2, 15) for x in range(3, 13) if not (y > 5 and 7 <= x <= 8)],
-        "boots": [(x, y) for y in range(7, 14) for x in range(2, 14) if not (6 <= x <= 9) and not (y < 10 and (x < 3 or x > 12))],
-    }[slot]
-    for (x, y) in shapes:
-        px[x, y] = shade(col, 1.15 - 0.03 * y + (0.06 if (x * 7 + y * 3) % 5 == 0 else 0))
-    edge = {"helmet": 3, "chest": 2, "legs": 2, "boots": 7}[slot]
-    for (x, y) in shapes:
-        if y == edge: px[x, y] = trim
-    return img
+# ---------------------------------------------------------------- armour styles
+#
+# Each style paints a surface pixel by pixel: pattern(face, x, y, w, h, rnd) gives the colour of
+# the pixel at (x, y) on a face w by h, or None for bare. The same painters draw the worn layers
+# (on the player model's unwrapped boxes) and the item icons, so the two match.
+
+LACE = hexc("a3322a")
+GOLD_TRIM = hexc("c8a24a")
+BRONZE = hexc("9a6a2e")
+LEATHER = hexc("5a3a22")
 
 
-def armour_layer(col, trim, layer, seed):
+def fur(base, x, y, rnd, dark=0.78, light=1.12):
+    """Fur: streaks running down, a little noise, lighter tips."""
+    f = 1.0 + rnd.uniform(-0.07, 0.07)
+    if (x * 5 + y * 3 + (x // 2) * 7) % 9 == 0: f *= dark
+    if (x + 2 * y) % 11 == 0: f *= light
+    return shade(base, f)
+
+
+def style_hide(face, x, y, w, h, rnd):
+    base = hexc("8a6440")
+    c = fur(base, x, y, rnd)
+    if face == "front" and w >= 8 and x in (w // 2 - 1, w // 2) and y % 2 == 0: return hexc("d8c098")   # toggles down the front
+    if y == h - 1: return fur(hexc("cbb08a"), x, y, rnd, 0.9, 1.05)      # pale fur trim at the hem
+    if (x == 0 or x == w - 1) and y % 2 == 1: return hexc("3a2616")          # stitching at the seams
+    if face == "top": return fur(hexc("6e4c30"), x, y, rnd)
+    return c
+
+
+def style_black_iron(face, x, y, w, h, rnd):
+    base = hexc("3a3d44")
+    band = y % 4
+    if band == 3: return shade(base, 0.55)                                # the gap under each plate
+    f = 1.18 if band == 0 else 1.0 if band == 1 else 0.88
+    c = shade(base, f + rnd.uniform(-0.04, 0.04))
+    if band == 1 and (x % 4 == 1): return hexc("8c8e96")                   # rivets
+    if y == 0 or y == h - 1: return GOLD_TRIM
+    if face == "front" and w >= 8 and 3 <= y <= 6 and 2 <= x <= w - 3 and (x + y) % 2 == 0: return shade(GOLD_TRIM, 0.8)  # a gilt beast-face boss
+    return c
+
+
+def style_lamellar(face, x, y, w, h, rnd):
+    """Rows of small black iron scales, each two pixels wide and three tall, the rows offset and
+    laced together with red cord; a polished mirror over the heart."""
+    iron = hexc("4a4f58")
+    row = y // 3
+    yy = y % 3
+    col = (x + row) % 2
+    if face == "front" and w >= 8 and 2 <= y <= 5 and w // 2 - 2 <= x <= w // 2 + 1:
+        d = abs(x - (w / 2 - 0.5)) + abs(y - 3.5)
+        return hexc("e8eef4") if d < 1.2 else hexc("b9c2cc") if d < 2.2 else GOLD_TRIM   # the heart-protecting mirror
+    if yy == 2 and col == 0: return LACE                                     # lacing between the rows
+    if yy == 2: return shade(iron, 0.5)
+    if col == 0 and yy == 0: return shade(iron, 1.45)                        # light catching each scale's top
+    if col == 1: return shade(iron, 0.85 + rnd.uniform(-0.04, 0.04))
+    if y == 0: return LEATHER
+    return shade(iron, 1.1 + rnd.uniform(-0.05, 0.05))
+
+
+def style_mountain(face, x, y, w, h, rnd):
+    """Mountain-pattern armour: steel scales shaped like the character 山, interlocking with no
+    lacing; a gilt mirror on the chest and a red silk sash at the waist."""
+    steel = hexc("aeb8c4")
+    if face == "front" and w >= 8 and 2 <= y <= 5 and w // 2 - 2 <= x <= w // 2 + 1:
+        d = ((x - (w / 2 - 0.5)) ** 2 + (y - 3.5) ** 2) ** 0.5
+        return hexc("f4f6f8") if d < 1.0 else GOLD_TRIM
+    if PART[0] == "body" and face in ("front", "back", "left", "right") and y in (h - 4, h - 3):
+        return hexc("b02a26") if (x + y) % 3 else hexc("7a1a18")                # the sash
+    if y == 0 or y == h - 1: return GOLD_TRIM
+    tx, ty = x % 4, y % 4
+    motif = ["#.#.", "###.", ".#..", "#.##"][ty][tx]
+    if motif == "#":
+        return shade(steel, 1.18 if ty == 0 else 1.0 + rnd.uniform(-0.04, 0.04))
+    return shade(steel, 0.58)
+
+
+def style_tiger(face, x, y, w, h, rnd):
+    """A tiger's hide: tawny orange with black stripes; the belly and the inside white."""
+    orange = hexc("d27a26")
+    if face == "front" and w >= 8 and h >= 10 and w // 2 - 2 <= x <= w // 2 + 1 and y >= 2: base = hexc("f2e8d8")
+    else: base = orange
+    stripe = (x * 2 + y * 3 + (y // 3)) % 9 in (0, 1) and not (face == "front" and base != orange and y > 3)
+    if stripe: return shade(hexc("1a1410"), 1.0 + rnd.uniform(-0.1, 0.1))
+    if y == h - 1 and h > 4: return hexc("f2e8d8")
+    return fur(base, x, y, rnd, 0.85, 1.08)
+
+
+PART = ["body"]   # which part of the body is being painted (the icons count as the body)
+
+STYLES = {"hide": style_hide, "black_iron": style_black_iron, "lamellar": style_lamellar,
+          "mountain_pattern": style_mountain, "tiger_war": style_tiger}
+
+
+def head_details(kind, px, rnd):
+    """Helmets: the pieces that make each recognisable (faces at u 0-32, v 0-16)."""
+    if kind == "mountain_pattern":
+        for (x, y) in [(11, 3), (12, 3), (11, 4), (12, 4), (12, 2), (11, 2)]: px[x, y] = hexc("c42a24")   # red tassel on the crown
+        for x in range(0, 32): px[x, 8] = GOLD_TRIM                                                       # gilt brim
+    if kind == "lamellar":
+        for (x, y) in [(11, 3), (12, 4), (12, 3), (11, 4)]: px[x, y] = hexc("8c8e96")                    # iron finial
+    if kind == "black_iron":
+        for y in range(8, 14): px[11, y] = px[12, y] = hexc("6e7078")                                    # nasal guard
+        for x in range(10, 14): px[x, 3] = GOLD_TRIM; px[x, 4] = GOLD_TRIM                              # crest
+    if kind == "hide":
+        for (x, y) in [(9, 1), (14, 1), (9, 6), (14, 6)]: px[x, y] = hexc("cbb08a")
+    if kind == "tiger_war":
+        # A tiger's face over the brow: the 王 on the forehead, amber eyes, a white muzzle.
+        for x in range(10, 14): px[x, 9] = px[x, 11] = hexc("1a1410")
+        px[11, 10] = px[12, 10] = hexc("1a1410")
+        for (x, y) in [(9, 12), (14, 12)]: px[x, y] = hexc("f0c030")
+        for (x, y) in [(10, 12), (13, 12)]: px[x, y] = hexc("1a1410")
+        for x in range(9, 15): px[x, 15] = hexc("f2e8d8")
+        px[11, 14] = px[12, 14] = hexc("f2e8d8")
+        for (x, y) in [(8, 0), (9, 0), (14, 0), (15, 0)]: px[x, y] = hexc("1a1410")   # ears on the crown
+
+
+def armour_layer(kind, layer, seed):
     """The worn armour: the humanoid layout, filled in where the armour covers."""
     rnd = random.Random(seed)
+    paint = STYLES[kind]
     img = Image.new("RGBA", (64, 32), (0, 0, 0, 0))
     px = img.load()
 
-    def box(u, v, w, h, d):
-        # A cuboid's unwrapped faces (as in the player model): top/bottom row, then the four sides.
-        regions = [(u + d, v, w, d), (u + d + w, v, w, d), (u, v + d, d, h), (u + d, v + d, w, h), (u + d + w, v + d, d, h), (u + 2 * d + w, v + d, w, h)]
-        for (x0, y0, ww, hh) in regions:
-            for y in range(y0, y0 + hh):
-                for x in range(x0, x0 + ww):
-                    if 0 <= x < 64 and 0 <= y < 32:
-                        f = 1.0 + rnd.uniform(-0.08, 0.08) - (0.15 if y in (y0, y0 + hh - 1) else 0)
-                        px[x, y] = shade(col, f)
-            for x in range(x0, x0 + ww):
-                if 0 <= x < 64 and 0 <= y0 + hh - 1 < 32: px[x, y0 + hh - 1] = trim
+    def box(u, v, w, h, d, keep=lambda f, x, y: True):
+        PART[0] = {(0, 0): "head", (16, 16): "body", (40, 16): "arm", (0, 16): "leg"}[(u, v)]
+        faces = [("top", u + d, v, w, d), ("bottom", u + d + w, v, w, d), ("right", u, v + d, d, h),
+                 ("front", u + d, v + d, w, h), ("left", u + d + w, v + d, d, h), ("back", u + 2 * d + w, v + d, w, h)]
+        for (name, x0, y0, ww, hh) in faces:
+            for y in range(hh):
+                for x in range(ww):
+                    if not keep(name, x, y): continue
+                    c = paint(name, x, y, ww, hh, rnd)
+                    if c is not None and 0 <= x0 + x < 64 and 0 <= y0 + y < 32: px[x0 + x, y0 + y] = c
 
+    sides = ("right", "front", "left", "back")
     if layer == 1:
-        box(0, 0, 8, 8, 8)       # head
-        box(16, 16, 8, 12, 4)    # body
-        box(40, 16, 4, 12, 4)    # arm
-        box(0, 16, 4, 12, 4)     # leg (boots)
-        # keep only the lower part of the legs for boots
-        for y in range(16, 32):
-            for x in range(0, 16):
-                if y < 26 and px[x, y][3]: px[x, y] = (0, 0, 0, 0)
+        box(0, 0, 8, 8, 8, lambda f, x, y: not (f == "front" and kind != "tiger_war" and 2 <= y <= 6 and 1 <= x <= 6))   # face open
+        head_details(kind, px, rnd)
+        box(16, 16, 8, 12, 4)
+        if kind == "lamellar":     # shoulder pieces only, the sleeves bare
+            box(40, 16, 4, 12, 4, lambda f, x, y: f == "top" or f in sides and y < 5)
+        elif kind == "mountain_pattern":
+            box(40, 16, 4, 12, 4, lambda f, x, y: f == "top" or f in sides and y < 8)
+        else:
+            box(40, 16, 4, 12, 4)
+        box(0, 16, 4, 12, 4, lambda f, x, y: f == "bottom" or f in sides and y >= 7)    # boots
     else:
-        box(16, 16, 8, 12, 4)    # body (the waist of the leggings)
-        box(0, 16, 4, 12, 4)     # leg
-        for y in range(16, 32):
-            for x in range(16, 40):
-                if y > 22 and px[x, y][3]: px[x, y] = (0, 0, 0, 0)
+        box(16, 16, 8, 12, 4, lambda f, x, y: f in sides and y >= 7 or f == "bottom")  # the waist
+        if kind == "lamellar":     # tassets: a skirt of scales over the thighs, the shins bare
+            box(0, 16, 4, 12, 4, lambda f, x, y: f == "top" or f in sides and y < 8)
+        else:
+            box(0, 16, 4, 12, 4)
     return img
+
+
+SHAPES = {
+    "helmet": ["................", "................", ".....######.....", "....########....", "...##########...", "...##########...",
+               "...###....###...", "...##......##...", "...##......##...", "...#........#...", "................", "................",
+               "................", "................", "................", "................"],
+    "chest": ["................", "..####....####..", ".######..######.", ".##############.", ".##############.", ".##############.",
+              "..############..", "...##########...", "...##########...", "...##########...", "...##########...", "...##########...",
+              "...##########...", "...##########...", "................", "................"],
+    "legs": ["................", "...##########...", "...##########...", "...##########...", "...####..####...", "...####..####...",
+             "...####..####...", "...####..####...", "...####..####...", "...####..####...", "...####..####...", "...####..####...",
+             "...####..####...", "................", "................", "................"],
+    "boots": ["................", "................", "................", "................", "................", "................",
+              "..####....####..", "..####....####..", "..####....####..", "..####....####..", ".#####...#####..", "######..######..",
+              "######..######..", "................", "................", "................"],
+}
+
+
+def armour_icon(kind, slot):
+    img, px = blank()
+    rnd = random.Random(hash((kind, slot)) & 0xffff)
+    shape = [row[:] for row in SHAPES[slot]]
+    if kind == "lamellar" and slot == "legs":    # tassets: a flared skirt of scales
+        shape = ["................", "...##########...", "..############..", "..############..", ".##############.", ".##############.",
+                 ".######..######.", "..####....####..", "................", "................", "................", "................",
+                 "................", "................", "................", "................"]
+    if kind == "tiger_war" and slot == "helmet":
+        shape = ["................", "...##......##...", "...###....###...", "...##########...", "..############..", "..############..",
+                 "..############..", "..############..", "...##########...", "...##......##...", "................", "................",
+                 "................", "................", "................", "................"]
+    paint = STYLES[kind]
+    ys = [y for y in range(16) if "#" in shape[y]]
+    top, h = ys[0], len(ys)
+    for y in range(16):
+        for x in range(16):
+            if shape[y][x] != "#": continue
+            PART[0] = "body" if slot == "chest" else slot
+            c = paint("front", x - 2, y - top, 12, max(h, 12) if slot == "chest" else h, rnd)
+            px[x, y] = c if c else hexc("000000", 0)
+    # outline in a darker tone
+    for y in range(16):
+        for x in range(16):
+            if shape[y][x] != "#": continue
+            if any(not (0 <= x + dx < 16 and 0 <= y + dy < 16) or shape[y + dy][x + dx] != "#" for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                px[x, y] = shade(px[x, y], 0.62)
+    if slot == "helmet":
+        if kind == "mountain_pattern":
+            for (x, y) in [(7, 0), (8, 0), (7, 1), (8, 1)]: px[x, y] = hexc("c42a24")
+        if kind == "lamellar":
+            px[7, 1] = px[8, 1] = hexc("8c8e96")
+        if kind == "black_iron":
+            for y in range(6, 10): px[7, y] = px[8, y] = hexc("6e7078")
+        if kind == "tiger_war":
+            for x in range(6, 10): px[x, 4] = px[x, 6] = hexc("1a1410")
+            px[7, 5] = px[8, 5] = hexc("1a1410")
+            px[5, 6] = px[10, 6] = hexc("f0c030")
+            for x in range(6, 10): px[x, 8] = hexc("f2e8d8")
+    return img
+
+
+def lamellar_plates_img():
+    img, px = blank()
+    iron = hexc("4a4f58")
+    for r in range(3):
+        for c in range(4):
+            x0, y0 = 2 + c * 3 + (r % 2), 3 + r * 4
+            for dy in range(3):
+                for dx in range(2):
+                    px[x0 + dx, y0 + dy] = shade(iron, 1.45 if dy == 0 and dx == 0 else 1.0 if dx == 0 else 0.8)
+            px[x0, y0 + 3] = LACE
+    return img
+
+
+def whetstone_img():
+    img, px = blank()
+    for i in range(10):
+        for w in range(3):
+            x, y = 3 + i, 10 - i // 2 + w - 1
+            px[x, y] = shade(hexc("8a8478"), 1.15 if w == 0 else 0.95 if w == 1 else 0.75)
+    return img
+
+
+def refining_stone_img():
+    img, px = blank()
+    for y in range(4, 13):
+        for x in range(3, 13):
+            if abs(x - 7.5) / 5 + abs(y - 8.5) / 4.5 < 1.0:
+                px[x, y] = shade(hexc("2e3036"), 1.0 + 0.1 * ((x * 3 + y) % 3 == 0))
+    for (x, y) in [(5, 7), (6, 8), (7, 8), (8, 9), (9, 9), (10, 10), (7, 7), (8, 8)]: px[x, y] = hexc("d45aa8")
+    px[7, 8] = px[8, 8] = hexc("ffd0f0")
+    for x in range(5, 11): px[x, 5] = hexc("5a5e68")
+    return img
+
+
+def powder_img():
+    img, px = blank()
+    paper = hexc("e8dcb8")
+    for y in range(4, 13):
+        for x in range(3, 13):
+            if abs(x - 7.5) + abs(y - 8.5) * 0.8 < 5.5: px[x, y] = shade(paper, 1.0 - 0.02 * y)
+    for (x, y) in [(7, 3), (8, 3), (7, 4), (8, 4)]: px[x, y] = LACE
+    for (x, y) in [(6, 8), (8, 9), (9, 7), (7, 10)]: px[x, y] = hexc("e0b030")
+    return img
+
+
+def pill_img(col, glow=None):
+    img, px = blank()
+    for y in range(4, 12):
+        for x in range(4, 12):
+            d = ((x - 7.5) ** 2 + (y - 7.5) ** 2) ** 0.5
+            if d < 3.8: px[x, y] = shade(hexc(col), 1.3 - d / 5)
+            elif glow and d < 4.8: px[x, y] = hexc(glow, 120)
+    px[6, 6] = px[6, 5] = hexc("ffffff")
+    return img
+
+
+def rations_img():
+    img, px = blank()
+    for y in range(5, 12):
+        for x in range(2, 14):
+            px[x, y] = shade(hexc("b08850"), 1.1 - 0.04 * (y - 5) + (0.06 if (x + y) % 3 == 0 else 0))
+    for y in range(5, 12): px[5, y] = px[10, y] = hexc("5a3a22")
+    for x in range(2, 14): px[x, 4] = hexc("d8c098")
+    return img
+
+
+def manual_img():
+    img, px = blank()
+    for y in range(2, 14):
+        for x in range(3, 13):
+            px[x, y] = shade(hexc("2e4a7a"), 1.05 - 0.02 * y)
+    for y in range(2, 14): px[3, y] = hexc("e8dcb8"); px[12, y] = hexc("1a2a48")
+    for y in (4, 7, 10, 12): px[4, y] = hexc("c8c0a0")                   # stitched binding
+    for y in range(4, 11): px[9, y] = px[10, y] = hexc("e8dcb8")            # the title slip
+    px[9, 6] = px[10, 8] = hexc("3a2a1a")
+    return img
+
+
+def ring_dao_img():
+    img = blade(shade(BLACK_IRON, 1.4), 9, 2, hexc("3a2a1a"), guard=hexc("6a6a6a"), curve=0.6)
+    px = img.load()
+    for (x, y) in [(0, 13), (0, 14), (1, 15), (2, 15), (1, 12), (2, 12)]: px[x, y] = GOLD_TRIM   # the ring pommel
+    return img
+
+
+def ji_img():
+    img = spear_img(STEEL, WOOD)
+    px = img.load()
+    for (x, y) in [(9, 4), (8, 3), (8, 4), (9, 5), (7, 3)]: px[x, y] = shade(STEEL, 1.1)    # the crescent side blade
+    return img
+
+
+def tiger_soul_img():
+    img = blade(hexc("6a6e78"), 9, 2, hexc("d27a26"), guard=GOLD_TRIM, curve=1.6)
+    px = img.load()
+    for i in range(1, 10):
+        x, y = 4 + i, 11 - i
+        if 0 <= x < 16 and 0 <= y < 16 and px[x, y][3]: px[x, y] = hexc("f08a30")    # the edge glows like embers
+    for (x, y) in [(1, 14), (2, 13), (3, 12)]: px[x, y] = hexc("1a1410") if (x % 2) else hexc("d27a26")
+    return img
+
+
+EXTRA_ICONS = {"lamellar_plates": lamellar_plates_img, "whetstone": whetstone_img, "refining_stone": refining_stone_img,
+               "golden_wound_powder": powder_img, "healing_pill": lambda: pill_img("a83a2a"),
+               "marrow_cleansing_pill": lambda: pill_img("f4ecd0", "f0d060"), "enlightenment_pill": lambda: pill_img("6a5ad0", "a8c8ff"),
+               "military_rations": rations_img, "manual": manual_img, "ring_dao": ring_dao_img, "ji": ji_img,
+               "tiger_soul_sabre": tiger_soul_img}
 
 
 def textures():
@@ -186,15 +462,15 @@ def textures():
     for i, pull in enumerate([1, 2, 3]):
         bow_img(pull).save(os.path.join(item, f"tiger_bone_bow_pulling_{i}.png"))
     for kind, names in ARMOUR.items():
-        col = HIDE if kind == "hide" else BLACK_IRON
         for n, slot in zip(names, ["helmet", "chest", "legs", "boots"]):
-            armour_icon(kind, slot, col).save(os.path.join(item, n + ".png"))
+            if n: armour_icon(kind, slot).save(os.path.join(item, n + ".png"))
     armour = os.path.join(ASSETS, "textures", "models", "armor")
     os.makedirs(armour, exist_ok=True)
-    armour_layer(HIDE, hexc("4a3020"), 1, 1).save(os.path.join(armour, "hide_layer_1.png"))
-    armour_layer(HIDE, hexc("4a3020"), 2, 2).save(os.path.join(armour, "hide_layer_2.png"))
-    armour_layer(BLACK_IRON, hexc("c8a24a"), 1, 3).save(os.path.join(armour, "black_iron_layer_1.png"))
-    armour_layer(BLACK_IRON, hexc("c8a24a"), 2, 4).save(os.path.join(armour, "black_iron_layer_2.png"))
+    for i, kind in enumerate(ARMOUR):
+        armour_layer(kind, 1, 2 * i + 1).save(os.path.join(armour, kind + "_layer_1.png"))
+        armour_layer(kind, 2, 2 * i + 2).save(os.path.join(armour, kind + "_layer_2.png"))
+    for name, fn in EXTRA_ICONS.items():
+        fn().save(os.path.join(item, name + ".png"))
 
 
 def write(path, obj):
@@ -205,9 +481,9 @@ def write(path, obj):
 
 def models():
     m = os.path.join(ASSETS, "models", "item")
-    for n in MATERIALS + ARMOUR["hide"] + ARMOUR["black_iron"]:
+    for n in MATERIALS + NEW_MATERIALS + [a for names in ARMOUR.values() for a in names if a]:
         write(os.path.join(m, n + ".json"), {"parent": "minecraft:item/generated", "textures": {"layer0": f"realmlord:item/{n}"}})
-    for n in BLADES:
+    for n in BLADES + NEW_BLADES:
         write(os.path.join(m, n + ".json"), {"parent": "minecraft:item/handheld", "textures": {"layer0": f"realmlord:item/{n}"}})
     write(os.path.join(m, "tiger_bone_bow.json"), {
         "parent": "minecraft:item/bow", "textures": {"layer0": "realmlord:item/tiger_bone_bow"},
@@ -254,6 +530,45 @@ def recipes():
     shaped("black_iron_cuirass", ["B B", "BBB", "BBB"], {"B": B}, "realmlord:black_iron_cuirass")
     shaped("black_iron_greaves", ["BBB", "B B", "B B"], {"B": B}, "realmlord:black_iron_greaves")
     shaped("black_iron_boots", ["B B", "B B"], {"B": B}, "realmlord:black_iron_boots")
+    # Lamellar: scales punched from black iron and laced with sinew.
+    L, C, T, TB = I("realmlord:lamellar_plates"), I("realmlord:beast_core"), I("realmlord:tiger_pelt"), I("realmlord:tiger_bone")
+    LE = I("minecraft:leather")
+    shapeless("lamellar_plates", [B, B, S], "realmlord:lamellar_plates", 4)
+    shaped("lamellar_helmet", ["LLL", "LWL"], {"L": L, "W": S}, "realmlord:lamellar_helmet")
+    shaped("lamellar_coat", ["LWL", "LLL", "LEL"], {"L": L, "W": S, "E": LE}, "realmlord:lamellar_coat")
+    shaped("lamellar_tassets", ["ELE", "LWL", "L L"], {"L": L, "W": S, "E": LE}, "realmlord:lamellar_tassets")
+    shaped("lamellar_boots", ["LWL", "E E"], {"L": L, "W": S, "E": LE}, "realmlord:lamellar_boots")
+    # Mountain pattern: interlocking refined steel scales over lamellar, a red silk tassel.
+    D = I("minecraft:red_dye")
+    shaped("mountain_helm", ["RDR", "R R"], {"R": R, "D": D}, "realmlord:mountain_helm")
+    shaped("mountain_armour", ["R R", "RLR", "RDR"], {"R": R, "L": L, "D": D}, "realmlord:mountain_armour")
+    shaped("mountain_greaves", ["RLR", "R R", "R R"], {"R": R, "L": L}, "realmlord:mountain_greaves")
+    shaped("mountain_boots", ["L L", "R R"], {"R": R, "L": L}, "realmlord:mountain_boots")
+    # The tiger set: the pelt over steel, with a beast core sewn in.
+    shaped("tiger_hood", ["TCT", "T T"], {"T": T, "C": C}, "realmlord:tiger_hood")
+    shaped("tiger_war_coat", ["T T", "RCR", "TRT"], {"T": T, "C": C, "R": R}, "realmlord:tiger_war_coat")
+    # Weapons.
+    shaped("ring_dao", ["  B", " B ", "N  "], {"B": B, "N": I("minecraft:gold_nugget")}, "realmlord:ring_dao")
+    shaped("ji", [" RR", " SR", "S  "], {"R": R, "S": ST}, "realmlord:ji")
+    shaped("tiger_soul_sabre", [" R", "CR", "T "], {"R": R, "C": C, "T": TB}, "realmlord:tiger_soul_sabre")
+    shapeless("ring_dao_core", [I("realmlord:ring_dao"), C], "realmlord:ring_dao")
+    shapeless("ji_core", [I("realmlord:ji"), C], "realmlord:ji")
+    # Sinew strings bows and crossbows.
+    shaped("bow_from_sinew", [" TW", "T W", " TW"], {"T": ST, "W": S}, "minecraft:bow")
+    shaped("crossbow_from_sinew", ["TIT", "WHW", " T "], {"T": ST, "I": I("minecraft:iron_ingot"), "W": S, "H": I("minecraft:tripwire_hook")}, "minecraft:crossbow")
+    # Tools of the trade and medicine.
+    shapeless("whetstone", [I("minecraft:flint"), I("minecraft:cobblestone"), I("minecraft:cobblestone")], "realmlord:whetstone", 2)
+    shapeless("refining_stone", [C, B, B, S], "realmlord:refining_stone")
+    H = I("realmlord:medicinal_herbs")
+    shapeless("golden_wound_powder", [H, H, I("minecraft:bone_meal"), I("minecraft:red_mushroom")], "realmlord:golden_wound_powder", 2)
+    G = I("realmlord:golden_wound_powder")
+    shapeless("healing_pill", [G, G, S, I("minecraft:glistering_melon_slice")], "realmlord:healing_pill", 2)
+    shapeless("marrow_cleansing_pill", [C, I("realmlord:healing_pill"), I("realmlord:healing_pill"), TB, I("minecraft:gold_ingot")], "realmlord:marrow_cleansing_pill")
+    shapeless("enlightenment_pill", [C, I("realmlord:healing_pill"), I("realmlord:healing_pill"), I("realmlord:three_flower_wine"), I("minecraft:gold_ingot")],
+              "realmlord:enlightenment_pill")
+    write(os.path.join(DATA, "tags", "items", "cooked_meats.json"), {"replace": False, "values": [
+        "minecraft:cooked_beef", "minecraft:cooked_porkchop", "minecraft:cooked_mutton", "minecraft:cooked_chicken", "minecraft:cooked_rabbit"]})
+    shapeless("military_rations", [I("minecraft:bread"), I("minecraft:bread"), I("realmlord:salt"), {"tag": "realmlord:cooked_meats"}], "realmlord:military_rations", 4)
 
 
 LANG = {
@@ -285,9 +600,142 @@ LANG = {
     "realmlord.market.special.title": "Special Items",
     "realmlord.market.special.buy_tab": "Armoury",
     "realmlord.market.special.sell_tab": "Sell from pack",
-    "realmlord.market.special.nothing": "Nothing in your pack is wanted here. The market buys graded gear, blueprints, beast cores, sinew, bandit insignia, black iron and refined steel.",
+    "realmlord.market.special.nothing": "Nothing in your pack is wanted here. The market buys graded gear, blueprints, manuals, beast cores, sinew, bandit insignia, black iron, refined steel, plates, pills and rations.",
     "realmlord.market.sell_special": "Sell special items...",
     "realmlord.market.sell_special.tip": "Choose which graded gear, blueprints and materials from your pack to sell, one by one or all at once.",
+    "item.realmlord.ring_dao": "Ring-Pommel Dao",
+    "item.realmlord.ji": "Ji Halberd",
+    "item.realmlord.tiger_soul_sabre": "Tiger Soul Sabre",
+    "item.realmlord.lamellar_plates": "Lamellar Plates",
+    "item.realmlord.whetstone": "Whetstone",
+    "item.realmlord.refining_stone": "Refining Stone",
+    "item.realmlord.manual": "Manual",
+    "item.realmlord.manual.named": "Manual: %s",
+    "item.realmlord.golden_wound_powder": "Golden Wound Powder",
+    "item.realmlord.healing_pill": "Rejuvenation Pill",
+    "item.realmlord.marrow_cleansing_pill": "Marrow Cleansing Pill",
+    "item.realmlord.enlightenment_pill": "Enlightenment Pill",
+    "item.realmlord.military_rations": "Military Rations",
+    "item.realmlord.lamellar_helmet": "Lamellar Helm",
+    "item.realmlord.lamellar_coat": "Lamellar Coat",
+    "item.realmlord.lamellar_tassets": "Lamellar Tassets",
+    "item.realmlord.lamellar_boots": "Lamellar Boots",
+    "item.realmlord.mountain_helm": "Mountain-Pattern Helm",
+    "item.realmlord.mountain_armour": "Mountain-Pattern Armour",
+    "item.realmlord.mountain_greaves": "Mountain-Pattern Greaves",
+    "item.realmlord.mountain_boots": "Mountain-Pattern War Boots",
+    "item.realmlord.tiger_hood": "Tiger-Head Hood",
+    "item.realmlord.tiger_war_coat": "Tiger-Hide War Coat",
+    # Manuals
+    "realmlord.plan.rations": "Field Rations",
+    "realmlord.plan.rations.desc": "How an army's dry rations are baked, salted and packed. The grocer can make Military Rations.",
+    "realmlord.plan.lamellar": "Lamellar Armour",
+    "realmlord.plan.lamellar.desc": "Scales punched, rowed and laced. The smithy can make lamellar armour.",
+    "realmlord.plan.polearms": "Polearms",
+    "realmlord.plan.polearms.desc": "Spear, guandao and ji. The weapons workshop can forge polearms.",
+    "realmlord.plan.alchemy": "Pill Refining",
+    "realmlord.plan.alchemy.desc": "A Taoist's furnace notes. The clinic can refine Rejuvenation, Marrow Cleansing and Enlightenment pills.",
+    "realmlord.plan.mountain_pattern": "Mountain-Pattern Armour",
+    "realmlord.plan.mountain_pattern.desc": "The generals' armour of interlocking steel. The weapons workshop can make it.",
+    "realmlord.plan.tiger_war": "Tiger War Gear",
+    "realmlord.plan.tiger_war.desc": "The Tiger Soul Sabre and the tiger-hide war coat. Needs beast cores and tiger pelts in the storehouse.",
+    "realmlord.plan.tooltip": "Right-click to teach it to your village's masters.",
+    "realmlord.plan.learned": "Your masters have learned the manual: %s.",
+    "realmlord.plan.known": "Your village already knows %s.",
+    # Items in use
+    "realmlord.pill.wound_powder.desc": "Closes wounds: heals 2 hearts and a little more.",
+    "realmlord.pill.healing.desc": "Heals 4 hearts at once, keeps healing, and shields for a minute.",
+    "realmlord.pill.marrow.desc": "A special pill: raises Body Structure by 1 (up to 30).",
+    "realmlord.pill.enlightenment.desc": "A special pill: raises Comprehension by 1 (up to 30).",
+    "realmlord.pill.raised": "%s rises to %s.",
+    "realmlord.pill.capped": "%s is already %s; the pill can do no more.",
+    "realmlord.whetstone.tip": "Right-click with a blade or armour in the other hand: mends a quarter of its wear.",
+    "realmlord.whetstone.nothing": "Hold something worn in your other hand.",
+    "realmlord.refine.tip": "Right-click with gear in the other hand to raise it a grade (ungraded becomes Bronze). The higher the grade, the likelier it fails; failure costs only the stone.",
+    "realmlord.refine.nothing": "Hold a weapon or armour below Gold grade in your other hand.",
+    "realmlord.refine.done": "Refined: %s.",
+    "realmlord.refine.failed": "The refining fails; the stone crumbles. Your gear is unharmed.",
+    "realmlord.insignia.tip": "Right-click in your own territory to post the kills: 2 reputation and a 50 copper bounty each; Security rises.",
+    "realmlord.insignia.no_village": "Only a Lord with a village can post bounties.",
+    "realmlord.insignia.not_here": "Post them in your own territory.",
+    "realmlord.insignia.done": "Posted %s bandit insignia: +%s reputation, %s bounty, Security +%s.",
+    # Building windows
+    "realmlord.workshop.teaches_what": "What it does",
+    "realmlord.workshop.needs_plan": "Needs the manual: %s",
+    "realmlord.workshop.err.plan": "Your village hasn't learned the manual for that.",
+    "realmlord.workshop.and_kinds": "%s and %s other kind(s)",
+    "realmlord.workshop.makes_named": "Each day: %s %s into the storehouse.",
+    "realmlord.workshop.makes_named_from": "Each day: %s %s into the storehouse, from %s %s each time. Arms and armour are graded by the master's skill.",
+    "realmlord.workshop.also_needs": "Also uses %s %s from the storehouse each time (%s there).",
+    "realmlord.workshop.mode.black_iron": "Black iron ingots",
+    "realmlord.workshop.mode.whetstones": "Whetstones",
+    "realmlord.workshop.mode.lamellar_plates": "Lamellar plates",
+    "realmlord.workshop.mode.black_iron_arms": "Black iron blades",
+    "realmlord.workshop.mode.lamellar_armour": "Lamellar armour",
+    "realmlord.workshop.mode.horse_armour": "Horse barding",
+    "realmlord.workshop.mode.arrows": "Arrows",
+    "realmlord.workshop.mode.refined_steel": "Refined steel",
+    "realmlord.workshop.mode.steel_blades": "Steel blades",
+    "realmlord.workshop.mode.bows": "Tiger bone bows",
+    "realmlord.workshop.mode.polearms": "Polearms",
+    "realmlord.workshop.mode.mountain_armour": "Mountain armour",
+    "realmlord.workshop.mode.tiger_soul": "Tiger Soul Sabre",
+    "realmlord.workshop.mode.hide_armour": "Hide armour",
+    "realmlord.workshop.mode.banners": "Banners",
+    "realmlord.workshop.mode.bedding": "Bedding",
+    "realmlord.workshop.mode.tiger_war_coat": "Tiger war coats",
+    "realmlord.workshop.mode.wound_powder": "Wound powder",
+    "realmlord.workshop.mode.healing_pills": "Rejuvenation pills",
+    "realmlord.workshop.mode.marrow_pills": "Marrow pills",
+    "realmlord.workshop.mode.enlightenment_pills": "Enlightenment pills",
+    "realmlord.workshop.mode.wine": "Wine (stock)",
+    "realmlord.workshop.mode.tiger_bone_wine": "Tiger bone wine",
+    "realmlord.workshop.mode.bottled_wine": "Bottled wine",
+    "realmlord.workshop.mode.salt": "Salt (stock)",
+    "realmlord.workshop.mode.rations": "Military rations",
+    "realmlord.workshop.mode.cured_meat": "Cured meat",
+    "realmlord.workshop.mode.dried_fish": "Dried fish",
+    "realmlord.workshop.mode.pottery": "Pottery (stock)",
+    "realmlord.workshop.mode.bricks": "Bricks",
+    "realmlord.workshop.mode.roof_tiles": "Roof tiles",
+    "realmlord.workshop.mode.flower_pots": "Pots",
+    "realmlord.workshop.mode.tend_horses": "Tend the horses",
+    "realmlord.workshop.mode.tend_horses.desc": "The stableman looks after the village's horses and makes nothing else.",
+    "realmlord.workshop.mode.saddles": "Saddles",
+    "realmlord.workshop.mode.leads": "Leads",
+    "realmlord.workshop.mode.leather_barding": "Leather barding",
+    "realmlord.workshop.mode.fist_and_palm": "Fist & palm",
+    "realmlord.workshop.mode.fist_and_palm.desc": "The foundation: pupils gain 1 Force a day and steady soldier's experience. They become martial artists.",
+    "realmlord.workshop.mode.weapon_forms": "Weapon forms",
+    "realmlord.workshop.mode.weapon_forms.desc": "Sabre and spear forms: twice the soldier's experience, Force rises more slowly. They become martial artists.",
+    "realmlord.workshop.mode.internal_arts": "Internal arts",
+    "realmlord.workshop.mode.internal_arts.desc": "Breathing and Qi cultivation: Force rises fast (up to 92), little soldier's experience, and the lessons take 25 days.",
+    "realmlord.workshop.mode.archery": "Archery",
+    "realmlord.workshop.mode.archery.desc": "The bow: some Force and soldier's experience. Pupils become hunters.",
+    "realmlord.workshop.mode.qinggong": "Qinggong",
+    "realmlord.workshop.mode.qinggong.desc": "Lightness skill: a short course of 15 days. Pupils become martial artists sooner but less strong.",
+    "realmlord.workshop.mode.classics": "Classics",
+    "realmlord.workshop.mode.classics.desc": "The Four Books: Intelligence and Politics. Students become scholars.",
+    "realmlord.workshop.mode.statecraft": "Statecraft",
+    "realmlord.workshop.mode.statecraft.desc": "Law and government: Politics above all. Students become civil servants, fit for office.",
+    "realmlord.workshop.mode.strategy": "Military strategy",
+    "realmlord.workshop.mode.strategy.desc": "Sun Tzu and the military classics: Command and Intelligence, 25 days. Students become officers.",
+    "realmlord.workshop.mode.medicine": "Medicine",
+    "realmlord.workshop.mode.medicine.desc": "Herbs and pulse-reading: Intelligence. Students become doctors for the clinic.",
+    "realmlord.workshop.mode.accounts": "Accounts",
+    "realmlord.workshop.mode.accounts.desc": "The abacus and the ledger. Students become grocers.",
+    "realmlord.workshop.mode.drill": "Drill",
+    "realmlord.workshop.mode.drill.desc": "The ordinary daily drill: Force and soldier's experience for the militia.",
+    "realmlord.workshop.mode.formation": "Formation drill",
+    "realmlord.workshop.mode.formation.desc": "Marching in ranks: far more soldier's experience, less Force; officers' Command grows faster.",
+    "realmlord.workshop.mode.weapons_practice": "Weapons practice",
+    "realmlord.workshop.mode.weapons_practice.desc": "Sparring: Force grows twice as fast, a little less experience.",
+    "realmlord.workshop.mode.archery_drill": "Archery drill",
+    "realmlord.workshop.mode.archery_drill.desc": "At the butts: a little more of both Force and experience.",
+    "realmlord.workshop.mode.patrol": "Patrol",
+    "realmlord.workshop.mode.patrol.desc": "The militia walks the lanes and the wall: Security rises each day, but they drill little.",
+    "realmlord.workshop.mode.rest": "Rest",
+    "realmlord.workshop.mode.rest.desc": "A day off: no drill, and every soldier's loyalty rises.",
 }
 
 

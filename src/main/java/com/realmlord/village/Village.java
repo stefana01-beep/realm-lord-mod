@@ -210,17 +210,36 @@ public final class Village {
         return null;
     }
 
-    /** The militia's daily drill: Force grows, faster under a good commander, up to what the person can reach. */
+    /**
+     * The militia's daily drill, as the military camp orders it: Force grows, faster under a good
+     * commander, up to what the person can reach. Formation drill makes better soldiers, weapons
+     * practice stronger fighters, archery a little of both; patrols keep the peace (Security) at
+     * the cost of the drill, and a day of rest mends loyalty.
+     */
     private static void drill(Territory t, RandomSource rnd) {
+        String how = Workshops.drillOf(t);
         double chance = 0.25 * Office.boost(t, Office.MILITARY, 200);
+        double forceMul = 1.0, xpMul = 1.0;
+        switch (how) {
+            case "formation" -> { forceMul = 0.5; xpMul = 1.6; }
+            case "weapons_practice" -> { forceMul = 2.0; xpMul = 0.8; }
+            case "archery_drill" -> { forceMul = 1.2; xpMul = 1.2; }
+            case "patrol" -> { forceMul = 0.3; xpMul = 0.5; }
+            case "rest" -> { forceMul = 0; xpMul = 0; }
+            default -> { }
+        }
+        int soldiers = 0;
         for (Resident r : t.residents) {
             if (!r.militia) continue;
+            soldiers++;
             int cap = r.isFigure() ? 100 : r.grade >= 0 ? 70 : 45;
-            if (r.force < cap && rnd.nextDouble() < chance) r.force++;
-            if (r.occupation == Occupation.OFFICER && r.command < cap && rnd.nextDouble() < chance / 2) r.command++;
+            if (r.force < cap && rnd.nextDouble() < chance * forceMul) r.force++;
+            if (r.occupation == Occupation.OFFICER && r.command < cap && rnd.nextDouble() < chance / 2 * (how.equals("formation") ? 2 : 1)) r.command++;
             // A day at the drill is worth something to every soldier, more under a good commander.
-            r.gainSoldierXp(Math.round(15 * Office.boost(t, Office.MILITARY, 200)));
+            if (xpMul > 0) r.gainSoldierXp(Math.round(15 * xpMul * Office.boost(t, Office.MILITARY, 200)));
+            if (how.equals("rest") && r.loyalty < 100) r.loyalty++;
         }
+        if (how.equals("patrol") && soldiers > 0 && t.security < 100) t.security = Math.min(100, t.security + 1 + soldiers / 10);
     }
 
     /** Hunters' day out in the wilds: meat and hides. */
@@ -1522,6 +1541,15 @@ public final class Village {
         if (s.is(com.realmlord.registry.ModArms.BLACK_IRON_INGOT.get())) return 1_200;
         if (s.is(com.realmlord.registry.ModArms.REFINED_STEEL.get())) return 5_000;
         if (s.is(com.realmlord.registry.ModArms.BEAST_CORE.get())) return 8_000;
+        if (s.is(com.realmlord.registry.ModArms.LAMELLAR_PLATES.get())) return 400;
+        if (s.is(com.realmlord.registry.ModArms.WHETSTONE.get())) return 60;
+        if (s.is(com.realmlord.registry.ModArms.REFINING_STONE.get())) return 12_000;
+        if (s.is(com.realmlord.registry.ModArms.GOLDEN_WOUND_POWDER.get())) return 120;
+        if (s.is(com.realmlord.registry.ModArms.HEALING_PILL.get())) return 900;
+        if (s.is(com.realmlord.registry.ModArms.MARROW_CLEANSING_PILL.get()) || s.is(com.realmlord.registry.ModArms.ENLIGHTENMENT_PILL.get())) return 40_000;
+        if (s.is(com.realmlord.registry.ModArms.MILITARY_RATIONS.get())) return 50;
+        com.realmlord.loot.Manuals.Plan plan = com.realmlord.loot.Manuals.planOf(s);
+        if (plan != null) return plan.price() / 2;
         String building = com.realmlord.loot.Blueprints.buildingOf(s);
         if (building != null && !building.isEmpty()) {
             BuildingType bt = BuildingType.byId(building);
@@ -1565,6 +1593,42 @@ public final class Village {
         if (t == null || !p.getUUID().equals(t.owner)) return "realmlord.blueprint.learn.no_village";
         if (!t.blueprints.add(type.id())) return "realmlord.blueprint.learn.known";
         data.touch();
+        return null;
+    }
+
+    /** Teaches the Lord's village's masters a forging or alchemy manual. Returns a message key, or null. */
+    public static String learnPlan(ServerPlayer p, com.realmlord.loot.Manuals.Plan plan) {
+        Territory t = lordsVillage(p);
+        if (t == null) return "realmlord.blueprint.learn.no_village";
+        if (!t.plans.add(plan.id())) return "realmlord.plan.known";
+        com.realmlord.territory.TerritoryData.get(p.server).touch();
+        return null;
+    }
+
+    /** The village the player is Lord of, or null. */
+    public static Territory lordsVillage(ServerPlayer p) {
+        int id = com.realmlord.profile.Profiles.get(p).getTerritoryId();
+        Territory t = id >= 0 ? com.realmlord.territory.TerritoryData.get(p.server).byId(id) : null;
+        return t != null && p.getUUID().equals(t.owner) ? t : null;
+    }
+
+    /**
+     * Bandit insignia posted at the manor: reputation for each kill, a bounty, and Security up
+     * one for every five. Only in the Lord's own territory. Returns an error key, or null.
+     */
+    public static String turnInInsignia(ServerPlayer p, int count) {
+        Territory t = lordsVillage(p);
+        if (t == null) return "realmlord.insignia.no_village";
+        com.realmlord.territory.TerritoryData data = com.realmlord.territory.TerritoryData.get(p.server);
+        Territory here = data.at(p.level().dimension(), p.blockPosition());
+        if (here != t) return "realmlord.insignia.not_here";
+        com.realmlord.profile.Profiles.grantReputation(p, count * com.realmlord.item.InsigniaItem.REPUTATION);
+        Coins.give(p, count * com.realmlord.item.InsigniaItem.BOUNTY);
+        int safer = count / 5 + (p.getRandom().nextInt(5) < count % 5 ? 1 : 0);
+        t.security = Math.min(100, t.security + safer);
+        data.touch();
+        com.realmlord.Notify.player(p, Component.translatable("realmlord.insignia.done", count, count * com.realmlord.item.InsigniaItem.REPUTATION,
+                Coins.format(count * com.realmlord.item.InsigniaItem.BOUNTY), safer));
         return null;
     }
 

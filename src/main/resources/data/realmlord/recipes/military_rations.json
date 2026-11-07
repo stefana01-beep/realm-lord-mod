@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecraft:bread"
+    },
+    {
+      "item": "minecraft:bread"
+    },
+    {
+      "item": "realmlord:salt"
+    },
+    {
+      "tag": "realmlord:cooked_meats"
+    }
+  ],
+  "result": {
+    "item": "realmlord:military_rations",
+    "count": 4
+  }
+}

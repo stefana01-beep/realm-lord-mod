@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "realmlord:beast_core"
+    },
+    {
+      "item": "realmlord:healing_pill"
+    },
+    {
+      "item": "realmlord:healing_pill"
+    },
+    {
+      "item": "realmlord:tiger_bone"
+    },
+    {
+      "item": "minecraft:gold_ingot"
+    }
+  ],
+  "result": {
+    "item": "realmlord:marrow_cleansing_pill",
+    "count": 1
+  }
+}

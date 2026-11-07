@@ -1,6 +1,13 @@
-"""The beasts' skins: recoloured from Minecraft's own animals (hoglin, wolf, ocelot, polar bear,
-cow), whose UV layouts the renderers reuse. Usage: gen_entity_textures.py <vanilla textures/entity dir>"""
+"""The beasts' skins, painted over Minecraft's own animals (hoglin, wolf, ocelot, polar bear,
+cow), whose UV layouts the renderers reuse. Each pixel's brightness in the vanilla skin picks a
+colour along a palette of several stops (shadow, base, highlight, pale belly), then fur is laid
+over it: per-pixel grain, darker streaks running with the hair, light-tipped guard hairs, and
+for the cats, irregular tapering stripes or rosettes rather than regular bands.
+
+Usage: gen_entity_textures.py <vanilla textures/entity dir>"""
+import math
 import os
+import random
 import sys
 from PIL import Image
 
@@ -16,12 +23,46 @@ def lerp(a, b, t):
     return tuple(int(a[i] + (b[i] - a[i]) * t) for i in range(3))
 
 
-def tint(src, dark, light, gamma=1.0, keep_light=None, spots=None, stripes=None, stripe_col=None):
-    """Maps each pixel's brightness onto dark..light. Pixels brighter than keep_light (eyes, tusks,
-    horns) stay as they were; pixels darker than `spots` (an ocelot's spots) become stripe_col;
-    `stripes` lays bands of stripe_col every few pixels across the pelt."""
+def ramp(stops, t):
+    """A colour along a palette of stops, evenly spaced from dark (t=0) to light (t=1)."""
+    t = max(0.0, min(1.0, t))
+    n = len(stops) - 1
+    i = min(n - 1, int(t * n))
+    return lerp(hexc(stops[i]), hexc(stops[i + 1]), t * n - i)
+
+
+def mul(c, f):
+    return tuple(max(0, min(255, int(v * f))) for v in c)
+
+
+def noise(x, y, seed):
+    """Smooth-ish value noise in 0..1 (two octaves), so markings wander rather than repeat."""
+    def v(ix, iy):
+        return random.Random((ix * 73856093) ^ (iy * 19349663) ^ seed).random()
+
+    def smooth(fx, fy, scale):
+        x0, y0 = int(fx // scale), int(fy // scale)
+        tx, ty = fx / scale - x0, fy / scale - y0
+        tx, ty = tx * tx * (3 - 2 * tx), ty * ty * (3 - 2 * ty)
+        a = v(x0, y0) + (v(x0 + 1, y0) - v(x0, y0)) * tx
+        b = v(x0, y0 + 1) + (v(x0 + 1, y0 + 1) - v(x0, y0 + 1)) * tx
+        return a + (b - a) * ty
+
+    return 0.65 * smooth(x, y, 6) + 0.35 * smooth(x, y, 3)
+
+
+def paint(src, stops, gamma=1.0, keep_light=None, seed=1, grain=0.07, streak=0.12, tips=None, marks=None, mark_col="16120e",
+          spots=None, spot_col=None):
+    """Repaints a vanilla skin.
+
+    keep_light: pixels at least this bright (eyes, tusks, horns) stay as they were.
+    tips: colour of light-tipped guard hairs (grizzle), sprinkled over the darker fur.
+    marks: "stripes" (a tiger's), "rosettes" (a leopard's) or None.
+    spots: pixels darker than this in the source (an ocelot's spots) take spot_col (or the base).
+    """
     img = Image.open(os.path.join(SRC, src)).convert("RGBA")
     px = img.load()
+    rnd = random.Random(seed)
     lo, hi = 255, 0
     for y in range(img.height):
         for x in range(img.width):
@@ -36,10 +77,26 @@ def tint(src, dark, light, gamma=1.0, keep_light=None, spots=None, stripes=None,
             l = 0.3 * r + 0.59 * g + 0.11 * b
             if keep_light and l >= keep_light: continue
             t = ((l - lo) / max(1, hi - lo)) ** gamma
-            c = lerp(hexc(dark), hexc(light), t)
-            if spots and l < spots: c = hexc(stripe_col)
-            elif stripes and stripes > 0 and (x + y // 2) % stripes == 0 and t > 0.25: c = lerp(hexc(stripe_col), c, 0.2)
-            elif stripes and stripes < 0 and (x * 3 + y * 5) % -stripes == 0 and t > 0.35: c = lerp(hexc(stripe_col), c, 0.15)
+            if spots and l < spots and spot_col is None:
+                t = min(1.0, t + 0.35)     # the ocelot's own spots fade into the ground colour
+            c = ramp(stops, t)
+            # Fur: grain, streaks running with the hair (down the texture), light guard hairs.
+            f = 1.0 + rnd.uniform(-grain, grain)
+            if random.Random(x * 131 + (y // 2) * 7 + seed).random() < 0.18: f -= streak
+            c = mul(c, f)
+            if tips and t < 0.75 and rnd.random() < 0.05: c = lerp(c, hexc(tips), 0.4)
+            if marks == "stripes" and t < 0.92:
+                # Irregular, tapering stripes: a wavy band through value noise.
+                w = math.sin(x * 0.95 + 3.0 * noise(x, y, seed) + y * 0.18)
+                if w > 0.72 - 0.35 * noise(x + 40, y, seed + 7): c = lerp(c, hexc(mark_col), 0.88)
+            elif marks == "rosettes" and t < 0.95:
+                cx, cy = (x // 4) * 4, (y // 4) * 4
+                jr = random.Random(cx * 997 + cy * 31 + seed)
+                ox, oy = cx + 1.5 + jr.uniform(-0.8, 0.8), cy + 1.5 + jr.uniform(-0.8, 0.8)
+                d = math.hypot(x - ox, y - oy)
+                if 1.0 <= d < 1.9 and jr.random() < 0.85: c = lerp(c, hexc(mark_col), 0.85)
+                elif d < 1.0: c = mul(c, 0.86)
+            if spots and spot_col and l < spots: c = hexc(spot_col)
             px[x, y] = c + (a,)
     return img
 
@@ -50,16 +107,25 @@ def save(img, name):
 
 def main():
     os.makedirs(OUT, exist_ok=True)
-    save(tint("hoglin/hoglin.png", "1e1612", "7a5a40", 1.1, keep_light=215), "wild_boar")
-    save(tint("hoglin/hoglin.png", "0c0a0a", "4a3428", 1.2, keep_light=205), "boar_king")
-    save(tint("wolf/wolf_angry.png", "26282c", "8c8e92", 0.9), "grey_wolf")
-    save(tint("wolf/wolf_angry.png", "4a4e58", "f2f2f6", 0.7), "wolf_king")
-    save(tint("cat/ocelot.png", "5a2a0a", "f0962e", 0.9, spots=60, stripes=4, stripe_col="16120e"), "tiger")
-    save(tint("cat/ocelot.png", "6a4a18", "f0cc6a", 0.8, spots=60, stripes=-7, stripe_col="1e160e"), "leopard")
-    save(tint("cat/ocelot.png", "9a9aa2", "fcfcfa", 0.6, spots=60, stripes=4, stripe_col="24242c"), "white_tiger")
-    save(Image.open(os.path.join(SRC, "bear/polarbear.png")).convert("RGBA"), "snow_bear")
-    save(tint("bear/polarbear.png", "0e0c0c", "3e3430", 1.4), "black_bear")
-    save(tint("cow/cow.png", "1a120e", "8a6446", 0.9, keep_light=235), "wild_ox")
+    # Wild boar: coarse dark bristles, grizzled with grey-brown tips; the boar king near black.
+    save(paint("hoglin/hoglin.png", ["140e0b", "2e221a", "5a4432", "8a7058"], 1.05, keep_light=215, seed=11, grain=0.09, streak=0.16,
+               tips="a89478"), "wild_boar")
+    save(paint("hoglin/hoglin.png", ["080606", "1a1210", "34261e", "5a4636"], 1.15, keep_light=205, seed=12, grain=0.08, streak=0.14,
+               tips="7a6a5a"), "boar_king")
+    # Grey wolf: a dark saddle fading to buff legs and a pale throat, grizzled.
+    save(paint("wolf/wolf_angry.png", ["1e1e20", "4a4a4c", "8a8478", "d2cab8"], 0.9, seed=21, grain=0.08, tips="c8c0b0"), "grey_wolf")
+    save(paint("wolf/wolf_angry.png", ["3a3e48", "8a90a0", "d4d8e2", "fbfbfd"], 0.75, seed=22, grain=0.05, streak=0.07, tips="ffffff"), "wolf_king")
+    # Tigers: rust to orange to cream belly, with wandering black stripes.
+    save(paint("cat/ocelot.png", ["4a1c06", "b4581a", "e08a2e", "f6e6cc"], 0.9, spots=60, seed=31, marks="stripes", mark_col="140e0a"), "tiger")
+    save(paint("cat/ocelot.png", ["7a7a84", "c4c4cc", "eeeef0", "ffffff"], 0.7, spots=60, seed=32, grain=0.05, marks="stripes",
+               mark_col="26262e"), "white_tiger")
+    # Leopard: golden with dark rosettes.
+    save(paint("cat/ocelot.png", ["6a4410", "c08a2a", "e8c060", "f6ead0"], 0.85, spots=60, seed=41, marks="rosettes", mark_col="1e160e"), "leopard")
+    # Bears: the snow bear's cream fur given grain; the black bear near black.
+    save(paint("bear/polarbear.png", ["a8a49a", "d8d4c8", "eeebe2", "fbfaf6"], 1.0, seed=51, grain=0.04, streak=0.06), "snow_bear")
+    save(paint("bear/polarbear.png", ["060505", "0e0b0a", "17120f", "241c17"], 1.0, seed=52, grain=0.08, streak=0.12, tips="4a3a30"), "black_bear")
+    # Wild ox (a gaur): deep brown-black, lighter brow; horns kept.
+    save(paint("cow/cow.png", ["0e0a08", "1e140e", "2c1e16", "3e2c20"], 0.9, keep_light=235, seed=61, grain=0.07, streak=0.1), "wild_ox")
     print("entity textures written")
 
 

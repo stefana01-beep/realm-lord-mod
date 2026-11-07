@@ -51,7 +51,10 @@ public class BuildingActionPacket {
         if (b != null && !Views.managed(b)) b = null;
         switch (action) {
             case MODE -> {
-                if (b != null && arg >= 0 && arg < Workshops.modes(b.type).size()) b.mode = arg;
+                if (b != null && arg >= 0 && arg < Workshops.modes(b.type).size()) {
+                    if (Workshops.modes(b.type).get(arg).known(t)) b.mode = arg;
+                    else Notify.player(p, "realmlord.workshop.err.plan");
+                }
             }
             case ENROL -> {
                 Resident r = t.resident(arg);

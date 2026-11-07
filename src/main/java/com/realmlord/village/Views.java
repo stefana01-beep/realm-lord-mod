@@ -295,6 +295,21 @@ public final class Views {
             if (md.output() != null) c.putString("out", md.output().key());
             c.putDouble("outN", md.out());
             c.putBoolean("items", md.makesItems());
+            c.putBoolean("discipline", md.discipline());
+            if (md.makesItems()) {
+                c.putString("item", md.items()[0].getDescriptionId());
+                c.putInt("kinds", md.items().length);
+                c.putInt("each", md.each());
+            }
+            if (md.need() != null) {
+                c.putString("need", md.need().get().getDescriptionId());
+                c.putInt("needN", md.needN());
+                c.putInt("needHave", t.storage.countItem(md.need().get()));
+            }
+            if (md.plan() != null) {
+                c.putString("plan", "realmlord.plan." + md.plan());
+                c.putBoolean("known", md.known(t));
+            }
             modes.add(c);
         }
         v.put("modes", modes);
@@ -302,7 +317,7 @@ public final class Views {
         int places = Workshops.places(b.type);
         v.putInt("places", places);
         if (places > 0) {
-            Occupation teaches = Workshops.teaches(b.type);
+            Occupation teaches = Workshops.teaches(b);
             v.putInt("teaches", teaches.ordinal());
             ListTag ls = new ListTag();
             for (Resident r : Workshops.learners(t, b)) {
@@ -310,7 +325,7 @@ public final class Views {
                 c.putInt("id", r.id);
                 c.putString("name", r.name);
                 c.putInt("half", r.trainingDays);
-                c.putInt("need", Workshops.daysToLearn(b.type, r) * 2);
+                c.putInt("need", Workshops.daysToLearn(b, r) * 2);
                 c.putInt("occ", r.occupation.ordinal());
                 ls.add(c);
             }

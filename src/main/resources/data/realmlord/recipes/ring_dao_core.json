@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "realmlord:ring_dao"
+    },
+    {
+      "item": "realmlord:beast_core"
+    }
+  ],
+  "result": {
+    "item": "realmlord:ring_dao",
+    "count": 1
+  }
+}

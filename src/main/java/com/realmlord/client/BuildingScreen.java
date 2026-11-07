@@ -78,13 +78,20 @@ public class BuildingScreen extends Screen {
         ListTag modes = v.getList("modes", Tag.TAG_COMPOUND);
         for (int i = 0; i < modes.size(); i++) {
             final int m = i;
-            Button b = Button.builder(Component.translatable(modes.getCompound(i).getString("key")), btn -> send(BuildingActionPacket.Action.MODE, id, m))
-                    .bounds(x + 10 + i * 112, y + 50, 108, 16).build();
-            b.active = v.getInt("mode") != i;
+            CompoundTag mc = modes.getCompound(i);
+            boolean locked = mc.contains("plan") && !mc.getBoolean("known");
+            Component label = Component.translatable(mc.getString("key"));
+            if (locked) label = Component.literal("\u00a7o").append(label);
+            Button.Builder bb = Button.builder(label, btn -> send(BuildingActionPacket.Action.MODE, id, m))
+                    .bounds(x + 10 + (i % 3) * 114, y + 48 + (i / 3) * 16, 112, 14);
+            if (locked) bb.tooltip(Tooltip.create(Component.translatable("realmlord.workshop.needs_plan", Component.translatable(mc.getString("plan")))));
+            else if (mc.getBoolean("discipline")) bb.tooltip(Tooltip.create(Component.translatable(mc.getString("key") + ".desc")));
+            Button b = bb.build();
+            b.active = v.getInt("mode") != i && !locked;
             addRenderableWidget(b);
         }
         if (v.getInt("places") <= 0) return;
-        int ly = modes.isEmpty() ? y + 46 : y + 96;
+        int ly = learnersTop(v, y);
         // Learners: call one back.
         ListTag ls = v.getList("learners", Tag.TAG_COMPOUND);
         learnerScroll = Math.max(0, Math.min(learnerScroll, ls.size() - rows(ly)));
@@ -104,6 +111,16 @@ public class BuildingScreen extends Screen {
             b.active = !full;
             addRenderableWidget(b);
         }
+    }
+
+    /** Where the learners' lists start: below the choices and what the chosen one does. */
+    private static int modeRows(CompoundTag v) {
+        return (v.getList("modes", Tag.TAG_COMPOUND).size() + 2) / 3;
+    }
+
+    private static int learnersTop(CompoundTag v, int y) {
+        int n = v.getList("modes", Tag.TAG_COMPOUND).size();
+        return n == 0 ? y + 46 : y + 48 + modeRows(v) * 16 + 30;
     }
 
     private int rows(int ly) {
@@ -153,16 +170,25 @@ public class BuildingScreen extends Screen {
         g.drawString(font, master, x + 10, y + 24, v.contains("staff") ? Ui.INK : Ui.RED, false);
         ListTag modes = v.getList("modes", Tag.TAG_COMPOUND);
         if (!modes.isEmpty()) {
-            g.drawString(font, Component.translatable("realmlord.workshop.makes"), x + 10, y + 38, Ui.GOLD, false);
+            g.drawString(font, Component.translatable(v.getInt("places") > 0 || modes.getCompound(0).getBoolean("discipline") ? "realmlord.workshop.teaches_what" : "realmlord.workshop.makes"), x + 10, y + 37, Ui.GOLD, false);
             CompoundTag m = modes.getCompound(Math.max(0, Math.min(modes.size() - 1, v.getInt("mode"))));
-            Component what = m.getBoolean("items")
-                    ? Component.translatable("realmlord.workshop.makes_items", fmt(m.getDouble("outN")), m.contains("in") ? Component.translatable(m.getString("in")) : Component.empty(), fmt(m.getDouble("inN")))
-                    : m.contains("in") ? Component.translatable("realmlord.workshop.makes_stock_from", fmt(m.getDouble("outN")), Component.translatable(m.getString("out")), fmt(m.getDouble("inN")), Component.translatable(m.getString("in")))
+            Component what;
+            if (m.getBoolean("discipline")) what = Component.translatable(m.getString("key") + ".desc");
+            else if (m.getBoolean("items")) {
+                Component item = Component.translatable(m.getString("item"));
+                if (m.getInt("kinds") > 1) item = Component.translatable("realmlord.workshop.and_kinds", item, m.getInt("kinds") - 1);
+                Component count = Component.literal(fmt(m.getDouble("outN") * Math.max(1, m.getInt("each"))));
+                what = m.contains("in")
+                        ? Component.translatable("realmlord.workshop.makes_named_from", count, item, fmt(m.getDouble("inN")), Component.translatable(m.getString("in")))
+                        : Component.translatable("realmlord.workshop.makes_named", count, item);
+                if (m.contains("need")) what = Component.empty().append(what).append(" ").append(Component.translatable("realmlord.workshop.also_needs",
+                        m.getInt("needN"), Component.translatable(m.getString("need")), m.getInt("needHave")));
+            } else what = m.contains("in") ? Component.translatable("realmlord.workshop.makes_stock_from", fmt(m.getDouble("outN")), Component.translatable(m.getString("out")), fmt(m.getDouble("inN")), Component.translatable(m.getString("in")))
                     : Component.translatable("realmlord.workshop.makes_stock", fmt(m.getDouble("outN")), Component.translatable(m.getString("out")));
-            Ui.wrap(g, font, what, x + 10, y + 70, W - 20, Ui.MUTED);
+            Ui.wrap(g, font, what, x + 10, y + 50 + modeRows(v) * 16, W - 20, Ui.MUTED);
         }
         if (v.getInt("places") > 0) {
-            int ly = modes.isEmpty() ? y + 46 : y + 96;
+            int ly = learnersTop(v, y);
             Occupation teaches = Occupation.byId(v.getInt("teaches"));
             ListTag ls = v.getList("learners", Tag.TAG_COMPOUND);
             Ui.inset(g, x + 6, ly - 4, 168, y + H - 26 - ly);

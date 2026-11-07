@@ -481,6 +481,74 @@ What beasts and bandits leave now goes into arms and armour of the novel's world
 - **Creative tabs:** the mod's items are split into tabs: Realm Lord (tokens, coins, bags), Blueprints, Materials, Weapons & Armour (each piece also shown at its grade) and Creatures & Blocks.
 - **Damage:** a beast's level adds 5% health but only 2% damage per level (at most +60%), and the kings hit less hard than before (Wolf King 7, Boar King 9, White Tiger King 11), so a high-level beast takes long to bring down without one blow undoing a player of its level.
 
+### Armour of the dynasties, pills and manuals
+More to make from beast and bandit materials, after the arms of China's dynasties and the novel's pills, manuals and grades.
+- **Armour** (each painted after the real thing, worn and as an icon):
+
+  | Set | Made from | Grade | Look |
+  |---|---|---|---|
+  | Hide | pelts and sinew | Bronze | fur with stitched seams and a pale fur hem |
+  | Black Iron | black iron | Black Iron | riveted bands with gilt trim and a nasal helm |
+  | **Lamellar** (helm, coat, tassets, boots) | lamellar plates, sinew, leather | Black Iron | rows of small scales laced with red cord, a polished heart mirror, a scale skirt over the thighs |
+  | **Mountain-Pattern** (helm, armour, greaves, war boots) | refined steel, lamellar plates, red dye | Silver | interlocking 山-shaped steel scales, gilt mirror and trim, red silk sash, red-tasselled helm |
+  | **Tiger War** (hood, war coat) | tiger pelts, refined steel, beast cores | Gold | tiger-striped hide with a white belly; the hood wears the tiger's face with the 王 on its brow |
+
+  Mountain-pattern armour gives a little knockback resistance, and the tiger set more.
+- **Weapons:** the **Ring-Pommel Dao** (black iron, Black Iron), the **Ji Halberd** (refined steel, Silver, 9.5 damage) and the **Tiger Soul Sabre** (steel, a beast core and a tiger bone, Gold; one blow in four roars, slowing and weakening the foe). Dao and ji can be re-forged with a beast core for Gold.
+- **Lamellar Plates:** two black iron ingots and a sinew make four.
+- **Sinew** also strings an ordinary bow or crossbow.
+- **Whetstone** (flint and two cobblestone, makes 2): right-click with a blade or armour in your other hand to mend a quarter of its wear.
+- **Refining Stone** (beast core, two black iron, sinew): right-click with gear in your other hand to raise it a grade. Plain gear becomes Bronze; Bronze to Black Iron holds 85% of the time, to Silver 60%, to Gold 35%. A failure costs only the stone.
+- **Medicine:**
+  - **Golden Wound Powder** (two medicinal herbs, bone meal, a red mushroom; makes 2): heals 2 hearts.
+  - **Rejuvenation Pill** (two wound powders, sinew, a glistering melon slice; makes 2): 4 hearts at once, regeneration, a minute's shield.
+  - **Marrow Cleansing Pill** and **Enlightenment Pill** (a beast core, two rejuvenation pills, a gold ingot, and a tiger bone or Three Flower Wine): as in the novel, the special pills that raise an innate attribute, Body Structure or Comprehension, by 1 each (up to 30).
+- **Military Rations** (two bread, salt and any cooked meat; makes 4): a filling food for the march. Bandits sometimes carry them.
+- **Bandit Insignia:** right-click them in your own territory to post the kills: 2 reputation and a 50 copper bounty each, and Security rises one for every five.
+- **Manuals** (equipment blueprints): Field Rations, Lamellar Armour, Polearms, Pill Refining, Mountain-Pattern Armour and Tiger War Gear. Buy them in the Armoury (50 silver to 30 gold), or take them from bandit chiefs (one in four carries one). Right-click to teach your village's masters; this unlocks what the workshops can make (below). The market buys spare manuals at half price.
+
+### More from every building
+A building's window now lists everything it can do in rows of three. Choices that need a manual are greyed out (hover to see which). The window says what the chosen one makes, from what, and which storehouse materials it also uses and how many are there.
+- **Blacksmith:** tools (stock), iron arms and armour, black iron ingots, whetstones, lamellar plates (uses sinew), black iron blades (sabre, dao), lamellar armour (manual; uses sinew), horse barding.
+- **Weapons Workshop:** weapons (stock), fine weapons, arrows (16 at a time), refined steel, steel blades (jian, dao), tiger bone bows (uses tiger bones), polearms (manual: spear, guandao, ji), mountain-pattern armour (manual), the Tiger Soul Sabre (manual; uses a beast core).
+- **Tailor:** linen (stock), leather armour, hide armour (uses sinew), banners, bedding, tiger war coats (manual; uses tiger pelts).
+- **Clinic:** herbs (stock), healing draughts, golden wound powder, and with the Pill Refining manual, rejuvenation pills (uses sinew), marrow cleansing pills and enlightenment pills (each uses a beast core).
+- **Wine Workshop:** wine (stock), tiger bone wine (uses tiger bones), bottled Three Flower Wine.
+- **Grocery Shop:** salt (stock), military rations (manual), cured meat, dried fish.
+- **Pottery Workshop:** pottery (stock), bricks, roof tiles (terracotta), pots.
+- **Stable:** tend the horses, saddles, leads, leather barding.
+- **Martial Arts Dojo**, what it teaches:
+  - **Fist & palm:** +1 Force a day.
+  - **Weapon forms:** twice the soldier's experience.
+  - **Internal arts:** Force rises fast, up to 92; 25 days.
+  - **Archery:** pupils become **hunters**.
+  - **Qinggong:** a short course of 15 days.
+- **Private School**, what it teaches:
+  - **Classics:** scholars.
+  - **Statecraft:** civil servants (Politics).
+  - **Military strategy:** officers (Command).
+  - **Medicine:** doctors.
+  - **Accounts:** grocers.
+
+  Choosing the discipline chooses the trade the students graduate into.
+- **Military Camp**, the militia's daily orders:
+  - **Drill:** as before.
+  - **Formation drill:** much more soldier's experience, less Force, and officers gain Command faster.
+  - **Weapons practice:** Force twice as fast.
+  - **Archery drill:** a little more of both.
+  - **Patrol:** Security rises each day.
+  - **Rest:** loyalty rises.
+
+Items a workshop makes are graded by the master as before. A piece that has a grade of its own (lamellar Black Iron, mountain-pattern Silver, tiger Gold) comes out at that grade: a Junior master sometimes falls one short, an Advanced one sometimes rises one above.
+
+### Beasts' skins
+The beasts are repainted pixel by pixel with fur rather than flat recolours. Each skin is shaded through a palette of shadow, base, highlight and pale belly, with grain, streaks running with the hair, and grizzled guard hairs on boars, wolves and the black bear.
+- **Tigers** have wandering, tapering black stripes instead of even bands.
+- **Leopards** have true rosettes.
+- **The black bear** is near black.
+- **The snow bear** is cream-furred.
+- **The wild ox** is a deep gaur brown.
+
 ### Graded horses
 Every horse has a grade and a breed, shown above its head in the grade's colour, for example **Silver Dawan Horse**. A name you give it with a name tag is kept.
 
