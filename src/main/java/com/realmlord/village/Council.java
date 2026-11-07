@@ -494,19 +494,22 @@ public final class Council {
      * first place the builders could start on. Returns {x, z, rotation} or null.
      */
     public static int[] site(ServerLevel level, Territory t, BuildingType type) {
-        int reach = Math.max(20, t.radius() - 8);
-        for (int r = 18; r <= reach; r += 5) {
-            int steps = Math.max(8, (int) (2 * Math.PI * r / 7));
+        int reach = Math.max(20, t.radius() - 6);
+        for (int r = 14; r <= reach; r += 3) {
+            int steps = Math.max(8, (int) (2 * Math.PI * r / 4));
             int start = level.getRandom().nextInt(steps);
             for (int k = 0; k < steps; k++) {
                 double ang = 2 * Math.PI * ((k + start) % steps) / steps;
                 int cx = t.center.getX() + (int) Math.round(Math.cos(ang) * r), cz = t.center.getZ() + (int) Math.round(Math.sin(ang) * r);
-                // Facing the manor: the side towards the centre is the front.
-                int rot = Math.abs(Math.cos(ang)) > Math.abs(Math.sin(ang)) ? (Math.cos(ang) > 0 ? 1 : 3) : (Math.sin(ang) > 0 ? 2 : 0);
-                int sx = rot % 2 == 0 ? type.width : type.depth, sz = rot % 2 == 0 ? type.depth : type.width;
-                BlockPos o = new BlockPos(cx - sx / 2, t.center.getY(), cz - sz / 2);
-                if (!level.isLoaded(o)) continue;
-                if (Village.checkPlacement(level, t, type, o, rot) == null) return new int[]{o.getX(), o.getZ(), rot};
+                // Facing the manor if it fits that way, else any way round.
+                int face = Math.abs(Math.cos(ang)) > Math.abs(Math.sin(ang)) ? (Math.cos(ang) > 0 ? 1 : 3) : (Math.sin(ang) > 0 ? 2 : 0);
+                for (int turn = 0; turn < 4; turn++) {
+                    int rot = (face + turn) & 3;
+                    int sx = rot % 2 == 0 ? type.width : type.depth, sz = rot % 2 == 0 ? type.depth : type.width;
+                    BlockPos o = new BlockPos(cx - sx / 2, t.center.getY(), cz - sz / 2);
+                    if (!level.isLoaded(o)) break;
+                    if (Village.checkPlacement(level, t, type, o, rot) == null) return new int[]{o.getX(), o.getZ(), rot};
+                }
             }
         }
         return null;

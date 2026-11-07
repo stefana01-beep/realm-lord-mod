@@ -51,6 +51,15 @@ public class CouncilTests {
             helper.assertTrue(!Council.list(t).isEmpty(), "the Steward proposed nothing");
             CompoundTag s = Council.list(t).getCompound(0);
             helper.assertTrue(s.getString("act").startsWith("build:") || s.getString("act").startsWith("jobs:"), "an odd proposal: " + s.getString("act"));
+            // Level some ground south of the manor, as the founding grounds would be.
+            int gy = t.center.getY();
+            for (int x = -20; x <= 20; x++)
+                for (int z = 16; z <= 44; z++) {
+                    net.minecraft.core.BlockPos c = t.center.offset(x, 0, z);
+                    level.setBlock(c.atY(gy - 1), net.minecraft.world.level.block.Blocks.GRASS_BLOCK.defaultBlockState(), 2);
+                    for (int y = gy; y < gy + 12; y++) level.setBlock(c.atY(y), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 2);
+                    for (int y = gy - 4; y < gy - 1; y++) level.setBlock(c.atY(y), net.minecraft.world.level.block.Blocks.DIRT.defaultBlockState(), 2);
+                }
             int buildings = t.buildings.size();
             String err = Council.approve(p, t, s.getInt("id"));
             helper.assertTrue(err == null, "the approved proposal failed: " + err);
