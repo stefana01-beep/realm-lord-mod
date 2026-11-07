@@ -420,6 +420,12 @@ public class VillageTests {
         ServerPlayer p = RealmTests.lord(helper, CombatClass.GENERAL);
         Territory t = village(helper, p, 4400);
         ServerLevel level = helper.getLevel();
+        // Firm, dry ground for them to stand on, whatever the test world's terrain.
+        for (int x = -24; x <= 24; x++)
+            for (int z = -24; z <= 24; z++) {
+                level.setBlock(t.center.offset(x, -1, z), Blocks.GRASS_BLOCK.defaultBlockState(), 2);
+                for (int y = 0; y < 64; y++) level.setBlock(t.center.offset(x, y, z), Blocks.AIR.defaultBlockState(), 2);
+            }
         for (int i = 0; i < 6; i++) com.realmlord.village.Residents.sync(level, t);
         long shown = t.residents.stream().filter(r -> r.entity != null && level.getEntity(r.entity) != null).count();
         helper.assertTrue(shown == 10, "expected all 10 residents walking about, saw " + shown);
