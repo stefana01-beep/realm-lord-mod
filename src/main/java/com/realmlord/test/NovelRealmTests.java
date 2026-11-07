@@ -217,6 +217,9 @@ public class NovelRealmTests {
             WaterForts.chiefSlain(level, chief, p);
             helper.assertTrue(!t.ext.getBoolean("waterBandits"), "breaking the fort did not free the village");
             helper.assertTrue(WaterForts.near(w, t.center, WaterForts.RANGE) == null, "the fort still stands");
+            for (int cx = -reach; cx <= reach; cx++)
+                for (int cz = -reach; cz <= 1; cz++) if (Math.abs(cx) > 5 || Math.abs(cz) > 5)
+                    level.setChunkForced((t.center.getX() >> 4) + cx, (t.center.getZ() >> 4) + cz, false);
             VillageTests.done(helper, p, t);
         });
     }

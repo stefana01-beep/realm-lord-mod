@@ -82,8 +82,10 @@ public class TownRealmTests {
         long today = GaiaCalendar.today(level.getServer());
         helper.assertTrue(t.ext.getLong("trialDay") == today + Trials.WARNING_DAYS, "the raiders should come in three days");
         helper.assertTrue(!Trials.apply(p, t), "applied twice");
-        for (int cx = -12; cx <= 12; cx++)
-            for (int cz = -12; cz <= 12; cz++) level.setChunkForced((t.center.getX() >> 4) + cx, (t.center.getZ() >> 4) + cz, true);
+        // The raiders gather past the border: a Grade 1 town's ring keeps the loaded ground small.
+        t.level = TerritoryLevel.TOWN_1;
+        for (int cx = -11; cx <= 11; cx++)
+            for (int cz = -11; cz <= 11; cz++) level.setChunkForced((t.center.getX() >> 4) + cx, (t.center.getZ() >> 4) + cz, true);
         // Forced chunks load their entities a moment later.
         helper.runAfterDelay(40, () -> {
             Trials.day(level, t, today + Trials.WARNING_DAYS, level.getRandom());
@@ -104,7 +106,10 @@ public class TownRealmTests {
                     "the raiders stayed after the trial");
             // A won trial is remembered until the upgrade goes through.
             Trials.win(level, t, java.util.List.of());
-            helper.assertTrue(t.ext.getBoolean("trialWon") && t.level == TerritoryLevel.TOWN_3, "a won trial with conditions unmet should wait for them");
+            helper.assertTrue(t.ext.getBoolean("trialWon") && t.level == TerritoryLevel.TOWN_1, "a won trial with conditions unmet should wait for them");
+            for (int cx = -11; cx <= 11; cx++)
+                for (int cz = -11; cz <= 11; cz++) if (Math.abs(cx) > 5 || Math.abs(cz) > 5)
+                    level.setChunkForced((t.center.getX() >> 4) + cx, (t.center.getZ() >> 4) + cz, false);
             VillageTests.done(helper, p, t);
         });
     }

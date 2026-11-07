@@ -36,6 +36,7 @@ minecraft {
         }
         gameTestServer {
             property 'forge.enabledGameTestNamespaces', mod_id
+            jvmArgs '-Xmx3G'
         }
     }
 }
