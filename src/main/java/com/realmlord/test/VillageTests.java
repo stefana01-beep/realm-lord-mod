@@ -426,12 +426,18 @@ public class VillageTests {
                 level.setBlock(t.center.offset(x, -1, z), Blocks.GRASS_BLOCK.defaultBlockState(), 2);
                 for (int y = 0; y < 64; y++) level.setBlock(t.center.offset(x, y, z), Blocks.AIR.defaultBlockState(), 2);
             }
-        for (int i = 0; i < 6; i++) com.realmlord.village.Residents.sync(level, t);
-        long shown = t.residents.stream().filter(r -> r.entity != null && level.getEntity(r.entity) != null).count();
-        helper.assertTrue(shown == 10, "expected all 10 residents walking about, saw " + shown);
-        var e = level.getEntity(t.residents.get(0).entity);
-        helper.assertTrue(e instanceof com.realmlord.entity.SettlerEntity s && s.getResidentId() == t.residents.get(0).id, "entity not linked to its record");
-        helper.assertTrue(Blocks.AIR != null, "");
-        done(helper, p, t);
+        // Forced chunks start ticking entities a moment later; residents only appear on running ground.
+        helper.runAfterDelay(60, () -> {
+            for (int i = 0; i < 6; i++) com.realmlord.village.Residents.sync(level, t);
+            long shown = t.residents.stream().filter(r -> r.entity != null && level.getEntity(r.entity) != null).count();
+            long linked = t.residents.stream().filter(r -> r.entity != null).count();
+            BlockPos g = com.realmlord.entity.SettlerEntity.groundNear(level, t.center.offset(3, 0, 3), level.getRandom(), 3);
+            helper.assertTrue(shown == 10, "expected all 10 residents walking about, saw " + shown + " (linked " + linked + ", residents " + t.residents.size()
+                    + ", shown list " + com.realmlord.village.Residents.shown(t).size() + ", loaded " + level.isLoaded(t.center) + ", ground " + g + ", centre " + t.center + ")");
+            var e = level.getEntity(t.residents.get(0).entity);
+            helper.assertTrue(e instanceof com.realmlord.entity.SettlerEntity s && s.getResidentId() == t.residents.get(0).id, "entity not linked to its record");
+            helper.assertTrue(Blocks.AIR != null, "");
+            done(helper, p, t);
+        });
     }
 }
