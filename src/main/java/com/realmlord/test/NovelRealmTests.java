@@ -229,12 +229,12 @@ public class NovelRealmTests {
         t.name = "Siege Test";
         t.center = helper.absolutePos(new BlockPos(1, 1, 1));
         com.realmlord.territory.TerritoryData.get(level.getServer()).add(t);
-        BlockPos at = new BlockPos(1, 1, 1);
+        BlockPos at = new BlockPos(2, 1, 0);
         helper.setBlock(at, ModBlocks.BED_CROSSBOW.get().defaultBlockState().setValue(HorizontalDirectionalBlock.FACING, Direction.SOUTH));
         SiegeEngineBlockEntity be = (SiegeEngineBlockEntity) helper.getBlockEntity(at);
         helper.assertTrue(be != null, "the bed crossbow has no block entity");
         helper.assertTrue(be.load(20) == 16 && be.ammo() == 16, "a bed crossbow holds sixteen bolts");
-        Zombie z = helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 1, 9));
+        Zombie z = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 1, 4));
         z.setNoAi(true);
         float hp = z.getHealth();
         helper.runAfterDelay(30, () -> {
