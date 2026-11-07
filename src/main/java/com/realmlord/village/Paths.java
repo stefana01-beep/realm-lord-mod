@@ -292,7 +292,7 @@ public final class Paths {
         BuildingDesigns.forget(b);
     }
 
-    private static boolean allowed(Territory t, int x, int z) {
+    public static boolean allowed(Territory t, int x, int z) {
         long dx = x - t.center.getX(), dz = z - t.center.getZ();
         // Within the village's grounds (past the wall, even past the border), and beyond as a road
         // into the wilds, so long as it keeps out of other Lords' lands.
@@ -303,7 +303,33 @@ public final class Paths {
         }
         if (Math.abs(dx) <= 5 && Math.abs(dz) <= 5) return false;
         for (Building b : t.buildings) if (b.footprint() && b.overlaps(x, z, 1, 1, 0)) return false;
-        return true;
+        return !onWall(t, x, z);
+    }
+
+    /** True if a column belongs to a building's footprint or to a wall (outside its gates). */
+    public static boolean guarded(Territory t, Building path, int x, int z) {
+        for (Building o : t.buildings) {
+            if (o == path || o.demolishing || !o.type.placed()) continue;
+            if (o.overlaps(x, z, 1, 1, 0)) return true;
+        }
+        return onWall(t, x, z);
+    }
+
+    /**
+     * True if a column is part of a wall (its rails and posts, the walkway behind, and a city
+     * wall's moat in front) other than at a gate: a path goes through the gates, never through the
+     * wall itself, so the builders never cut a breach they then leave open.
+     */
+    public static boolean onWall(Territory t, int x, int z) {
+        double dist = Math.hypot(x + 0.5 - t.center.getX(), z + 0.5 - t.center.getZ());
+        for (Building f : t.buildings) {
+            if (f.type.style != BuildingType.Style.FENCE || f.demolishing) continue;
+            int r = f.fenceRadius > 0 ? f.fenceRadius : t.level.wall();
+            int outer = f.type == BuildingType.CITY_WALL ? 5 : 1;
+            if (dist < r - 3 || dist > r + outer) continue;
+            if (!f.isGate(BuildingDesigns.bearing(t.center, x, z))) return true;
+        }
+        return false;
     }
 
     /** Lays out a path: checks it, takes its cost from the stores and opens it as a site. Returns an error key or null. */
@@ -317,9 +343,12 @@ public final class Paths {
 
     /** As above; area: the first two points are opposite corners of a paved area instead. */
     public static String start(ServerPlayer p, Territory t, Surface surface, int width, int[] pts, boolean stairs, boolean area) {
+        return start(p.serverLevel(), t, surface, width, pts, stairs, area);
+    }
+
+    public static String start(ServerLevel level, Territory t, Surface surface, int width, int[] pts, boolean stairs, boolean area) {
         if (pts.length < 4 || pts.length % 2 != 0 || pts.length > MAX_POINTS * 2) return "realmlord.path.err.points";
         width = Math.max(1, Math.min(MAX_WIDTH, width));
-        ServerLevel level = p.serverLevel();
         if (!level.dimension().equals(t.dimension)) return "realmlord.build.err.dimension";
         if (area && (Math.abs(pts[2] - pts[0]) + 1 > MAX_AREA || Math.abs(pts[3] - pts[1]) + 1 > MAX_AREA)) return "realmlord.path.err.area";
         List<int[]> cols = area ? areaColumns(level, t, pts[0], pts[1], pts[2], pts[3]) : columns(level, t, pts, width, stairs);
@@ -348,13 +377,15 @@ public final class Paths {
     }
 
     /** The blocks of a path: earth beneath where needed, the surface, and the plants on it cleared. */
-    public static List<BuildingDesigns.Placement> design(Building b) {
+    public static List<BuildingDesigns.Placement> design(Territory t, Building b) {
         List<BuildingDesigns.Placement> out = new ArrayList<>();
         if (b.pathCols == null) return out;
         Surface surface = Surface.byOrdinal(b.pathSurface);
         BlockState top = surface.block.defaultBlockState();
         for (int i = 0; i + 3 < b.pathCols.length; i += 4) {
             int x = b.pathCols[i], y = b.pathCols[i + 1], z = b.pathCols[i + 2], flags = b.pathCols[i + 3];
+            // A way laid out before a building or a wall went up never cuts through it.
+            if (t != null && guarded(t, b, x, z)) continue;
             if ((flags & EARTH) != 0) out.add(new BuildingDesigns.Placement(new BlockPos(x, y - 2, z), Blocks.DIRT.defaultBlockState()));
             out.add(new BuildingDesigns.Placement(new BlockPos(x, y - 1, z), top));
             if ((flags & BRIDGE) != 0) {

@@ -168,7 +168,7 @@ public final class BuildingDesigns {
 
     private static List<Placement> make(ServerLevel level, Territory t, Building b) {
         if (b.type.style == BuildingType.Style.FENCE) return fence(level, t, b);
-        if (b.type.style == BuildingType.Style.PATH) return Paths.design(b);
+        if (b.type.style == BuildingType.Style.PATH) return Paths.design(t, b);
         if (b.type.style == BuildingType.Style.CLEARING) return new ArrayList<>();
         Canvas c = new Canvas(b);
         int w = c.w, d = c.d;

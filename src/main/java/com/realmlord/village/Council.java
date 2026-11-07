@@ -135,10 +135,14 @@ public final class Council {
         int skill = o.statOf(by);
         switch (o) {
             case STEWARD -> {
+                if (!held(t, Office.WORKS) && Planning.due(level, t)) {
+                    Plan plan = planProposal(level, t);
+                    if (plan != null) return plan;
+                }
                 int open = Village.openBeds(t);
                 if (open < Math.max(5, t.residents.size() / 20)) {
                     BuildingType h = housing(t);
-                    if (h != null && !building(t, h)) return new Plan("housing", "build:" + h.name(), open, Component.translatable(h.key()));
+                    if (h != null && !building(t, h) && !Planning.active(t)) return new Plan("housing", "build:" + h.name(), open, Component.translatable(h.key()));
                 }
                 int idle = idle(t);
                 Job j = neediest(t);
@@ -173,7 +177,11 @@ public final class Council {
                         && Village.upgradeMissing(t, com.realmlord.profile.Profiles.get(lord)).isEmpty()) {
                     return new Plan("upgrade", "upgrade", Component.translatable(t.level.next().kindKey()), t.level.next().grade);
                 }
-                BuildingType bt = nextRequired(t);
+                if (Planning.due(level, t)) {
+                    Plan plan = planProposal(level, t);
+                    if (plan != null) return plan;
+                }
+                BuildingType bt = Planning.active(t) ? null : nextRequired(t);
                 if (bt != null) return new Plan("required", "build:" + bt.name(), Component.translatable(bt.key()), bt.wood, bt.stone);
                 if (t.wood < 150 && Village.places(t, Job.LOGGING) > Village.count(t, Job.LOGGING) && idle(t) > 0) {
                     return new Plan("wood", "jobs:LOGGING:" + Math.min(idle(t), 3), t.wood);
@@ -281,6 +289,187 @@ public final class Council {
         return null;
     }
 
+    private static boolean held(Territory t, Office o) {
+        for (Resident r : t.residents) if (r.office == o.ordinal()) return true;
+        return false;
+    }
+
+    /** The planner's draft, kept until the Lord decides, as a proposal. */
+    private static Plan planProposal(ServerLevel level, Territory t) {
+        ListTag d = Planning.draft(level, t);
+        t.ext.putLong("planDay", GaiaCalendar.today(level.getServer()));
+        if (d.size() < 2) return null;
+        t.ext.put("planDraft", d);
+        return new Plan("plan", "plan", d.size(), Planning.summary(t, d));
+    }
+
+    /** The Lord asks for a plan now: the planner draws one up and brings it to the council. */
+    public static String requestPlan(ServerPlayer p, Territory t) {
+        if (!p.getUUID().equals(t.owner)) return "realmlord.figure.err.not_lord";
+        Resident by = null;
+        Office o = Office.WORKS;
+        for (Resident r : t.residents) if (r.office == Office.WORKS.ordinal()) by = r;
+        if (by == null) {
+            o = Office.STEWARD;
+            for (Resident r : t.residents) if (r.office == Office.STEWARD.ordinal()) by = r;
+        }
+        if (by == null) return "realmlord.plan.err.planner";
+        ListTag l = list(t);
+        for (int i = l.size() - 1; i >= 0; i--) if (l.getCompound(i).getString("key").equals("plan")) l.remove(i);
+        Plan plan = planProposal(p.serverLevel(), t);
+        if (plan == null) return "realmlord.plan.err.nothing";
+        submit(p.serverLevel(), t, o, by, plan, GaiaCalendar.today(p.serverLevel().getServer()), p);
+        return null;
+    }
+
+    private static CompoundTag submit(ServerLevel level, Territory t, Office o, Resident r, Plan plan, long day, ServerPlayer lord) {
+        ListTag l = list(t);
+        CompoundTag s = new CompoundTag();
+        s.putInt("id", t.ext.getInt("councilNext") + 1);
+        t.ext.putInt("councilNext", s.getInt("id"));
+        s.putInt("office", o.ordinal());
+        s.putString("by", r.name);
+        s.putString("key", plan.key());
+        s.putString("act", plan.act());
+        ListTag args = new ListTag();
+        for (Object a : plan.args()) args.add(StringTag.valueOf(a instanceof Component c ? Component.Serializer.toJson(c)
+                : Component.Serializer.toJson(Component.literal(String.valueOf(a)))));
+        s.put("args", args);
+        s.putLong("day", day);
+        if (auto(t) && !plan.act().startsWith("build:") && !plan.act().equals("upgrade") && !plan.act().equals("plan")) {
+            String err = carry(level, lord, t, s);
+            record(t, Component.translatable(err == null ? "realmlord.council.done_auto" : "realmlord.council.failed", r.name, text(s),
+                    err == null ? "" : Component.translatable(err)));
+            return s;
+        }
+        l.add(s);
+        t.ext.put("council", l);
+        if (lord != null) Notify.player(lord, offer(t, s));
+        return s;
+    }
+
+    // ------------------------------------------------------------------ the officials' own people
+
+    /** Whether the officials run the workers under their offices (on unless the Lord takes it over). */
+    public static boolean manages(Territory t) {
+        return !t.ext.getBoolean("councilHandsOff");
+    }
+
+    public static void setManages(Territory t, boolean on) {
+        t.ext.putBoolean("councilHandsOff", !on);
+    }
+
+    /** May an official move this resident off their work? (Not militia, officials, staff, followers, trainees or figures.) */
+    private static boolean movable(Territory t, Resident r, Job from) {
+        return r.job == from && !r.militia && r.office < 0 && !r.follows && r.trainingAt < 0 && !Village.isStaffing(t, r) && !r.isFigure();
+    }
+
+    /** Moves up to n residents from one job to another; how many moved. */
+    private static int shift(Territory t, Job from, Job to, int n) {
+        int moved = 0;
+        for (Resident r : t.residents) {
+            if (moved >= n) break;
+            if (to != Job.IDLE && to != Job.CONSTRUCTION && Village.places(t, to) <= Village.count(t, to)) break;
+            if (from == Job.IDLE ? !free(t, r) : !movable(t, r, from)) continue;
+            r.job = to;
+            r.workplace = -1;
+            moved++;
+        }
+        return moved;
+    }
+
+    /** The woods or the quarry, whichever the stores lack more (and has room), else idle. */
+    private static Job stores(Territory t) {
+        Job poor = t.wood < t.stone * 1.5 ? Job.LOGGING : Job.QUARRYING;
+        if (Village.places(t, poor) > Village.count(t, poor)) return poor;
+        poor = poor == Job.LOGGING ? Job.QUARRYING : Job.LOGGING;
+        return Village.places(t, poor) > Village.count(t, poor) ? poor : Job.IDLE;
+    }
+
+    private static int sites(Territory t) {
+        int n = 0;
+        for (Building b : t.buildings) if (!b.demolishing && (!b.complete || b.damaged)) n++;
+        return n;
+    }
+
+    /**
+     * Each day the officials see to the people under their offices, as the novel's department
+     * heads do: the head of Works keeps enough builders on the sites and shares the rest between
+     * the woods and the quarry by what the stores lack; the head of Agriculture sends people to the
+     * fields when the granary runs low (borrowing loggers and quarrymen if it is dire) and lets
+     * them go when it overflows; the Steward finds work for the idle; the Transport head mans the
+     * fishing boats. How many each moves a day goes by their ability. Each says what they did.
+     */
+    public static void manage(ServerLevel level, Territory t, RandomSource rnd) {
+        for (Resident by : new ArrayList<>(t.residents)) {
+            if (by.office < 0) continue;
+            Office o = Office.values()[Math.min(by.office, Office.values().length - 1)];
+            int n = 1 + o.statOf(by) / 15;
+            switch (o) {
+                case WORKS -> {
+                    int sites = sites(t), builders = Village.count(t, Job.CONSTRUCTION);
+                    int want = sites == 0 ? 2 : Math.min(20, 4 + sites * 3);
+                    if (builders < want) {
+                        int moved = shift(t, Job.IDLE, Job.CONSTRUCTION, Math.min(n, want - builders));
+                        Job rich = t.wood >= t.stone * 1.5 ? Job.LOGGING : Job.QUARRYING;
+                        if (moved < Math.min(n, want - builders)) moved += shift(t, rich, Job.CONSTRUCTION, Math.min(n, want - builders) - moved);
+                        if (moved > 0) told(t, by, o, "realmlord.manage.builders", moved, sites);
+                    } else if (builders > want + 2) {
+                        Job poor = t.wood < t.stone * 1.5 ? Job.LOGGING : Job.QUARRYING;
+                        if (Village.places(t, poor) <= Village.count(t, poor)) poor = poor == Job.LOGGING ? Job.QUARRYING : Job.LOGGING;
+                        int moved = shift(t, Job.CONSTRUCTION, poor, Math.min(n, builders - want));
+                        if (moved > 0) told(t, by, o, "realmlord.manage.to_stores", moved, Component.translatable(poor.key()));
+                    } else {
+                        // Even out the woods and the quarry by what the stores lack.
+                        int logs = Village.count(t, Job.LOGGING), quarry = Village.count(t, Job.QUARRYING);
+                        if (t.wood < t.stone && quarry > 2 && t.wood < 500) {
+                            if (shift(t, Job.QUARRYING, Job.LOGGING, 1) > 0) told(t, by, o, "realmlord.manage.balance", Component.translatable(Job.LOGGING.key()), t.wood);
+                        } else if (t.stone < t.wood / 2 && logs > 2 && t.stone < 400) {
+                            if (shift(t, Job.LOGGING, Job.QUARRYING, 1) > 0) told(t, by, o, "realmlord.manage.balance", Component.translatable(Job.QUARRYING.key()), t.stone);
+                        }
+                    }
+                }
+                case AGRICULTURE -> {
+                    double days = foodDays(t);
+                    if (days < 15) {
+                        int moved = shift(t, Job.IDLE, Job.FARMING, n);
+                        if (days < 7 && moved < n) {
+                            moved += shift(t, Job.HERB_GROWING, Job.FARMING, n - moved);
+                            Job rich = t.wood >= t.stone ? Job.LOGGING : Job.QUARRYING;
+                            if (moved < n) moved += shift(t, rich, Job.FARMING, n - moved);
+                        }
+                        if (moved > 0) told(t, by, o, "realmlord.manage.farmers", moved, Math.round(days));
+                    } else if (days > 90 && Village.count(t, Job.FARMING) > Math.max(5, t.residents.size() / 4)) {
+                        Job to = stores(t);
+                        int moved = to == Job.IDLE ? 0 : shift(t, Job.FARMING, to, n);
+                        if (moved > 0) told(t, by, o, "realmlord.manage.release", moved, Math.round(days), Component.translatable(to.key()));
+                    }
+                }
+                case STEWARD -> {
+                    Job j = neediest(t);
+                    if (j == Job.FARMING && foodDays(t) > 60) j = sites(t) > 0 ? Job.CONSTRUCTION : stores(t);
+                    if (j != null && j != Job.IDLE && idle(t) > 0) {
+                        int moved = shift(t, Job.IDLE, j, n);
+                        if (moved > 0) told(t, by, o, "realmlord.manage.idle", moved, Component.translatable(j.key()));
+                    }
+                }
+                case TRANSPORT -> {
+                    int room = Village.places(t, Job.FISHING) - Village.count(t, Job.FISHING);
+                    if (room > 0) {
+                        int moved = shift(t, Job.IDLE, Job.FISHING, Math.min(n, room));
+                        if (moved > 0) told(t, by, o, "realmlord.manage.fishers", moved);
+                    }
+                }
+                default -> {
+                }
+            }
+        }
+    }
+
+    private static void told(Territory t, Resident by, Office o, String key, Object... args) {
+        record(t, Component.translatable("realmlord.manage.by", by.name, Component.translatable(o.key()), Component.translatable(key, args)));
+    }
+
     // ------------------------------------------------------------------ the day
 
     public static void day(ServerLevel level, Territory t, long day, RandomSource rnd) {
@@ -297,27 +486,11 @@ public final class Council {
             boolean pending = false;
             for (Tag tg : l) if (((CompoundTag) tg).getString("key").equals(plan.key())) pending = true;
             if (pending) continue;
-            CompoundTag s = new CompoundTag();
-            s.putInt("id", t.ext.getInt("councilNext") + 1);
-            t.ext.putInt("councilNext", s.getInt("id"));
-            s.putInt("office", o.ordinal());
-            s.putString("by", r.name);
-            s.putString("key", plan.key());
-            s.putString("act", plan.act());
-            ListTag args = new ListTag();
-            for (Object a : plan.args()) args.add(StringTag.valueOf(a instanceof Component c ? Component.Serializer.toJson(c)
-                    : Component.Serializer.toJson(Component.literal(String.valueOf(a)))));
-            s.put("args", args);
-            s.putLong("day", day);
-            if (auto(t) && !plan.act().startsWith("build:") && !plan.act().equals("upgrade")) {
-                String err = carry(level, lord, t, s);
-                record(t, Component.translatable(err == null ? "realmlord.council.done_auto" : "realmlord.council.failed", r.name, text(s),
-                        err == null ? "" : Component.translatable(err)));
-                continue;
-            }
-            l.add(s);
-            if (lord != null) Notify.player(lord, offer(t, s));
+            submit(level, t, o, r, plan, day, lord);
+            l = list(t);
         }
+        if (manages(t)) manage(level, t, rnd);
+        l = list(t);
         t.ext.put("council", l);
     }
 
@@ -392,11 +565,13 @@ public final class Council {
         String[] a = s.getString("act").split(":");
         switch (a[0]) {
             case "build" -> {
-                if (lord == null) return "realmlord.council.err.lord";
                 BuildingType type = BuildingType.valueOf(a[1]);
                 int[] at = site(level, t, type);
                 if (at == null) return "realmlord.council.err.site";
-                return Village.start(lord, t, type, new BlockPos(at[0], t.center.getY(), at[1]), at[2]);
+                return Village.start(level, lord, t, type, new BlockPos(at[0], t.center.getY(), at[1]), at[2], null, 0);
+            }
+            case "plan" -> {
+                return Planning.adopt(level, t);
             }
             case "jobs" -> {
                 Job j = Job.valueOf(a[1]);
@@ -494,20 +669,32 @@ public final class Council {
      * first place the builders could start on. Returns {x, z, rotation} or null.
      */
     public static int[] site(ServerLevel level, Territory t, BuildingType type) {
+        int[] at = site(level, t, type, true);
+        return at != null ? at : site(level, t, type, false);
+    }
+
+    private static int[] site(ServerLevel level, Territory t, BuildingType type, boolean zoned) {
         int reach = Math.max(20, t.radius() - 6);
-        for (int r = 14; r <= reach; r += 3) {
+        // Fields go out beyond the wall; everything else inside it, nearest the manor first.
+        Building wall = Planning.wall(t);
+        int ring = wall == null ? 0 : wall.fenceRadius > 0 ? wall.fenceRadius : t.level.wall();
+        int from = 14;
+        if (zoned && type.fieldJob() != null && ring > 0 && ring + 10 < reach) from = ring + 8;
+        for (int r = from; r <= reach; r += 3) {
             int steps = Math.max(8, (int) (2 * Math.PI * r / 4));
             int start = level.getRandom().nextInt(steps);
             for (int k = 0; k < steps; k++) {
                 double ang = 2 * Math.PI * ((k + start) % steps) / steps;
                 int cx = t.center.getX() + (int) Math.round(Math.cos(ang) * r), cz = t.center.getZ() + (int) Math.round(Math.sin(ang) * r);
-                // Facing the manor if it fits that way, else any way round.
-                int face = Math.abs(Math.cos(ang)) > Math.abs(Math.sin(ang)) ? (Math.cos(ang) > 0 ? 1 : 3) : (Math.sin(ang) > 0 ? 2 : 0);
+                // The door facing the manor if it fits that way, else any way round (rotation 0
+                // puts the door on the north side, 1 east, 2 south, 3 west).
+                int face = Math.abs(Math.cos(ang)) > Math.abs(Math.sin(ang)) ? (Math.cos(ang) > 0 ? 3 : 1) : (Math.sin(ang) > 0 ? 0 : 2);
                 for (int turn = 0; turn < 4; turn++) {
                     int rot = (face + turn) & 3;
                     int sx = rot % 2 == 0 ? type.width : type.depth, sz = rot % 2 == 0 ? type.depth : type.width;
                     BlockPos o = new BlockPos(cx - sx / 2, t.center.getY(), cz - sz / 2);
                     if (!level.isLoaded(o)) break;
+                    if (zoned && type.fieldJob() == null && ring > 0 && r + Math.max(sx, sz) / 2 + 4 > ring) return null;
                     if (Village.checkPlacement(level, t, type, o, rot) == null) return new int[]{o.getX(), o.getZ(), rot};
                 }
             }

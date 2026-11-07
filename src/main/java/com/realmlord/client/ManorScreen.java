@@ -640,11 +640,30 @@ public class ManorScreen extends Screen {
 
     // ------------------------------------------------------------------ council (the officials' proposals)
 
-    private static final int COUNCIL_ROWS = 5, COUNCIL_ROW = 28;
+    private static final int COUNCIL_ROWS = 5, COUNCIL_ROW = 28, PLAN_ROWS = 10;
+    /** The Council tab shows the proposals, or the town plan and the officials' running of the workers. */
+    private static boolean councilPlan;
 
     private void initCouncil(CompoundTag v, int x, int y) {
         CompoundTag c = v.getCompound("council");
         boolean auto = c.getBoolean("auto");
+        addRenderableWidget(Button.builder(Component.translatable(councilPlan ? "realmlord.council.view.proposals" : "realmlord.council.view.plan"), b -> {
+            councilPlan = !councilPlan;
+            init();
+        }).bounds(x + W - 256, y + 42, 62, 14).build());
+        if (councilPlan) {
+            boolean manage = c.getBoolean("manage");
+            addRenderableWidget(Button.builder(Component.translatable(manage ? "realmlord.council.manage.on" : "realmlord.council.manage.off"),
+                            b -> send(ManorActionPacket.Action.COUNCIL_MANAGE, manage ? 0 : 1, 0)).bounds(x + 8, y + 184, 190, 14)
+                    .tooltip(Tooltip.create(Component.translatable("realmlord.council.manage.tip"))).build());
+            addRenderableWidget(Button.builder(Component.translatable("realmlord.plan.draft"), b -> send(ManorActionPacket.Action.COUNCIL_PLAN, 0, 0))
+                    .bounds(x + 202, y + 184, 92, 14).tooltip(Tooltip.create(Component.translatable("realmlord.plan.draft.tip"))).build());
+            Button abandon = Button.builder(Component.translatable("realmlord.plan.abandon"), b -> send(ManorActionPacket.Action.COUNCIL_PLAN, 1, 0))
+                    .bounds(x + 298, y + 184, 94, 14).build();
+            abandon.active = !c.getList("plan", Tag.TAG_COMPOUND).isEmpty();
+            addRenderableWidget(abandon);
+            return;
+        }
         addRenderableWidget(Button.builder(Component.translatable(auto ? "realmlord.council.auto.on" : "realmlord.council.auto.off"),
                         b -> send(ManorActionPacket.Action.COUNCIL_AUTO, auto ? 0 : 1, 0)).bounds(x + W - 190, y + 42, 182, 14)
                 .tooltip(Tooltip.create(Component.translatable("realmlord.council.auto.tip"))).build());
@@ -661,8 +680,12 @@ public class ManorScreen extends Screen {
 
     private void renderCouncil(GuiGraphics g, CompoundTag v, int x, int y) {
         CompoundTag c = v.getCompound("council");
-        Ui.inset(g, x + 6, y + 58, W - 12, COUNCIL_ROWS * COUNCIL_ROW + 4);
         g.drawString(font, Component.translatable("realmlord.council.title", c.getInt("officials")), x + 10, y + 45, Ui.GOLD, false);
+        if (councilPlan) {
+            renderPlan(g, c, x, y);
+            return;
+        }
+        Ui.inset(g, x + 6, y + 58, W - 12, COUNCIL_ROWS * COUNCIL_ROW + 4);
         ListTag props = c.getList("proposals", Tag.TAG_COMPOUND);
         if (props.isEmpty()) {
             Ui.wrap(g, font, Component.translatable(c.getInt("officials") == 0 ? "realmlord.council.no_officials" : "realmlord.council.none"),
@@ -682,6 +705,35 @@ public class ManorScreen extends Screen {
         // What the officials have done lately.
         ListTag log = c.getList("log", Tag.TAG_STRING);
         int ly = y + 62 + COUNCIL_ROWS * COUNCIL_ROW + 4;
+        g.drawString(font, Component.translatable("realmlord.council.recent"), x + 10, ly, Ui.GOLD, false);
+        for (int i = 0; i < Math.min(3, log.size()); i++) {
+            Component line = Component.Serializer.fromJson(log.getString(i));
+            if (line != null) g.drawString(font, Ui.fit(font, line, W - 24), x + 12, ly + 10 + i * 9, Ui.MUTED, false);
+        }
+    }
+
+    private void renderPlan(GuiGraphics g, CompoundTag c, int x, int y) {
+        Ui.inset(g, x + 6, y + 58, W - 12, PLAN_ROWS * 12 + 4);
+        ListTag plan = c.getList("plan", Tag.TAG_COMPOUND);
+        if (plan.isEmpty()) {
+            Ui.wrap(g, font, Component.translatable("realmlord.plan.none"), x + 12, y + 64, W - 30, Ui.MUTED);
+        }
+        int[] colours = {Ui.MUTED, 0xFFB8860B, 0xFF3C8C3C, 0xFF9C4A3A};
+        String[] marks = {"\u25cb ", "\u25b6 ", "\u2714 ", "\u2716 "};
+        int shown = 0;
+        // The steps done drop off the top once the list is long, so what is next stays in view.
+        int first = 0;
+        while (plan.size() - first > PLAN_ROWS && first < plan.size() && plan.getCompound(first).getInt("st") >= 2) first++;
+        for (int i = first; i < plan.size() && shown < PLAN_ROWS; i++, shown++) {
+            CompoundTag s = plan.getCompound(i);
+            int st = Math.max(0, Math.min(3, s.getInt("st")));
+            Component text = Component.Serializer.fromJson(s.getString("text"));
+            net.minecraft.network.chat.MutableComponent line = Component.literal((i + 1) + ". " + marks[st]).append(text == null ? Component.empty() : text);
+            if (st == 0 && s.contains("why")) line.append(Component.literal(" \u2014 ").append(Component.translatable(s.getString("why"))).withStyle(ChatFormatting.ITALIC));
+            g.drawString(font, Ui.fit(font, line, W - 28), x + 12, y + 62 + shown * 12, colours[st], false);
+        }
+        ListTag log = c.getList("log", Tag.TAG_STRING);
+        int ly = y + 202;
         g.drawString(font, Component.translatable("realmlord.council.recent"), x + 10, ly, Ui.GOLD, false);
         for (int i = 0; i < Math.min(3, log.size()); i++) {
             Component line = Component.Serializer.fromJson(log.getString(i));

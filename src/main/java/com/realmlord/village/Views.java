@@ -65,6 +65,8 @@ public final class Views {
         council.put("proposals", props);
         council.put("log", Council.log(t).copy());
         council.putBoolean("auto", Council.auto(t));
+        council.putBoolean("manage", Council.manages(t));
+        council.put("plan", Planning.view(t, Planning.steps(t)));
         council.putInt("officials", Office.held(t));
         v.put("council", council);
         v.putInt("navy", Navy.count(t));

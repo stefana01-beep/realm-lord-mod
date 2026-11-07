@@ -872,7 +872,14 @@ public final class Village {
      * or 94 blocks out), whatever the village's own grade, and 0 the village's own.
      */
     public static String start(ServerPlayer p, Territory t, BuildingType type, BlockPos origin, int rotation, int[] gates, int wallGrade) {
-        ServerLevel level = p.serverLevel();
+        return start(p.serverLevel(), p, t, type, origin, rotation, gates, wallGrade);
+    }
+
+    /**
+     * As above, the Lord (p) may be away: then an official lays the building out, with the
+     * blueprints the village already knows, and the village is told.
+     */
+    public static String start(ServerLevel level, ServerPlayer p, Territory t, BuildingType type, BlockPos origin, int rotation, int[] gates, int wallGrade) {
         boolean free = t.freeBuilds.contains(type);
         String err = checkCost(p, t, type, free);
         if (err != null) return err;
@@ -892,7 +899,7 @@ public final class Village {
             t.wood -= type.wood;
             t.stone -= type.stone;
             // A blueprint carried but not yet learned is learned now; a learned one is never used up.
-            if (type.blueprint && !t.blueprints.contains(type.id()) && findBlueprint(p, type) >= 0) {
+            if (p != null && type.blueprint && !t.blueprints.contains(type.id()) && findBlueprint(p, type) >= 0) {
                 p.getInventory().getItem(findBlueprint(p, type)).shrink(1);
                 t.blueprints.add(type.id());
             }
@@ -932,8 +939,10 @@ public final class Village {
         }
         t.buildings.add(b);
         level.playSound(null, b.center(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, 1.0F, 0.8F);
-        Notify.player(p, Component.translatable("realmlord.build.started", Component.translatable(type.key()), type.hours,
-                count(t, Job.CONSTRUCTION)));
+        Component started = Component.translatable("realmlord.build.started", Component.translatable(type.key()), type.hours,
+                count(t, Job.CONSTRUCTION));
+        if (p != null) Notify.player(p, started);
+        else tell(level, t, started);
         return null;
     }
 
@@ -1307,6 +1316,8 @@ public final class Village {
         b.complete = true;
         BuildingDesigns.forget(b);
         b.progress = b.workNeeded;
+        // Whatever a new way scraped against is looked over at once and put right.
+        if (b.type.style == BuildingType.Style.PATH) inspect(level, t);
         level.playSound(null, b.center(), SoundEvents.PLAYER_LEVELUP, SoundSource.BLOCKS, 0.8F, 1.2F);
         if (b.quietRefit) {
             b.quietRefit = false;
@@ -1715,7 +1726,7 @@ public final class Village {
 
     /** True if the village has learned a building's blueprint, or the Lord carries one. */
     public static boolean knowsBlueprint(ServerPlayer p, Territory t, BuildingType type) {
-        return !type.blueprint || t.blueprints.contains(type.id()) || p.getAbilities().instabuild || findBlueprint(p, type) >= 0;
+        return !type.blueprint || t.blueprints.contains(type.id()) || p != null && p.getAbilities().instabuild || p != null && findBlueprint(p, type) >= 0;
     }
 
     /**
@@ -1834,6 +1845,8 @@ public final class Village {
         construct(level, t, 20 * speed);
         // Every two minutes or so, the village looks its finished buildings over for damage.
         if ((level.getGameTime() / 20) % 120 == Math.floorMod(t.id * 37, 120)) inspect(level, t);
+        // The officials work through the town plan.
+        if ((level.getGameTime() / 20) % 20 == Math.floorMod(t.id * 7, 20)) Planning.tick(level, t);
         if (t.waitingSettlers > 0) admitWaiting(level, t);
         refitFence(level, t);
         if (com.realmlord.territory.Residence.upgrade(level, t)) {

@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 
 /** Client to server: buttons on the Manor screen. */
 public class ManorActionPacket {
-    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT, DEMOLISH, CREW, BUY_GOOD, SELL_GOOD, SELL_SPECIAL, HAND_IN, SELL_STORAGE, OPEN_STORAGE, TAKE_GOOD, GROUNDS, DEPOSIT, SPEED, BUY_WARE, BUY_BOOK, BUILD_CITY_WALL, FOUND_AFFILIATE, RECRUIT_VISITOR, AUCTION_BID, COUNCIL_APPROVE, COUNCIL_DISMISS, COUNCIL_AUTO }
+    public enum Action { MAP, REFRESH, SHIFT_JOB, BUILD_FENCE, CHOOSE_FREE, UPGRADE, BUY, SELL, BUY_BLUEPRINT, WITHDRAW, CANCEL_SITE, OPEN_RESIDENT, DEMOLISH, CREW, BUY_GOOD, SELL_GOOD, SELL_SPECIAL, HAND_IN, SELL_STORAGE, OPEN_STORAGE, TAKE_GOOD, GROUNDS, DEPOSIT, SPEED, BUY_WARE, BUY_BOOK, BUILD_CITY_WALL, FOUND_AFFILIATE, RECRUIT_VISITOR, AUCTION_BID, COUNCIL_APPROVE, COUNCIL_DISMISS, COUNCIL_AUTO, COUNCIL_MANAGE, COUNCIL_PLAN }
 
     private final Action action;
     private final int a;
@@ -88,6 +88,13 @@ public class ManorActionPacket {
             }
             case COUNCIL_DISMISS -> com.realmlord.village.Council.dismiss(p, t, a);
             case COUNCIL_AUTO -> com.realmlord.village.Council.setAuto(t, a != 0);
+            case COUNCIL_MANAGE -> com.realmlord.village.Council.setManages(t, a != 0);
+            case COUNCIL_PLAN -> {
+                if (a == 0) {
+                    String err = com.realmlord.village.Council.requestPlan(p, t);
+                    if (err != null) Notify.player(p, err);
+                } else com.realmlord.village.Planning.abandon(t);
+            }
             case AUCTION_BID -> {
                 String err = com.realmlord.village.Auction.bid(p, t, a);
                 if (err != null) Notify.player(p, err);

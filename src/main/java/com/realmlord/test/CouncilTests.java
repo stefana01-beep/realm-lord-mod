@@ -50,7 +50,7 @@ public class CouncilTests {
             for (int i = 0; i < 20 && Council.list(t).isEmpty(); i++) Council.day(level, t, day, level.getRandom());
             helper.assertTrue(!Council.list(t).isEmpty(), "the Steward proposed nothing");
             CompoundTag s = Council.list(t).getCompound(0);
-            helper.assertTrue(s.getString("act").startsWith("build:") || s.getString("act").startsWith("jobs:"), "an odd proposal: " + s.getString("act"));
+            helper.assertTrue(s.getString("act").startsWith("build:") || s.getString("act").startsWith("jobs:") || s.getString("act").equals("plan"), "an odd proposal: " + s.getString("act"));
             // Level some ground south of the manor, as the founding grounds would be.
             int gy = t.center.getY();
             for (int x = -20; x <= 20; x++)
