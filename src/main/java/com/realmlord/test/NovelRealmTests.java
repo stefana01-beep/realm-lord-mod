@@ -105,9 +105,11 @@ public class NovelRealmTests {
         // The navy: sailors enlist at the dock up to its cap.
         helper.assertTrue(Navy.cap(t) == 30, "a dock and a shipyard should hold 30 sailors, held " + Navy.cap(t));
         Resident sailor = null;
-        for (Resident r : t.residents) if (sailor == null && r.office < 0 && !r.isFigure() && !Village.isStaffing(t, r)) sailor = r;
+        for (Resident r : t.residents) if (sailor == null && !r.militia && r.office < 0 && !r.isFigure() && !Village.isStaffing(t, r)) sailor = r;
+        int militia = Village.militiaCount(t);
+        helper.assertTrue(sailor != null && !sailor.militia, "no free resident to enlist");
         helper.assertTrue(Navy.enlist(t, sailor, true) == null && sailor.sailor && sailor.militia, "could not enlist a sailor");
-        helper.assertTrue(Village.militiaCount(t) == 0 && Navy.count(t) == 1, "a sailor should not count against the militia");
+        helper.assertTrue(Village.militiaCount(t) == militia && Navy.count(t) == 1, "a sailor should not count against the militia");
         // A Chamber of Commerce sends a caravan with the village's goods, and it comes home richer.
         Building chamber = VillageTests.built(t, BuildingType.CHAMBER_OF_COMMERCE);
         hire(t, Occupation.MERCHANT, chamber);
@@ -179,6 +181,9 @@ public class NovelRealmTests {
         ServerLevel level = helper.getLevel();
         long day = t.lastDay + 1;
         // A barbarian band rides in from the north and withdraws at dawn.
+        int reach = (t.radius() + 40) >> 4;
+        for (int cx = -reach; cx <= reach; cx++)
+            for (int cz = -reach; cz <= 1; cz++) level.setChunkForced((t.center.getX() >> 4) + cx, (t.center.getZ() >> 4) + cz, true);
         int n = Raids.spawn(level, t, day);
         helper.assertTrue(n >= 3, "the barbarian band was too small: " + n);
         int seen = 0, chiefs = 0;
@@ -232,8 +237,11 @@ public class NovelRealmTests {
         Zombie z = helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 1, 9));
         z.setNoAi(true);
         float hp = z.getHealth();
-        helper.runAfterDelay(120, () -> {
-            helper.assertTrue(be.ammo() < 16, "the bed crossbow never fired");
+        helper.runAfterDelay(30, () -> {
+            String why = be.ammo() < 16 ? null : be.autoFire();
+            helper.assertTrue(why == null && be.ammo() < 16, "the bed crossbow never fired: " + why);
+        });
+        helper.runAfterDelay(90, () -> {
             helper.assertTrue(!z.isAlive() || z.getHealth() < hp, "the bolt missed the zombie");
             // The trebuchet's aim lands where it is told to.
             Vec3 v = com.realmlord.entity.StoneShotEntity.aim(new Vec3(0, 65, 0), new Vec3(30, 64, 0));

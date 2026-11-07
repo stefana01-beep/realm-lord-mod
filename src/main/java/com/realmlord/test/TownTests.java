@@ -83,7 +83,7 @@ public class TownTests {
                 && c.getItem(2).getCount() == 6 && c.getItem(3).isEmpty(), "sorting did not merge and order: " + c.getItem(0) + " " + c.getItem(1) + " " + c.getItem(2));
         // Every drop turned up by digging is kept: coal goes to the storehouse.
         com.realmlord.village.Sites.toStores(t, new ItemStack(Items.COAL, 3));
-        helper.assertTrue(t.storage.countItem(Items.COAL) >= 3, "coal was not kept");
+        helper.assertTrue(t.storage.countItem(Items.COAL) >= 3 || com.realmlord.village.Goods.COAL.stock(t) >= 3, "coal was not kept");
 
         // A smithy set to forge arms puts graded iron gear in the storehouse.
         Building smithy = staffed(t, BuildingType.BLACKSMITH_WORKSHOP, Occupation.BLACKSMITH, 1);

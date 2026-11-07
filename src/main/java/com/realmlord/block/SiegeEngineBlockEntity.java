@@ -100,12 +100,20 @@ public class SiegeEngineBlockEntity extends BlockEntity {
             cooldown--;
             return;
         }
-        if (ammo <= 0 || level == null || level.getGameTime() % 10 != 0) return;
+        if (level == null || level.getGameTime() % 10 != 0) return;
+        autoFire();
+    }
+
+    /** Looks for a foe and shoots at it; returns why it did not, or null if it shot. */
+    public String autoFire() {
+        if (ammo <= 0) return "empty";
+        if (cooldown > 0) return "reloading";
         Territory t = territory();
-        if (t == null) return;
+        if (t == null) return "outside any territory";
         LivingEntity target = findTarget(t);
-        if (target == null) return;
+        if (target == null) return "no target";
         fireAt(target.position().add(0, target.getBbHeight() * 0.5, 0), target, owner(t));
+        return null;
     }
 
     private ServerPlayer owner(Territory t) {
