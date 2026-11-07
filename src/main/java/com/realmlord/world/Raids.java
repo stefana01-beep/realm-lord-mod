@@ -95,13 +95,14 @@ public final class Raids {
         int n = bandSize(t), tier = tier(t, day), made = 0;
         for (int i = 0; i < n; i++) {
             BlockPos at = null;
-            for (int tries = 0; tries < 10 && at == null; tries++) {
+            for (int tries = 0; tries < 16 && at == null; tries++) {
                 double a = -Math.PI / 2 + (r.nextDouble() - 0.5) * (tries < 5 ? 1.2 : Math.PI);
-                int d = t.radius() + 20 + r.nextInt(10);
+                // Past the border if that ground is loaded, closer in if not.
+                int d = tries < 8 ? t.radius() + 20 + r.nextInt(10) : tries < 12 ? t.radius() + r.nextInt(8) : t.radius() / 2 + r.nextInt(8);
                 int x = t.center.getX() + (int) (Math.cos(a) * d), z = t.center.getZ() + (int) (Math.sin(a) * d);
                 if (!level.isLoaded(new BlockPos(x, 64, z))) continue;
                 int y = Village.groundAt(level, x, z);
-                if (level.getFluidState(new BlockPos(x, y - 1, z)).isEmpty()) at = new BlockPos(x, y, z);
+                if (level.getFluidState(new BlockPos(x, y - 1, z)).isEmpty() || tries >= 14) at = new BlockPos(x, y, z);
             }
             if (at == null) continue;
             BanditEntity b = ModEntities.BANDIT.get().create(level);
