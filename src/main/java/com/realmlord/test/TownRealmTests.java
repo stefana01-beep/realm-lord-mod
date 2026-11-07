@@ -90,7 +90,10 @@ public class TownRealmTests {
                 b -> b.getTags().contains(Trials.TAG));
         helper.assertTrue(raiders.size() >= 4, "the first wave was too small: " + raiders.size());
         // Five at the manor is a breach: the town is plundered and must wait to try again.
-        for (int i = 0; i < Trials.BREACH && i < raiders.size(); i++) raiders.get(i).teleportTo(t.center.getX() + 0.5, t.center.getY(), t.center.getZ() + 0.5);
+        if (raiders.size() < Trials.BREACH) com.realmlord.world.Raids.spawnBand(level, t, Trials.BREACH, 3, 0, 0, Trials.TAG);
+        raiders = level.getEntitiesOfClass(BanditEntity.class, new AABB(t.center).inflate(t.radius() + 80), b -> b.getTags().contains(Trials.TAG));
+        for (BanditEntity b : raiders) b.moveTo(t.center.getX() + 0.5, t.center.getY() + 1, t.center.getZ() + 0.5);
+        helper.assertTrue(raiders.size() >= Trials.BREACH, "too few raiders to breach: " + raiders.size());
         t.treasury = 9_000;
         Trials.update(level, t);
         helper.assertTrue(t.ext.getLong("trialStart") == 0 && t.treasury == 6_000, "a breach should end the trial and plunder a third");
