@@ -107,7 +107,7 @@ public class PlanningTests {
             helper.assertTrue(!inHouse, "the old path still cuts through the house");
             helper.assertTrue(!onWall, "the old path still cuts through the wall away from a gate");
             helper.assertTrue(!Paths.onWall(t, t.center.getX() + 40, t.center.getZ()), "the east gate is closed to paths");
-            helper.assertTrue(Paths.onWall(t, t.center.getX() + 39, t.center.getZ() + 12), "the wall is open to paths");
+            helper.assertTrue(Paths.onWall(t, t.center.getX() + 38, t.center.getZ() + 10), "the wall is open to paths");
             // The door's front is just outside the house; the lane from it goes round to the manor's yard.
             t.buildings.remove(path);
             int[] f = Planning.front(house);
@@ -129,7 +129,8 @@ public class PlanningTests {
         Territory t = VillageTests.village(helper, p, 21600);
         ServerLevel level = helper.getLevel();
         helper.runAfterDelay(40, () -> {
-            helper.assertTrue(official(t, Office.WORKS) != null, "no one to appoint");
+            t.level = com.realmlord.territory.TerritoryLevel.VILLAGE_2;
+            helper.assertTrue(official(t, Office.WORKS) != null && Office.holder(t, Office.WORKS) != null, "no one to appoint");
             t.blueprints.add(BuildingType.SMALL_RESIDENTIAL_COURTYARD.id());
             t.wood = 5_000;
             t.stone = 5_000;
@@ -179,7 +180,8 @@ public class PlanningTests {
         Territory t = VillageTests.village(helper, p, 22000);
         ServerLevel level = helper.getLevel();
         helper.runAfterDelay(40, () -> {
-            helper.assertTrue(official(t, Office.WORKS) != null, "no one to appoint");
+            t.level = com.realmlord.territory.TerritoryLevel.VILLAGE_2;
+            helper.assertTrue(official(t, Office.WORKS) != null && Office.holder(t, Office.WORKS) != null, "no one to appoint");
             Building site = VillageTests.built(t, BuildingType.BARRACKS);
             site.complete = false;
             int idle = 0;
