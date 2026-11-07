@@ -202,7 +202,7 @@ public final class Planning {
     /** Works the plan along: called every little while. */
     public static void tick(ServerLevel level, Territory t) {
         ListTag l = steps(t);
-        if (l.isEmpty()) return;
+        if (l.isEmpty() || !level.isLoaded(t.center)) return;
         boolean buildingUnderway = false;
         for (int i = 0; i < l.size(); i++) {
             CompoundTag s = l.getCompound(i);

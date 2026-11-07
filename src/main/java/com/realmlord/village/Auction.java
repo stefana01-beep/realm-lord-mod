@@ -163,7 +163,7 @@ public final class Auction {
         if (who.isEmpty()) return;
         Territory t = TerritoryData.get(level.getServer()).byId(lot.getInt("territory"));
         if (t == null) return;
-        t.storage.addItem(item(lot));
+        Village.stow(level, t, item(lot));
         Village.tell(level, t, Component.translatable("realmlord.auction.won", item(lot).getHoverName(), Coins.format(lot.getLong("price")), t.name));
     }
 }

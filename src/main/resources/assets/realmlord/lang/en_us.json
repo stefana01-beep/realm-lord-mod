@@ -2499,6 +2499,7 @@
   "realmlord.visitor.came": "%s has come to %s, drawn by your name, and would serve you (for %s).",
   "realmlord.visitor.err.beds": "There is no bed for them.",
   "realmlord.visitor.err.none": "No one is visiting.",
+  "realmlord.visitor.err.taken": "Another Lord has already won them over; they have left.",
   "realmlord.visitor.joined": "%s has joined %s.",
   "realmlord.visitor.left": "%s left %s.",
   "realmlord.visitor.recruit": "Take into service (%s)",

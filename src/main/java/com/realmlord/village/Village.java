@@ -105,6 +105,25 @@ public final class Village {
         t.population = t.residents.size();
     }
 
+    /**
+     * True for an ordinary resident the village may lose (to hunger, a raid, the beasts, a move to an
+     * affiliated village): never a historical figure, an official, a companion at the Lord's side,
+     * a soldier, a sailor, a building's staff or one away training.
+     */
+    public static boolean ordinary(Territory t, Resident r) {
+        return !r.isFigure() && r.office < 0 && !r.follows && r.unit < 0 && !r.sailor && !isStaffing(t, r) && r.trainingAt < 0;
+    }
+
+    /** Into the manor's storehouse; what does not fit is left on the ground at the manor, never lost. */
+    public static void stow(ServerLevel level, Territory t, ItemStack s) {
+        ItemStack left = t.storage.addItem(s);
+        if (left.isEmpty()) return;
+        int y = groundAt(level, t.center.getX() + 3, t.center.getZ() + 3);
+        net.minecraft.world.entity.item.ItemEntity e = new net.minecraft.world.entity.item.ItemEntity(level, t.center.getX() + 3.5, y + 0.5, t.center.getZ() + 3.5, left);
+        e.setUnlimitedLifetime();
+        level.addFreshEntity(e);
+    }
+
     /** Beds nobody sleeps in yet (within the level's limit on people). */
     public static int openBeds(Territory t) {
         return Math.max(0, capacity(t) - t.residents.size());
@@ -652,8 +671,8 @@ public final class Village {
             int leave = 1 + rnd.nextInt(Math.max(1, t.residents.size() / 20));
             for (int i = 0; i < leave && t.residents.size() > 5; i++) {
                 Resident r = t.residents.get(rnd.nextInt(t.residents.size()));
-                if (r.occupation == Occupation.CIVIL_SERVANT && r.grade >= 0) continue;
-                t.residents.remove(r);
+                if (r.occupation == Occupation.CIVIL_SERVANT && r.grade >= 0 || !ordinary(t, r)) continue;
+                remove(t, r);
             }
         }
         ledger[LEDGER_LEFT] = before - t.residents.size();
@@ -938,6 +957,8 @@ public final class Village {
             b.fenceStyle = fenceStyle(t);
         }
         t.buildings.add(b);
+        // Paths still being laid are worked out afresh, to keep off the new building or wall.
+        for (Building o : t.buildings) if (o.type == BuildingType.PATH && !o.complete) BuildingDesigns.forget(o);
         level.playSound(null, b.center(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, 1.0F, 0.8F);
         Component started = Component.translatable("realmlord.build.started", Component.translatable(type.key()), type.hours,
                 count(t, Job.CONSTRUCTION));

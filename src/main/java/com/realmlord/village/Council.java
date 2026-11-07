@@ -447,7 +447,7 @@ public final class Council {
                 }
                 case STEWARD -> {
                     Job j = neediest(t);
-                    if (j == Job.FARMING && foodDays(t) > 60) j = sites(t) > 0 ? Job.CONSTRUCTION : stores(t);
+                    if (j == Job.FARMING && foodDays(t) > 60 || j == Job.CONSTRUCTION && sites(t) == 0) j = sites(t) > 0 ? Job.CONSTRUCTION : stores(t);
                     if (j != null && j != Job.IDLE && idle(t) > 0) {
                         int moved = shift(t, Job.IDLE, j, n);
                         if (moved > 0) told(t, by, o, "realmlord.manage.idle", moved, Component.translatable(j.key()));
@@ -562,6 +562,20 @@ public final class Council {
 
     /** Carries out a proposal. The Lord may be null (routine matters handled on the officials' own authority). */
     static String carry(ServerLevel level, ServerPlayer lord, Territory t, CompoundTag s) {
+        try {
+            return carryOut(level, lord, t, s);
+        } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException e) {
+            // A proposal from an older version of the mod that no longer makes sense.
+            return "realmlord.council.err.gone";
+        }
+    }
+
+    /** For the tests: carries out a proposal on the officials' own authority. */
+    public static String approveForTest(ServerLevel level, Territory t, CompoundTag s) {
+        return carry(level, null, t, s);
+    }
+
+    private static String carryOut(ServerLevel level, ServerPlayer lord, Territory t, CompoundTag s) {
         String[] a = s.getString("act").split(":");
         switch (a[0]) {
             case "build" -> {
@@ -633,7 +647,8 @@ public final class Council {
                 long cost = t.residents.size() * 3L;
                 if (t.treasury < cost) return "realmlord.market.cannot_afford";
                 t.treasury -= cost;
-                t.ext.putInt("festivalMorale", 5);
+                t.ext.putInt("festivalMorale", Math.max(5, t.ext.getInt("festivalMorale")));
+                t.ext.putLong("festivalUntil", Math.max(t.ext.getLong("festivalUntil"), GaiaCalendar.today(level.getServer()) + 7));
                 t.peopleThoughts = Math.min(100, t.peopleThoughts + 3);
                 return null;
             }

@@ -182,8 +182,8 @@ public final class Beastwave {
         int lost = fence ? 0 : Math.min(3, Math.max(0, (beasts - militia * 2) / 8));
         for (int i = 0; i < lost && t.residents.size() > 5; i++) {
             Resident r = t.residents.get(level.getRandom().nextInt(t.residents.size()));
-            if (r.isFigure()) continue;
-            t.residents.remove(r);
+            if (!Village.ordinary(t, r)) continue;
+            Village.remove(t, r);
         }
         Village.tell(level, t, Component.translatable("realmlord.beastwave.unseen", wave, t.name, food, lost));
     }

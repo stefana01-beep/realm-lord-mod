@@ -81,6 +81,12 @@ public final class Visitors {
         if (!present(t)) return "realmlord.visitor.err.none";
         if (!p.getUUID().equals(t.owner)) return "realmlord.figure.err.not_lord";
         if (Village.openBeds(t) <= 0) return "realmlord.visitor.err.beds";
+        String fid0 = t.ext.getString("visitorFigure");
+        if (!fid0.isEmpty() && WorldState.get(p.server).summoned.contains(fid0)) {
+            // Another Lord won them over while they were here.
+            clear(t);
+            return "realmlord.visitor.err.taken";
+        }
         long fee = fee(t);
         if (!Coins.payWithTreasury(p, fee)) return "realmlord.market.cannot_afford";
         RandomSource rnd = p.getRandom();

@@ -136,8 +136,8 @@ public final class Raids {
         int lost = fence ? 0 : Math.min(4, Math.max(0, (band - militia * 2) / 10));
         for (int i = 0; i < lost && t.residents.size() > 5; i++) {
             Resident r = t.residents.get(level.getRandom().nextInt(t.residents.size()));
-            if (r.isFigure()) continue;
-            t.residents.remove(r);
+            if (!Village.ordinary(t, r)) continue;
+            Village.remove(t, r);
         }
         Village.tell(level, t, Component.translatable("realmlord.raid.unseen", t.name, food, com.realmlord.village.Coins.format(coin), lost));
     }

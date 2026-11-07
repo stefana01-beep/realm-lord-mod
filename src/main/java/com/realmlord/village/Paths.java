@@ -284,6 +284,9 @@ public final class Paths {
         t.wood += Math.round(c[0] * Sites.SALVAGE * (1 - laid));
         t.stone += Math.round(c[1] * Sites.SALVAGE * (1 - laid));
         if (b.pathCols != null) for (int i = 0; i + 3 < b.pathCols.length; i += 4) {
+            // Only the way itself goes back to grass: not a bridge's deck, nor a building's floor or a
+            // wall's footing laid since on what was once the path.
+            if ((b.pathCols[i + 3] & BRIDGE) != 0 || guarded(t, b, b.pathCols[i], b.pathCols[i + 2])) continue;
             BlockPos p = new BlockPos(b.pathCols[i], b.pathCols[i + 1] - 1, b.pathCols[i + 2]);
             if (level.isLoaded(p) && level.getBlockState(p).is(s.block)) level.setBlock(p, Blocks.GRASS_BLOCK.defaultBlockState(), Block.UPDATE_ALL);
         }

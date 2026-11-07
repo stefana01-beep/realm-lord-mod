@@ -172,6 +172,7 @@ LANG = {
     "realmlord.visitor.recruit": "Take into service (%s)",
     "realmlord.visitor.err.none": "No one is visiting.",
     "realmlord.visitor.err.beds": "There is no bed for them.",
+    "realmlord.visitor.err.taken": "Another Lord has already won them over; they have left.",
     # Affiliated villages
     "realmlord.affiliate.found_button": "Found an affiliated village",
     "realmlord.affiliate.found.tip": "%s, %s wood and %s stone, and %s settlers go out to found it. One for each grade of the town.",

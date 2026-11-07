@@ -112,7 +112,7 @@ public final class Exams {
             best.grade = Math.max(best.grade, 2);
             Village.tell(level, t, Component.translatable("realmlord.exam.zhuangyuan", best.name, t.name));
             Notify.world(level.getServer(), Component.translatable("realmlord.exam.zhuangyuan.world", best.name, t.name));
-            t.storage.addItem(SummoningTokenItem.of(0));
+            Village.stow(level, t, SummoningTokenItem.of(0));
             ServerPlayer lord = t.owner == null ? null : level.getServer().getPlayerList().getPlayer(t.owner);
             if (lord != null) {
                 com.realmlord.profile.Profiles.grantMerit(lord, ZHUANGYUAN_MERIT, Component.translatable("realmlord.exam.merit"));

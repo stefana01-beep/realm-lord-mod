@@ -144,6 +144,14 @@ public final class Trials {
 
     /** Waves on schedule; a breach at the manor; the twelve hours run out; the raiders all dead. */
     public static void update(ServerLevel level, Territory t) {
+        // Nobody near: the rest of the attack is fought unseen, as if it had never been seen at all
+        // (leaving the town is no way to have the raiders give up).
+        if (!level.isLoaded(t.center)) {
+            List<Entity> left = raiders(level, t);
+            if (defence(t) * 2 >= attack(t)) win(level, t, left);
+            else fail(level, t, left);
+            return;
+        }
         long elapsed = level.getGameTime() - t.ext.getLong("trialStart");
         int wave = t.ext.getInt("trialWave");
         if (wave < WAVES && elapsed >= wave * (LENGTH / (WAVES + 1))) wave(level, t, wave);
@@ -207,6 +215,17 @@ public final class Trials {
     private static void offScreen(ServerLevel level, Territory t) {
         if (defence(t) * 2 >= attack(t)) win(level, t, List.of());
         else fail(level, t, List.of());
+    }
+
+    /**
+     * A trial's raider in ground that was unloaded when the trial ended (won, lost or fought
+     * unseen) does not come back when the ground loads again.
+     */
+    @SubscribeEvent
+    public static void joined(net.minecraftforge.event.entity.EntityJoinLevelEvent event) {
+        if (event.getLevel().isClientSide() || !event.getEntity().getTags().contains(TAG) || !(event.getLevel() instanceof ServerLevel sl)) return;
+        Territory t = TerritoryData.get(sl.getServer()).byId(event.getEntity().getPersistentData().getInt(Raids.TERRITORY));
+        if (t == null || t.ext.getLong("trialStart") <= 0) event.setCanceled(true);
     }
 
     /** Raiders still about when the server restarts mid-trial carry on; the tick picks them up. */

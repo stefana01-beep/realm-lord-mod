@@ -40,7 +40,9 @@ public final class Festivals {
     public static void day(ServerLevel level, Territory t, long day, RandomSource rnd) {
         int month = GaiaCalendar.month(day);
         int key = GaiaCalendar.year(day) * 12 + month;
-        if (t.ext.getInt("festivalKey") != key && t.ext.getInt("festivalMorale") > 0) t.ext.remove("festivalMorale");
+        // A festival's cheer lasts until its day runs out (a month for a festival, a week for a feast).
+        long until = t.ext.getLong("festivalUntil");
+        if (t.ext.getInt("festivalMorale") > 0 && (until > 0 ? until <= day : t.ext.getInt("festivalKey") != key)) t.ext.remove("festivalMorale");
         String fest = t.level.atLeast(TerritoryLevel.VILLAGE_2) ? of(month) : null;
         if (fest == null || t.ext.getInt("festivalKey") == key) return;
         t.ext.putInt("festivalKey", key);
@@ -56,6 +58,7 @@ public final class Festivals {
                 + Village.countComplete(t, BuildingType.TEMPLE) > 0;
         int morale = (rites ? 7 : 5) + Office.power(t, Office.RITES) / 20;
         t.ext.putInt("festivalMorale", morale);
+        t.ext.putLong("festivalUntil", day + GaiaCalendar.daysPerMonth());
         long income = town ? Math.round(cost * (1.2 + 0.2 * Village.countComplete(t, BuildingType.INN))) : 0;
         t.treasury += income;
         ServerPlayer lord = t.owner == null ? null : level.getServer().getPlayerList().getPlayer(t.owner);

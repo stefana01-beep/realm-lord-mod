@@ -80,6 +80,14 @@ public final class TerrainCache extends SavedData {
 
     /** Draws a loaded chunk into the cache. */
     public static void record(ServerLevel level, LevelChunk chunk) {
+        record(level, chunk, true);
+    }
+
+    /** As above; fresh false keeps a chunk already drawn (a chunk just loaded is as it was left). */
+    public static void record(ServerLevel level, LevelChunk chunk, boolean fresh) {
+        TerrainCache cache = get(level);
+        long k = key(chunk.getPos().x, chunk.getPos().z);
+        if (!fresh && cache.chunks.containsKey(k)) return;
         int bx = chunk.getPos().getMinBlockX(), bz = chunk.getPos().getMinBlockZ();
         if (!near(level, bx, bz)) return;
         int[] a = new int[256];
@@ -109,13 +117,20 @@ public final class TerrainCache extends SavedData {
                 a[z * 16 + x] = 0xFF000000 | TerritoryMap.scale(base, shade);
             }
         }
-        get(level).chunks.put(key(chunk.getPos().x, chunk.getPos().z), a);
-        get(level).setDirty();
+        int[] old = cache.chunks.put(k, a);
+        // Saved with the world only when the land has changed.
+        if (old == null || !java.util.Arrays.equals(old, a)) cache.setDirty();
     }
 
     @SubscribeEvent
     public static void loaded(ChunkEvent.Load e) {
-        if (e.getLevel() instanceof ServerLevel level && e.getChunk() instanceof LevelChunk c && level.getServer().isSameThread()) record(level, c);
+        if (e.getLevel() instanceof ServerLevel level && e.getChunk() instanceof LevelChunk c && level.getServer().isSameThread()) record(level, c, false);
+    }
+
+    /** A new world (or the same one opened again) starts its sketches afresh. */
+    @SubscribeEvent
+    public static void starting(net.minecraftforge.event.server.ServerStartingEvent e) {
+        SKETCH.clear();
     }
 
     @SubscribeEvent

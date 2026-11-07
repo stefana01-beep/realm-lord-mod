@@ -55,7 +55,7 @@ public final class Affiliates {
         if (l.size() >= allowed(t)) return allowed(t) == 0 ? "realmlord.affiliate.err.town" : "realmlord.affiliate.err.max";
         if (t.wood < WOOD || t.stone < STONE) return "realmlord.build.err.resources";
         int movable = 0;
-        for (Resident r : t.residents) if (movable(r)) movable++;
+        for (Resident r : t.residents) if (movable(t, r)) movable++;
         if (movable < SETTLERS + 20) return "realmlord.affiliate.err.people";
         if (!Coins.payWithTreasury(p, COST)) return "realmlord.market.cannot_afford";
         t.wood -= WOOD;
@@ -63,7 +63,7 @@ public final class Affiliates {
         int moved = 0;
         for (int i = t.residents.size() - 1; i >= 0 && moved < SETTLERS; i--) {
             Resident r = t.residents.get(i);
-            if (!movable(r)) continue;
+            if (!movable(t, r)) continue;
             Village.remove(t, r);
             moved++;
         }
@@ -80,8 +80,8 @@ public final class Affiliates {
         return null;
     }
 
-    static boolean movable(Resident r) {
-        return !r.isFigure() && r.office < 0 && !r.militia && !r.follows && r.grade < 0;
+    static boolean movable(Territory t, Resident r) {
+        return Village.ordinary(t, r) && !r.militia && r.grade < 0;
     }
 
     public static void day(ServerLevel level, Territory t, long day, RandomSource rnd) {
@@ -111,7 +111,7 @@ public final class Affiliates {
         int over = t.residents.size() - t.level.populationCap();
         for (int i = t.residents.size() - 1; i >= 0 && over > 0; i--) {
             Resident r = t.residents.get(i);
-            if (!movable(r)) continue;
+            if (!movable(t, r)) continue;
             CompoundTag room = null;
             for (Tag tg : l) {
                 CompoundTag a = (CompoundTag) tg;

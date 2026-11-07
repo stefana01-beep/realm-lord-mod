@@ -101,6 +101,9 @@ public enum Office {
         if (cur != null) cur.office = -1;
         if (r == null) return null;
         r.office = o.ordinal();
+        // An official leaves the ranks and the ships.
+        r.unit = -1;
+        r.sailor = false;
         r.militia = false;
         r.follows = false;
         r.job = Job.IDLE;
